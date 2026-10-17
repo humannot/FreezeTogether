@@ -2729,13 +2729,17 @@ namespace SkyCoop
             }
             else if (ActionType == "Revive")
             {
-                GameManager.GetInventoryComponent().RemoveGearFromInventory("GEAR_MedicalSupplies_hangar", 1);
+                if (GameManager.m_PlayerManager != null && GameManager.m_PlayerManager.m_ItemInHands != null && GameManager.m_PlayerManager.m_ItemInHands.m_EmergencyStim != null)
+                {
+                    GameManager.GetPlayerManagerComponent().UnequipImmediate(false); // Using the stim from hands would leave it stuck there once removed
+                }
+                GameManager.GetInventoryComponent().RemoveGearFromInventory("GEAR_EmergencyStim", 1);
             }
             else if (ActionType == "Stim")
             {
                 if (GameManager.m_PlayerManager != null && GameManager.m_PlayerManager.m_ItemInHands != null && GameManager.m_PlayerManager.m_ItemInHands.m_EmergencyStim != null)
                 {
-                    GameManager.GetPlayerManagerComponent().UseInventoryItem(GameManager.m_PlayerManager.m_ItemInHands);// Unequip GEAR_EmergencyStim
+                    GameManager.GetPlayerManagerComponent().UnequipImmediate(false); // Using the stim from hands would leave it stuck there once removed
                 }
                 GameManager.GetInventoryComponent().RemoveGearFromInventory("GEAR_EmergencyStim", 1);
                 EmergencyStimBeforeUse = null;
@@ -2788,6 +2792,10 @@ namespace SkyCoop
             {
                 GearItem EmergencySt = GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_EmergencyStim", 1);
                 EmergencySt.m_EmergencyStim.OnInject();
+            }
+            else if (ActionType == "Revive" && IsDead)
+            {
+                SimRevive();
             }
         }
 
@@ -4099,9 +4107,119 @@ namespace SkyCoop
 
         public static void SimRevive()
         {
+            if (IsDowned && InterfaceManager.IsPanelEnabled<Panel_Confirmation>())
+            {
+                InterfaceManager.GetPanel<Panel_Confirmation>().OnCancel();
+            }
+            IsDowned = false;
+            GaveUp = false;
             InterfaceManager.GetPanel<Panel_Log>().Enable(false);
             SetRevivedStats();
             GameManager.GetPlayerManagerComponent().SetControlMode(PlayerControlMode.Normal);
+            RestoreAfterDeath();
+            HUDMessage.AddMessage("You have been revived");
+        }
+
+        // Downed state: at 0 HP the player lies on the ground until a teammate revives them or they give up.
+        public static bool IsDowned = false;
+        public static bool GaveUp = false;
+        private static float DownedPopupLastOpen = 0f;
+
+        public static void EnterDowned()
+        {
+            IsDowned = true;
+            MelonLogger.Msg("[Downed] Player is down, waiting for revive");
+            ShowDownedPopup();
+        }
+
+        public static void ShowDownedPopup()
+        {
+            if (m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+            {
+                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "You are down", "\nWait for a teammate to revive you with an emergency stim.\nPress Esc to open this window again.", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Give up"), Loc.T("Wait"), Panel_Confirmation.Background.Transperent, null, null);
+            }
+        }
+
+        public static void GiveUp()
+        {
+            if (!IsDowned)
+            {
+                return;
+            }
+            MelonLogger.Msg("[Downed] Player gave up");
+            IsDowned = false;
+            GaveUp = true;
+            GameManager.HandlePlayerDeath(null);
+        }
+
+        public static void ShowRespawnPopup()
+        {
+            if (m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+            {
+                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "You died", "\nYour items stayed in a backpack where you fell.\nYou will respawn where you last slept indoors.", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Respawn"), Loc.T("Stats"), Panel_Confirmation.Background.Transperent, null, null);
+            }
+        }
+
+        // Esc brings the give up window back after "Wait" closed it, on the death screen Esc or Enter respawns.
+        public static void UpdateDowned()
+        {
+            if (GaveUp && IsDead && InterfaceManager.IsPanelEnabled<Panel_Log>() && !InterfaceManager.IsPanelEnabled<Panel_Confirmation>()
+                && (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.Escape) || InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.Return)))
+            {
+                BeginRespawn();
+                return;
+            }
+            if (!IsDowned)
+            {
+                return;
+            }
+            if (InterfaceManager.IsPanelEnabled<Panel_Confirmation>())
+            {
+                DownedPopupLastOpen = Time.time;
+            }
+            else if (Time.time - DownedPopupLastOpen > 0.3f && InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.Escape))
+            {
+                ShowDownedPopup();
+            }
+        }
+
+        // Respawn point: the last place the player slept indoors.
+        public static string LastSleepScene = "";
+        public static string LastSleepSceneGuid = "";
+        public static Vector3 LastSleepPosition;
+        public static Quaternion LastSleepRotation;
+        public static bool RespawnTeleportPending = false;
+
+        public static void RememberSleepPlace()
+        {
+            if (GameManager.IsOutDoorsScene(GameManager.m_ActiveScene))
+            {
+                return;
+            }
+            LastSleepScene = GameManager.m_ActiveScene;
+            LastSleepSceneGuid = level_guid;
+            LastSleepPosition = GameManager.GetPlayerTransform().position;
+            LastSleepRotation = GameManager.GetPlayerTransform().rotation;
+            MelonLogger.Msg("[Respawn] Sleep place saved " + LastSleepScene + " " + LastSleepPosition);
+        }
+
+        public static void TeleportToSleepPlaceAndSave()
+        {
+            RespawnTeleportPending = false;
+            GameManager.GetPlayerManagerComponent().TeleportPlayer(LastSleepPosition, LastSleepRotation);
+            SaveGameSystem.SetAsyncEnabled(false);
+            PendingRespawn = true;
+            GameManager.ForceSaveGame();
+        }
+
+        // HandlePlayerDeath turns off the camera and player audio, bring them back.
+        public static void RestoreAfterDeath()
+        {
+            GameManager.GetVpFPSCamera().enabled = true;
+            foreach (AudioCallback Callback in GameManager.GetPlayerObject().transform.parent.GetComponentsInChildren<AudioCallback>())
+            {
+                Callback.ToggleDisableAudioEvents(false);
+            }
         }
 
         public static void DeleteAnimal(string _guid)
@@ -6102,6 +6220,7 @@ namespace SkyCoop
                 return true;
             }
         }
+
         public static bool PendingRespawn = false;
         public static void BeginRespawn()
         {
@@ -6119,8 +6238,14 @@ namespace SkyCoop
                 MelonLogger.Msg("m_PlayerManager is null");
             }
             InterfaceManager.GetPanel<Panel_Log>().ExitInterface();
+            IsDead = false;
+            IsDowned = false;
+            GaveUp = false;
+            RestoreAfterDeath();
+            try
+            {
+            // Respawn without loot, everything stayed in the backpack on the death spot.
             GameManager.GetInventoryComponent().DestroyAllGear();
-            GameManager.GetPlayerManagerComponent().m_StartGear.AddAllToInventory();
 
             GameManager.GetSkillArchery().SetPoints(0, SkillsManager.PointAssignmentMode.AssignOnlyInSandbox);
             GameManager.GetSkillRifle().SetPoints(0, SkillsManager.PointAssignmentMode.AssignOnlyInSandbox);
@@ -6135,11 +6260,29 @@ namespace SkyCoop
 
 
             ConsoleManager.CONSOLE_afflictions_cure();
+            }
+            catch (Exception e)
+            {
+                // Don't leave the player stuck on the death screen because of one failed reset.
+                MelonLogger.Msg(System.ConsoleColor.Red, "[BeginRespawn] Reset failed: " + e);
+            }
 
-            GameManager.GetVpFPSCamera().enabled = true;
 
-
-            if (!GameManager.IsOutDoorsScene(GameManager.m_ActiveScene))
+            if (LastSleepScene != "")
+            {
+                if (GameManager.m_ActiveScene == LastSleepScene && level_guid == LastSleepSceneGuid)
+                {
+                    TeleportToSleepPlaceAndSave();
+                } else {
+                    // FinishedLoading teleports to the bed and saves.
+                    RespawnTeleportPending = true;
+                    GameManager.m_SceneTransitionData.m_SpawnPointName = "";
+                    GameManager.m_SceneTransitionData.m_SpawnPointAudio = "";
+                    GameManager.m_SceneTransitionData.m_ForceNextSceneLoadTriggerScene = "";
+                    GameManager.LoadScene(LastSleepScene, LastSleepSceneGuid);
+                }
+            }
+            else if (!GameManager.IsOutDoorsScene(GameManager.m_ActiveScene))
             {
                 string OutDoorToLoad = GameManager.m_SceneTransitionData.m_LastOutdoorScene;
                 GameObject DummyLoader = new GameObject();
@@ -6813,6 +6956,10 @@ namespace SkyCoop
         public static void FinishedLoading()
         {
             SceneDiag.Dump("FinishedLoading");
+            if (RespawnTeleportPending)
+            {
+                TeleportToSleepPlaceAndSave();
+            }
             RegularUpdateSeconds = 2;
             if (HostFromLobbyAfterLoader)
             {
@@ -11502,6 +11649,7 @@ namespace SkyCoop
             {
                 ModUpdate();
                 Shared.OnUpdate();
+                UpdateDowned();
             }
 
             if (!KillEverySecond)

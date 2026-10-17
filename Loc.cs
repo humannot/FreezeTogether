@@ -133,6 +133,19 @@ namespace SkyCoop
             { "INVITE FRIEND", "ПРИГЛАСИТЬ ДРУГА" },
             { "COPY INVITE LINK", "КОПИРОВАТЬ ПРИГЛАШЕНИЕ" },
             { "NEW GAME", "НОВАЯ ИГРА" },
+            // Death and revive
+            { "Revive", "Воскресить" },
+            { "Reviving...", "Воскрешение..." },
+            { "Respawn", "Возродиться" },
+            { "You need an emergency stim to revive this player", "Чтобы воскресить игрока, нужен шприц первой помощи" },
+            { "You have been revived", "Вас воскресили" },
+            { "You are down", "Вы ранены" },
+            { "Give up", "Сдаться" },
+            { "You died", "Вы погибли" },
+            { "Stats", "Статистика" },
+            { "Your items stayed in a backpack where you fell.\nYou will respawn where you last slept indoors.", "Ваши вещи остались в рюкзаке на месте гибели.\nВы возродитесь там, где последний раз спали в помещении." },
+            { "Wait", "Ждать" },
+            { "Wait for a teammate to revive you with an emergency stim.\nPress Esc to open this window again.", "Ждите, пока союзник воскресит вас шприцем первой помощи.\nНажмите Esc, чтобы снова открыть это окно." },
             { "LOAD SAVE", "ЗАГРУЗИТЬ СОХРАНЕНИЕ" },
             { "FEATS", "НАВЫКИ" },
             { "START VOTE", "НАЧАТЬ ГОЛОСОВАНИЕ" },
@@ -300,6 +313,28 @@ namespace SkyCoop
             new KeyValuePair<string, string>(" changed name to ", " сменил имя на "),
         };
 
+        // Popup handlers check the title by its English text, so keep a way back from the translated one.
+        private static readonly Dictionary<string, string> TitlesBack = new Dictionary<string, string>();
+
+        private static string Title(string en)
+        {
+            string ru = T(en);
+            if (!string.IsNullOrEmpty(ru) && ru != en)
+            {
+                TitlesBack[ru.Trim().ToUpper()] = en.Trim().ToUpper();
+            }
+            return ru;
+        }
+
+        public static string En(string shown)
+        {
+            if (shown != null && TitlesBack.TryGetValue(shown.Trim().ToUpper(), out string en))
+            {
+                return en;
+            }
+            return shown;
+        }
+
         // Popups and HUD messages from the mod go through these game methods, translate them in one place.
         private static IEnumerable<MethodBase> AddConfirmationOverloads(bool title, bool message)
         {
@@ -333,7 +368,7 @@ namespace SkyCoop
         internal static class Panel_Confirmation_AddConfirmation_Title_Loc
         {
             private static IEnumerable<MethodBase> TargetMethods() => AddConfirmationOverloads(true, false);
-            private static void Prefix(ref string titleLocID) { titleLocID = T(titleLocID); }
+            private static void Prefix(ref string titleLocID) { titleLocID = Title(titleLocID); }
         }
 
         [HarmonyPatch]
@@ -342,7 +377,7 @@ namespace SkyCoop
             private static IEnumerable<MethodBase> TargetMethods() => AddConfirmationOverloads(true, true);
             private static void Prefix(ref string titleLocID, ref string messageLocID)
             {
-                titleLocID = T(titleLocID);
+                titleLocID = Title(titleLocID);
                 messageLocID = T(messageLocID);
             }
         }

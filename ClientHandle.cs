@@ -351,7 +351,7 @@ namespace SkyCoop
 
         public static void REVIVEDONE(Packet _packet)
         {
-            GameManager.GetInventoryComponent().RemoveGearFromInventory("GEAR_MedicalSupplies_hangar", 1);
+            GameManager.GetInventoryComponent().RemoveGearFromInventory("GEAR_EmergencyStim", 1);
         }
 
         public static void DARKWALKERREADY(Packet _packet)

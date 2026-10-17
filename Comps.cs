@@ -386,7 +386,7 @@ namespace SkyCoop
                         {
                             GameObject RegionSpawnObj = ObjectGuidManager.Lookup(m_RegionGUID);
 
-                            if (RegionSpawnObj != null)
+                            if (RegionSpawnObj != null && RegionSpawnObj.GetComponent<SpawnRegionSimple>() != null && m_Animal.GetComponent<ObjectGuid>() != null)
                             {
                                 RegionSpawnObj.GetComponent<SpawnRegionSimple>().m_Animals.Remove(m_Animal.GetComponent<ObjectGuid>().Get());
                             }
@@ -671,9 +671,10 @@ namespace SkyCoop
                     {
                         GameObject RegionSpawnObj = ObjectGuidManager.Lookup(m_RegionGUID);
 
-                        if (RegionSpawnObj != null)
+                        SpawnRegionSimple Region = RegionSpawnObj != null ? RegionSpawnObj.GetComponent<SpawnRegionSimple>() : null;
+                        if (Region != null && m_Animal.GetComponent<ObjectGuid>() != null)
                         {
-                            RegionSpawnObj.GetComponent<SpawnRegionSimple>().m_Animals.Remove(m_Animal.GetComponent<ObjectGuid>().Get());
+                            Region.m_Animals.Remove(m_Animal.GetComponent<ObjectGuid>().Get());
                         }
                     }
                 }
@@ -689,10 +690,11 @@ namespace SkyCoop
                     {
                         if (m_RegionGUID != "")
                         {
-                            if (RegionSpawnObj != null)
+                            SpawnRegionSimple Region = RegionSpawnObj != null ? RegionSpawnObj.GetComponent<SpawnRegionSimple>() : null;
+                            if (Region != null)
                             {
-                                RegionSpawnObj.GetComponent<SpawnRegionSimple>().m_Animals.Remove(m_Animal.GetComponent<ObjectGuid>().Get());
-                                RegionSpawnObj.GetComponent<SpawnRegionSimple>().m_Animals.Add(m_Animal.GetComponent<ObjectGuid>().Get(), m_Animal);
+                                Region.m_Animals.Remove(m_Animal.GetComponent<ObjectGuid>().Get());
+                                Region.m_Animals.Add(m_Animal.GetComponent<ObjectGuid>().Get(), m_Animal);
                             }
                         }
                     }

@@ -553,12 +553,20 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT SERVER ADDRESS")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "YOU ARE DOWN")
+                {
+                    MyMod.GiveUp();
+                }
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "YOU DIED")
+                {
+                    MyMod.BeginRespawn();
+                }
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT SERVER ADDRESS")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     ClientUser.DoConnectToIp(text);
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INVALID CONTAINER DATA")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INVALID CONTAINER DATA")
                 {
                     Shared.CloseContainerOnCancle = false;
                     if (MyMod.GoingToOpenContinaer != null)
@@ -567,8 +575,8 @@ namespace SkyCoop
                     }
                 }
                 if (__instance.m_CurrentGroup != null && 
-                    (__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "YOU GOT A NEW FLAIR!" ||
-                     __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "YOU GOT NEW FLAIRS!"))
+                    (Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "YOU GOT A NEW FLAIR!" ||
+                     Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "YOU GOT NEW FLAIRS!"))
                 {
                     // Open Flairs Menu
                     Supporters.SetFlairsUpdateData();
@@ -578,7 +586,7 @@ namespace SkyCoop
                     MenuChange.OpenFlairsMenu();
 
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "HOW DO YOU WANT TO BE CALLED?")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "HOW DO YOU WANT TO BE CALLED?")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     if (!MyMod.ValidNickName(text))
@@ -600,12 +608,12 @@ namespace SkyCoop
                     bool RightThing = true;
                     string ErrorAlias = "seed";
 
-                    if (__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT SECRET SEED FOR KEY")
+                    if (Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT SECRET SEED FOR KEY")
                     {
                         Seed = true;
                         ErrorAlias = "seed";
                     }
-                    else if(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT NAME FOR KEY")
+                    else if(Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT NAME FOR KEY")
                     {
                         Seed = false;
                         ErrorAlias = "name";
@@ -647,7 +655,7 @@ namespace SkyCoop
                         }
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "DATA FOR DEBUG KEY")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "DATA FOR DEBUG KEY")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
 
@@ -660,7 +668,7 @@ namespace SkyCoop
                         InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "It should be seed_name format!", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "NOTE MESSAGE")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "NOTE MESSAGE")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     if (CharcoalItem.m_CharcoalItemInUseForSurvey != null)
@@ -672,7 +680,7 @@ namespace SkyCoop
                         MyMod.CreateCustomNote(text);
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT GUID TO TELEPORT TO")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT GUID TO TELEPORT TO")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     bool found = false;
@@ -697,7 +705,7 @@ namespace SkyCoop
                     }
                 }
 
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT ID OF PLAYER TELEPORT TO")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT ID OF PLAYER TELEPORT TO")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
 
@@ -720,18 +728,18 @@ namespace SkyCoop
                         }
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "DISCONNECT TIMEOUT")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "DISCONNECT TIMEOUT")
                 {
                     Application.Quit();
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "DISCONNECTED")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "DISCONNECTED")
                 {
                     if (MyMod.QuitWithoutSaving)
                     {
                         Application.Quit();
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT GUID TO TRACK")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT GUID TO TRACK")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     bool found = false;
@@ -4666,7 +4674,11 @@ namespace SkyCoop
         {
             DataStr.MultiPlayerClientData pData = MyMod.playersData[m_ID];
             DataStr.PriorityActionForOtherPlayer act = new DataStr.PriorityActionForOtherPlayer();
-            if (GameManager.m_PlayerManager != null && GameManager.m_PlayerManager.m_ItemInHands != null && GameManager.m_PlayerManager.m_ItemInHands.m_HandheldShortwaveItem != null)
+            if (pData != null && pData.m_AnimState == "Knock") // Dead player, can be revived with a medical kit.
+            {
+                act = MyMod.GetActionForOtherPlayer("Revive");
+            }
+            else if (GameManager.m_PlayerManager != null && GameManager.m_PlayerManager.m_ItemInHands != null && GameManager.m_PlayerManager.m_ItemInHands.m_HandheldShortwaveItem != null)
             {
                 act = MyMod.GetActionForOtherPlayer("Invite");
             } else if (GameManager.m_PlayerManager != null && GameManager.m_PlayerManager.m_ItemInHands != null && GameManager.m_PlayerManager.m_ItemInHands.m_EmergencyStim != null)
@@ -4723,7 +4735,18 @@ namespace SkyCoop
                             return;
                         }
 
-                        if (PAction == "Invite")
+                        if (PAction == "Revive")
+                        {
+                            if (GameManager.GetInventoryComponent().HasNonRuinedItem("GEAR_EmergencyStim"))
+                            {
+                                MyMod.DoLongAction(mP, ProcessText, PAction);
+                            } else {
+                                GameAudioManager.PlayGUIError();
+                                HUDMessage.AddMessage("You need an emergency stim to revive this player");
+                            }
+                            __result = true;
+                        }
+                        else if (PAction == "Invite")
                         {
                             MyMod.SendInvietToPlayer(mP.m_ID);
                             //MyMod.DoLongAction(mP, ProcessText, PAction);
@@ -5892,6 +5915,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
+                MyMod.RememberSleepPlace();
                 SanityManager.StartSleeping();
             }
         }
@@ -5906,6 +5930,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
+                MyMod.RememberSleepPlace();
                 SanityManager.StartSleeping();
             }
         }
@@ -8196,11 +8221,57 @@ namespace SkyCoop
                 return false;
             }
         }
+        // 2.55: the death screen back button doesn't go through OnQuitToMainMenu anymore, catch every way out of it.
+        [HarmonyLib.HarmonyPatch(typeof(Panel_Log), "OnBack")]
+        private static class Panel_Log_OnBack
+        {
+            private static bool Prefix(Panel_Log __instance)
+            {
+                if (MyMod.InOnline() && MyMod.IsDead)
+                {
+                    MyMod.BeginRespawn();
+                    return false;
+                }
+                return true;
+            }
+        }
+        [HarmonyLib.HarmonyPatch(typeof(Panel_Log), "ReallyQuitToMainMenu")]
+        private static class Panel_Log_ReallyQuitToMainMenu
+        {
+            private static bool Prefix(Panel_Log __instance)
+            {
+                if (MyMod.InOnline() && MyMod.IsDead)
+                {
+                    MyMod.BeginRespawn();
+                    return false;
+                }
+                return true;
+            }
+        }
         [HarmonyLib.HarmonyPatch(typeof(GameManager), "HandlePlayerDeath")]
         private static class GameManager_HandlePlayerDeath
         {
             private static bool Prefix(GameManager __instance)
             {
+                // Online the player is downed first: lies on the ground until revived or gives up.
+                if (MyMod.InOnline() && !MyMod.GaveUp)
+                {
+                    if (!MyMod.IsDowned)
+                    {
+                        if (InterfaceManager.GetPanel<Panel_Log>().IsEnabled())
+                        {
+                            InterfaceManager.GetPanel<Panel_Log>().ExitInterfaceOnDeath();
+                        }
+                        if (GameManager.m_Rest.IsSleeping())
+                        {
+                            GameManager.m_Rest.EndSleeping(true);
+                        }
+                        GameManager.m_PlayerManager.UnequipImmediate(false);
+                        GameManager.m_PlayerManager.SetControlMode(PlayerControlMode.Dead);
+                        MyMod.EnterDowned();
+                    }
+                    return false;
+                }
 
                 if (InterfaceManager.GetPanel<Panel_Log>().IsEnabled())
                 {
@@ -8332,6 +8403,11 @@ namespace SkyCoop
             {
                 MyMod.IsDead = true;
                 MyMod.DropAll();
+                if (MyMod.InOnline())
+                {
+                    // 2.55 enables the back button after a fade we skip, so give a working Respawn button.
+                    MyMod.ShowRespawnPopup();
+                }
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Panel_Log), "GetOnBackText")]

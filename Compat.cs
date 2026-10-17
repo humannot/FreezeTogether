@@ -181,7 +181,8 @@ internal static class Compat
         }
         public bool ProcessPickupItemInteraction(GearItem gi, bool forceEquip, bool forceEquipImmediate)
             => pm.ProcessPickupItemInteraction(gi, forceEquip, forceEquipImmediate, false);
-        public void ProcessBedInteraction(Bed bed) => pm.UseBedItem(bed.GetComponent<GearItem>());
+        // UseBedItem is the inventory action (start placing the bedroll), a placed bed sleeps via its own interaction.
+        public void ProcessBedInteraction(Bed bed) => bed.PerformInteraction();
         public void ProcessContainerInteraction(Container c) => c.GetComponent<ContainerInteraction>()?.PerformInteraction();
         public float GetNormalizedSprintReduction() => pm.GetClothingSprintReduction();
     }
