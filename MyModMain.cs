@@ -6275,11 +6275,18 @@ namespace SkyCoop
                     TeleportToSleepPlaceAndSave();
                 } else {
                     // FinishedLoading teleports to the bed and saves.
+                    // Load it like a door does: GameManager.LoadScene keeps the old scene id, so the game would show
+                    // the shed while the mod and the other players think we are still in the old scene.
                     RespawnTeleportPending = true;
-                    GameManager.m_SceneTransitionData.m_SpawnPointName = "";
-                    GameManager.m_SceneTransitionData.m_SpawnPointAudio = "";
-                    GameManager.m_SceneTransitionData.m_ForceNextSceneLoadTriggerScene = "";
-                    GameManager.LoadScene(LastSleepScene, LastSleepSceneGuid);
+                    GameObject SleepLoaderObj = new GameObject();
+                    LoadScene SleepLoader = SleepLoaderObj.AddComponent<LoadScene>();
+                    SleepLoader.m_SceneToLoad = LastSleepScene;
+                    if (LastSleepSceneGuid != LastSleepScene)
+                    {
+                        SleepLoader.m_SceneCanBeInstanced = true;
+                        SleepLoader.m_GUID = LastSleepSceneGuid;
+                    }
+                    SleepLoader.Activate();
                 }
             }
             else if (!GameManager.IsOutDoorsScene(GameManager.m_ActiveScene))
