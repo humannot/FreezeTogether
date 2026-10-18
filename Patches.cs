@@ -44,6 +44,11 @@ namespace SkyCoop
                     return false;
                 }
                 MelonLogger.Msg("Item dropped " + __instance.m_GearName);
+                // Travois must stay a real world object so it can be dragged; a fake dummy drop can only be picked up.
+                if (MyMod.InOnline() == true && __instance.GetComponent<TravoisItem>() != null && __instance.gameObject.GetComponent<Comps.IgnoreDropOverride>() == null)
+                {
+                    __instance.gameObject.AddComponent<Comps.IgnoreDropOverride>();
+                }
                 if (MyMod.InOnline() == true && __instance.gameObject.GetComponent<Comps.IgnoreDropOverride>() == null)
                 {
                     ShouldDrop = numUnits;
@@ -4387,6 +4392,7 @@ namespace SkyCoop
             internal static void Postfix(PlayerManager __instance, ref string __result)
             {
                 Impl(__instance, __instance.m_InteractiveObjectUnderCrosshair, ref __result);
+                __result = Loc.HoverT(__result);
             }
             static void Impl(PlayerManager __instance, GameObject interactiveObject, ref string __result)
             {
@@ -7106,6 +7112,19 @@ namespace SkyCoop
                     StackTrace st = new StackTrace(new StackFrame(true));
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                }
+                if (MyMod.InOnline() == true && __instance.GetComponent<ObjectGuid>() == null)
+                {
+                    // Give the travois storage the travois gear's GUID so the host keeps it through pickup/drop.
+                    Il2CppTLD.BigCarry.TravoisBigCarryItem travois = __instance.GetComponentInParent<Il2CppTLD.BigCarry.TravoisBigCarryItem>();
+                    if (travois != null && travois.m_TravoisGearItem != null)
+                    {
+                        string gearGuid = ObjectGuid.MaybeGetGuidFromGameObject(travois.m_TravoisGearItem.gameObject);
+                        if (!string.IsNullOrEmpty(gearGuid))
+                        {
+                            ObjectGuid.MaybeAttachObjectGuidAndRegister(__instance.gameObject, gearGuid + "_travois");
+                        }
+                    }
                 }
                 if (MyMod.InOnline() == true && __instance.GetComponent<ObjectGuid>() != null)
                 {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using HarmonyLib;
 using MelonLoader;
 using UnityEngine;
@@ -234,6 +235,58 @@ namespace SkyCoop
             { "Invalid ID of player!", "Неверный ID игрока!" },
             { "You can't use custom experience mode in online! This case to major desync!", "Нельзя использовать свой режим сложности в сетевой игре! Это приведёт к сильной рассинхронизации!" },
             { "Press Esc to Exit", "Нажмите Esc для выхода" },
+            { "Sorry nickname should not contain non latin symbols", "Ник не должен содержать нелатинских символов" },
+            { "It should be seed_name format!", "Нужен формат seed_name!" },
+            { "Server is no more available to join", "Сервер больше недоступен для подключения" },
+            { "You already on the server, restart the game if you want to join to another server", "Вы уже на сервере. Перезапустите игру, чтобы подключиться к другому серверу" },
+            { "Connect", "Подключиться" },
+            { "Next", "Далее" },
+            { "Cancel", "Отмена" },
+            { "Confirm", "Подтвердить" },
+            { "Something wrong", "Что-то пошло не так" },
+            { "Waiting for server restart", "Ожидание перезапуска сервера" },
+            { "INVALID CONTAINER DATA", "НЕВЕРНЫЕ ДАННЫЕ КОНТЕЙНЕРА" },
+            { "Host did not responced after 10 Attempts, you can safly exit the game.\nGame won't be saves to keep save valid for host on reconnection!", "Хост не ответил после 10 попыток, можно спокойно выйти из игры.\nИгра не будет сохранена, чтобы сохранение осталось пригодным для хоста при переподключении!" },
+            { "You has been kicked from the server.", "Вы были исключены с сервера." },
+            { "You has been banned from the server.", "Вы были заблокированы на сервере." },
+            { "The host has disconnected you from the server due to a long period without receiving data from you.", "Хост отключил вас от сервера: от вас долго не поступали данные." },
+            { "Your RCON session is over, please reconnect.", "Ваш сеанс RCON завершён, подключитесь заново." },
+            { "Outdated RCON protocol!", "Устаревший протокол RCON!" },
+            { "Wrong mods installed! You have that different from server's mods, or you missing some mods that installed on the server, check logs!", "Установлены неверные моды! Ваши моды отличаются от модов сервера или у вас не хватает модов, установленных на сервере. Проверьте логи!" },
+            { "Connection failed", "Не удалось подключиться" },
+            { "Joined Expedition", "Присоединился к экспедиции" },
+            { "Expedition Invite", "Приглашение в экспедицию" },
+            { "Story multiplayer: server started", "Сюжетный мультиплеер: сервер запущен" },
+            { "YOU GOT A NEW FLAIR!", "ВЫ ПОЛУЧИЛИ НОВОЕ УКРАШЕНИЕ!" },
+            { "YOU GOT NEW FLAIRS!", "ВЫ ПОЛУЧИЛИ НОВЫЕ УКРАШЕНИЯ!" },
+            { "Open flairs customization menu?", "Открыть меню украшений?" },
+            { "Found animal starting tracking", "Животное найдено, начинаем слежку" },
+            { "and", "и" },
+            { "Player", "Игрок" },
+            { "Interacting...", "Взаимодействие..." },
+            { "Lockpick", "Взломать" },
+            { "Lockpicking...", "Взлом..." },
+            { "Excision", "Вырезать" },
+            { "Excision...", "Вырезание..." },
+            { "Sawing", "Распил" },
+            { "Sawing...", "Распил..." },
+            { "Grinding", "Заточка" },
+            { "Grinding...", "Заточка..." },
+            { "Casting", "Отливка" },
+            { "Casting...", "Отливка..." },
+            { "Inject", "Сделать укол" },
+            { "Injecting...", "Укол..." },
+            { "Invite to expedition", "Пригласить в экспедицию" },
+            { "Inviting...", "Приглашение..." },
+            { "Ignite from player's fire", "Зажечь от огня игрока" },
+            { "Examine", "Осмотреть" },
+            { "Diagnosing...", "Осмотр..." },
+            { "Borrow", "Одолжить" },
+            { "Borrowing...", "Заимствование..." },
+            { "Pickup", "Подобрать" },
+            { "(Loading)", "(Загрузка)" },
+            { "Stay(Seconds)", "Остаться (секунды)" },
+            { "Wait(Seconds)", "Ждать (секунды)" },
 
             // HUD messages
             { "THIS ALREADY PICKED!", "ЭТО УЖЕ ПОДОБРАНО!" },
@@ -295,6 +348,17 @@ namespace SkyCoop
             new KeyValuePair<string, string>("VOTING: ", "ГОЛОСОВАНИЕ: "),
             new KeyValuePair<string, string>("Plane with a valuable cargo crashed somewhere on ", "Самолёт с ценным грузом разбился где-то в регионе "),
             new KeyValuePair<string, string>("[SERVER] ", "[СЕРВЕР] "),
+            new KeyValuePair<string, string>("You has been kicked from the server.\nReason: ", "Вы были исключены с сервера.\nПричина: "),
+            new KeyValuePair<string, string>("You has been banned from the server.\nReason: ", "Вы были заблокированы на сервере.\nПричина: "),
+            new KeyValuePair<string, string>("Wasn't able to get all chunks of container data, please try again or cancel.", "Не удалось получить все части данных контейнера, попробуйте ещё раз или отмените."),
+            new KeyValuePair<string, string>("Server sent invalid data, this can be network delay problem, please press Confirm to try load data again. If problem stays, message us about this problem.", "Сервер прислал неверные данные, возможно из-за задержки сети. Нажмите «Подтвердить», чтобы загрузить данные ещё раз. Если проблема остаётся, сообщите нам о ней."),
+            new KeyValuePair<string, string>("Timed out on response from host for last request. Trying to repeat request to correct the situation, please wait...\nAttempt #", "Хост не ответил на последний запрос. Повторяем запрос, подождите...\nПопытка №"),
+            new KeyValuePair<string, string>("Please wait...\nPing Attempt #", "Подождите...\nПопытка пинга №"),
+            new KeyValuePair<string, string>("Players sleep ", "Спят игроков: "),
+            new KeyValuePair<string, string>("Wrong mod version! Server using version ", "Неверная версия мода! Сервер использует версию "),
+            new KeyValuePair<string, string>("Your version of the mod, isn't supported\nHost using version ", "Ваша версия мода не поддерживается\nХост использует версию "),
+            new KeyValuePair<string, string>("Frequency ", "Частота "),
+            new KeyValuePair<string, string>("Animal with GUID ", "Животное с GUID "),
         };
 
         private static readonly List<KeyValuePair<string, string>> Suffixes = new List<KeyValuePair<string, string>>
@@ -304,6 +368,16 @@ namespace SkyCoop
             new KeyValuePair<string, string>(" can't join because has diferent mods installed!", " не может подключиться: установлены другие моды!"),
             new KeyValuePair<string, string>(" join the server", " подключился к серверу"),
             new KeyValuePair<string, string>(" disconnected!", " отключился!"),
+            new KeyValuePair<string, string>(" not exist!", " не существует!"),
+            new KeyValuePair<string, string>(" INTERACTING WITH THIS!", " УЖЕ С ЭТИМ ВЗАИМОДЕЙСТВУЕТ!"),
+            new KeyValuePair<string, string>(" MOVED, ACTION CANCELED", " ДВИНУЛСЯ, ДЕЙСТВИЕ ОТМЕНЕНО"),
+            new KeyValuePair<string, string>(" INSIDE, CAN'T DISMANTLE THIS!", " ВНУТРИ, ЭТО НЕЛЬЗЯ РАЗОБРАТЬ!"),
+            new KeyValuePair<string, string>(" IS ALREADY COLLECTING THIS", " УЖЕ ЭТО СОБИРАЕТ"),
+            new KeyValuePair<string, string>(" IS BREAKING THIS!", " УЖЕ ЭТО РАЗБИРАЕТ!"),
+            new KeyValuePair<string, string>(" IS BREAKING THIS", " УЖЕ ЭТО РАЗБИРАЕТ"),
+            new KeyValuePair<string, string>(" IS USING THIS!", " УЖЕ ЭТИМ ПОЛЬЗУЕТСЯ!"),
+            new KeyValuePair<string, string>(" IS USING THIS", " УЖЕ ЭТИМ ПОЛЬЗУЕТСЯ"),
+            new KeyValuePair<string, string>(" IS BUSY WITH THIS ALREADY", " УЖЕ ЭТИМ ЗАНЯТ"),
         };
 
         private static readonly List<KeyValuePair<string, string>> Infixes = new List<KeyValuePair<string, string>>
@@ -380,6 +454,75 @@ namespace SkyCoop
                 titleLocID = Title(titleLocID);
                 messageLocID = T(messageLocID);
             }
+        }
+
+        private static string Plural(int n, string one, string few, string many)
+        {
+            int m10 = n % 10, m100 = n % 100;
+            if (m10 == 1 && m100 != 11) return one;
+            if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+            return many;
+        }
+
+        private static string ReplaceCount(Regex Rx, string Text, string one, string few, string many)
+        {
+            Match M = Rx.Match(Text);
+            while (M.Success)
+            {
+                int n = int.Parse(M.Groups[1].Value);
+                string Rep = n + " " + Plural(n, one, few, many);
+                Text = Text.Substring(0, M.Index) + Rep + Text.Substring(M.Index + M.Length);
+                M = Rx.Match(Text, M.Index + Rep.Length);
+            }
+            return Text;
+        }
+
+        private static readonly (Regex, string)[] HoverRules =
+        {
+            (new Regex(@"(\d+) days?\b"), null),
+            (new Regex(@"(\d+) hours?\b"), null),
+            (new Regex(@"(\d+) minutes?\b"), null),
+            (new Regex(@"Dropped just now"), "Брошено только что"),
+            (new Regex(@"Dropped long time ago"), "Брошено давно"),
+            (new Regex(@"Dropped (.+) ago"), "Брошено $1 назад"),
+            (new Regex(@"(.+)'s Backpack"), "Рюкзак игрока $1"),
+            (new Regex(@"Fuel left for "), "Топлива хватит на "),
+            (new Regex(@"No Fuel left "), "Топливо закончилось, "),
+            (new Regex(@"Cannot snare here "), "Здесь нельзя ставить силки, "),
+            (new Regex(@"May catch in: "), "Возможно, поймает через: "),
+            (new Regex(@"Will catch in: "), "Поймает через: "),
+            (new Regex(@"As soon as no one see"), "Как только никто не видит"),
+            (new Regex(@"Cannot be cured here"), "Здесь нельзя обработать"),
+            (new Regex(@"Cures in"), "Будет готово через"),
+            (new Regex(@"Cools in"), "Остынет через"),
+            (new Regex(@"\bCured\b"), "Готово"),
+            (new Regex(@"\bCooled\b"), "Остыло"),
+            (new Regex(@"\b[Dd]ropped by "), "Бросил: "),
+            (new Regex(@"\bPlaced by "), "Поставил: "),
+            (new Regex(@"\bSetup by "), "Установил: "),
+        };
+
+        // Hover texts of dropped items, backpacks, snares and so on are built by the mod from English parts.
+        public static string HoverT(string s)
+        {
+            if (string.IsNullOrEmpty(s) || !IsRussian)
+            {
+                return s;
+            }
+            string R = s;
+            R = ReplaceCount(HoverRules[0].Item1, R, "день", "дня", "дней");
+            R = ReplaceCount(HoverRules[1].Item1, R, "час", "часа", "часов");
+            R = ReplaceCount(HoverRules[2].Item1, R, "минута", "минуты", "минут");
+            for (int i = 3; i < HoverRules.Length; i++)
+            {
+                R = HoverRules[i].Item1.Replace(R, HoverRules[i].Item2);
+            }
+            string[] Lines = R.Split('\n');
+            for (int i = 0; i < Lines.Length; i++)
+            {
+                Lines[i] = T(Lines[i]);
+            }
+            return string.Join("\n", Lines);
         }
 
         [HarmonyPatch]

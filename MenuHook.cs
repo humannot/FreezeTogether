@@ -88,6 +88,20 @@ namespace SkyCoop
         {
             GameObject.Find("Panel_MainMenu/MainPanel/Main/TLD_wordmark").transform.localPosition += new Vector3(0, (numOfMainMenuItems - 6) * 30, 0);
         }
+        // MULTIPLAYER goes right above the quit button, whatever the game version has in the main menu.
+        public static int GetQuitIndex(Panel_MainMenu __instance)
+        {
+            int Count = __instance.m_MenuItems.Count;
+            for (int i = 0; i < Count; i++)
+            {
+                string Name = __instance.m_MenuItems[i].m_Type.ToString();
+                if (Name.IndexOf("Quit", StringComparison.OrdinalIgnoreCase) >= 0 || Name.IndexOf("Exit", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return i;
+                }
+            }
+            return Math.Max(0, Count - 1);
+        }
         public static void AddButton(Panel_MainMenu __instance, string name, int order, int plus)
         {
             Panel_MainMenu.MainMenuItem mainMenuItem = new Panel_MainMenu.MainMenuItem();
@@ -371,7 +385,7 @@ namespace SkyCoop
             public static void Postfix(Panel_MainMenu __instance)
             {
                 MelonLogger.Msg("[UI] Trying modify main menu...");
-                AddButton(__instance, "MULTIPLAYER", 4, 1);
+                AddButton(__instance, "MULTIPLAYER", GetQuitIndex(__instance), 1);
 
                 //AddButton(__instance, "CONNECT BY IP", 4, 1);
 
@@ -790,7 +804,7 @@ namespace SkyCoop
                     MyMod.InterloperHook = true;
                     MyMod.CheckHaveSaveFileToJoin(SaveData);
                 }else{
-                    InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input server address", MPSaveManager.GetLastConnectedServer(), Panel_Confirmation.ButtonLayout.Button_2, "Connect", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                    InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input server address", MPSaveManager.GetLastConnectedServer(), Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Connect"), "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                 }
             }
         }

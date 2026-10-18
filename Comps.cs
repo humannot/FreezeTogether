@@ -3466,7 +3466,7 @@ namespace SkyCoop
                 {
                     if(m_Data.m_MaterialCount > 1)
                     {
-                        HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool) + " and " + m_Data.m_MaterialCount + " " + GearItem.GetGearDisplayName(m_Data.m_Material));
+                        HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool) + Loc.T(" and ") + m_Data.m_MaterialCount + " " + GearItem.GetGearDisplayName(m_Data.m_Material));
                     } else
                     {
                         HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool) + " and " + GearItem.GetGearDisplayName(m_Data.m_Material));

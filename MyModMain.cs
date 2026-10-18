@@ -2550,7 +2550,7 @@ namespace SkyCoop
             PreviousControlModeBeforeAction = GameManager.GetPlayerManagerComponent().GetControlMode();
             GameManager.GetPlayerManagerComponent().SetControlMode(PlayerControlMode.Locked);
             InteractionInprocess = true;
-            InterfaceManager.GetPanel<Panel_HUD>().StartItemProgressBar(Duration, actionString, (GearItem)null, new System.Action(EmptyFn));
+            InterfaceManager.GetPanel<Panel_HUD>().StartItemProgressBar(Duration, Loc.T(actionString), (GearItem)null, new System.Action(EmptyFn));
 
             if (actionType == "Excision")
             {
@@ -2593,7 +2593,7 @@ namespace SkyCoop
             PlayerInteractionWith = mP;
             PreviousControlModeBeforeAction = GameManager.GetPlayerManagerComponent().GetControlMode();
             GameManager.GetPlayerManagerComponent().SetControlMode(PlayerControlMode.Locked);
-            InterfaceManager.GetPanel<Panel_HUD>().StartItemProgressBar(mP.m_InteractTimer, actionString, (GearItem)null, new System.Action(EmptyFn));
+            InterfaceManager.GetPanel<Panel_HUD>().StartItemProgressBar(mP.m_InteractTimer, Loc.T(actionString), (GearItem)null, new System.Action(EmptyFn));
 
             if (actionType != "Revive")
             {
@@ -6616,7 +6616,7 @@ namespace SkyCoop
 
                         if (MPs[i].m_IsLoading)
                         {
-                            Comp.text = Comp.text + "(Loading)";
+                            Comp.text = Comp.text + Loc.T("(Loading)");
                         }
 
                         StatusTexes[i].SetActive(true);
@@ -8852,9 +8852,16 @@ namespace SkyCoop
 
         public static Container GoingToOpenContinaer = null;
 
+        // Travois is dragged between scenes, so its storage is keyed by GUID only.
+        public static string ContainerSceneKey(Container box)
+        {
+            return box.GetComponentInParent<Il2CppTLD.BigCarry.TravoisBigCarryItem>() != null ? "TRAVOIS" : level_guid;
+        }
+
         public static void OpenFakeContainer(Container box)
         {
             string boxGUID = box.GetComponent<ObjectGuid>().Get();
+            string boxScene = ContainerSceneKey(box);
 
             if (sendMyPosition == true)
             {
@@ -8862,7 +8869,7 @@ namespace SkyCoop
                 DoPleaseWait("Please wait...", "Downloading container data...");
                 using (Packet _packet = new Packet((int)ClientPackets.REQUESTOPENCONTAINER))
                 {
-                    _packet.Write(level_guid);
+                    _packet.Write(boxScene);
                     _packet.Write(boxGUID);
                     SetRepeatPacket(ResendPacketType.Container);
                     SendUDPData(_packet);
@@ -8870,7 +8877,7 @@ namespace SkyCoop
                 return;
             }
 
-            string CompressedData = MPSaveManager.LoadContainer(level_guid, boxGUID);
+            string CompressedData = MPSaveManager.LoadContainer(boxScene, boxGUID);
             string Data = "";
             if (CompressedData != "")
             {
@@ -8883,7 +8890,7 @@ namespace SkyCoop
             box.m_SearchInProgress = false;
             box.StopSearchAudio(); // vanilla ShowContainerContents stops it, but we skip that method
             box.m_OpenInProgress = false;
-            bool NeverLooted = Data == "" && MPSaveManager.GetContainerState(level_guid, boxGUID) == -1;
+            bool NeverLooted = Data == "" && MPSaveManager.GetContainerState(boxScene, boxGUID) == -1;
             if (NeverLooted)
             {
                 FillWithOwnLoot(box);
@@ -8911,6 +8918,7 @@ namespace SkyCoop
         public static void CloseFakeContainer(Container box)
         {
             string boxGUID = box.GetComponent<ObjectGuid>().Get();
+            string boxScene = ContainerSceneKey(box);
             box.m_Inspected = true;
             box.m_StartInspected = true;
             string Data = box.Serialize();
@@ -8962,7 +8970,7 @@ namespace SkyCoop
 
             DataStr.ContainerOpenSync BoxSync = new DataStr.ContainerOpenSync();
             BoxSync.m_Guid = boxGUID;
-            BoxSync.m_LevelGUID = level_guid;
+            BoxSync.m_LevelGUID = boxScene;
             BoxSync.m_Inspected = true;
 
             Shared.AddLootedContainer(BoxSync, true, ClientUser.myId, State);
@@ -8980,20 +8988,20 @@ namespace SkyCoop
 
                 if (IsDeathCreate)
                 {
-                    RemoveDeathContainer(boxGUID, level_guid);
+                    RemoveDeathContainer(boxGUID, boxScene);
                 }
                 if (sendMyPosition)
                 {
                     using (Packet _packet = new Packet((int)ClientPackets.DEATHCREATEEMPTYNOW))
                     {
                         _packet.Write(boxGUID);
-                        _packet.Write(level_guid);
+                        _packet.Write(boxScene);
                         _packet.Write(IsDeathCreate);
                         SendUDPData(_packet);
                     }
                 } else
                 {
-                    MPSaveManager.RemoveContainer(level_guid, boxGUID);
+                    MPSaveManager.RemoveContainer(boxScene, boxGUID);
                 }
             } else 
             {
@@ -9001,10 +9009,10 @@ namespace SkyCoop
                 if (sendMyPosition == true)
                 {
                     DoPleaseWait("Please wait...", "Sending container data...");
-                    Shared.SendContainerData(CompressedData, level_guid, boxGUID, Data);
+                    Shared.SendContainerData(CompressedData, boxScene, boxGUID, Data);
                     return;
                 }
-                MPSaveManager.SaveContainer(level_guid, boxGUID, CompressedData);
+                MPSaveManager.SaveContainer(boxScene, boxGUID, CompressedData);
             }
             if (box != null)
             {
@@ -9530,10 +9538,10 @@ namespace SkyCoop
                     StayTime.SetActive(true);
                     if(Type == (int)ExpeditionManager.ExpeditionTaskType.STAYINZONE)
                     {
-                        StayTime.transform.GetChild(2).gameObject.GetComponent<UnityEngine.UI.Text>().text = "Stay(Seconds)";
+                        StayTime.transform.GetChild(2).gameObject.GetComponent<UnityEngine.UI.Text>().text = Loc.T("Stay(Seconds)");
                     } else
                     {
-                        StayTime.transform.GetChild(2).gameObject.GetComponent<UnityEngine.UI.Text>().text = "Wait(Seconds)";
+                        StayTime.transform.GetChild(2).gameObject.GetComponent<UnityEngine.UI.Text>().text = Loc.T("Wait(Seconds)");
                     }
                 } else
                 {
@@ -12463,7 +12471,7 @@ namespace SkyCoop
                 }
             }
 
-            InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input secret seed for key", "", Panel_Confirmation.ButtonLayout.Button_2, "Next", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+            InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input secret seed for key", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Next"), "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
         }
         public static void CreateDebugKey()
         {
@@ -12989,6 +12997,10 @@ namespace SkyCoop
                 GameObject SteamLobbyType = UIHostMenu.transform.GetChild(11).gameObject;
                 FireSyncObj.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_FireSync);
                 CheatModeListObj.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_CheatsMode);
+                // Remember the last host choice: max players (dropdown starts from 2 players) and the port.
+                UnityEngine.UI.Dropdown PlayersList = UIHostMenu.transform.GetChild(3).GetComponent<UnityEngine.UI.Dropdown>();
+                PlayersList.Set(Mathf.Clamp(SavedSettings.m_MaxPlayers - 2, 0, Math.Max(0, PlayersList.options.Count - 1)));
+                PortsObject.GetComponent<UnityEngine.UI.InputField>().SetText(SavedSettings.m_Port.ToString());
 
                 if (SteamConnect.CanUseSteam == false)
                 {
@@ -14441,12 +14453,12 @@ namespace SkyCoop
 
         public static void NewPlayerInExpedition(string PlayerName)
         {
-            GearMessage.AddMessage("ico_knowledge_people", "Joined Expedition", PlayerName, true);
+            GearMessage.AddMessage("ico_knowledge_people", Loc.T("Joined Expedition"), PlayerName, true);
             PlayRadioOver();
         }
         public static void NewExpeditionInvite(string PlayerName)
         {
-            GearMessage.AddMessage("ico_map", "Expedition Invite", PlayerName, true);
+            GearMessage.AddMessage("ico_map", Loc.T("Expedition Invite"), PlayerName, true);
             DoRadioBeep();
         }
 

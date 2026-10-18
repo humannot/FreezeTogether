@@ -814,7 +814,7 @@ namespace SkyCoop
 
 #if (!DEDICATED)
 
-            string SleepersText = "Players sleep " + Sleepers + "/" + SleepersNeed;
+            string SleepersText = Loc.T("Players sleep " + Sleepers + "/" + SleepersNeed);
             if (MyMod.WaitForSleepLable != null)
             {
                 MyMod.WaitForSleepLable.GetComponent<UILabel>().text = Loc.T("WAITING FOR OTHER PLAYERS TO SLEEP") + "\n" + SleepersText;
@@ -1727,7 +1727,8 @@ namespace SkyCoop
                         GlobalOrArea = "[Private] ";
                     }
                     
-                    Comp.text = GlobalOrArea + message.m_By + ": " + message.m_Message;
+                    bool IsSystemMessage = string.IsNullOrEmpty(message.m_By) || message.m_Message.StartsWith(message.m_By + " ");
+                    Comp.text = GlobalOrArea + message.m_By + ": " + (IsSystemMessage ? Loc.T(message.m_Message) : message.m_Message);
                 } else
                 {
                     Comp.text = Loc.T(message.m_Message);
