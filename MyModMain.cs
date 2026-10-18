@@ -12834,7 +12834,7 @@ namespace SkyCoop
                 // Extra option made from a copy of the "Items duplication" row, placed in the free space under the last row.
                 GameObject safeZonesCheckbox = UnityEngine.Object.Instantiate(dupesCheckbox, UIHostMenu.transform, false);
                 safeZonesCheckbox.name = "SafeZones";
-                ((RectTransform)safeZonesCheckbox.transform).anchoredPosition = new Vector2(0f, -150f);
+                safeZonesCheckbox.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -150f);
                 safeZonesCheckbox.GetComponent<UnityEngine.UI.Toggle>().Set(ServerConfig.m_SafeZones);
                 foreach (UnityEngine.UI.Text t in safeZonesCheckbox.GetComponentsInChildren<UnityEngine.UI.Text>(true))
                 {
