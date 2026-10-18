@@ -250,6 +250,11 @@ namespace SkyCoop
                         IsMyLobby = true;
                         SetSpawnStyle();
                         SetLobbyName();
+                        if (MyMod.StartSteamHostAfterLobby)
+                        {
+                            MyMod.StartSteamHostAfterLobby = false;
+                            Server.StartSteam(MyMod.MaxPlayers);
+                        }
                     }else{
                         MelonLogger.Msg(System.ConsoleColor.Red, "[SteamWorks.NET] Can't create lobby: Error " + pCallback.m_eResult);
                         MelonLogger.Msg(System.ConsoleColor.Green, "[SteamWorks.NET] Going to try again in 5 seconds");

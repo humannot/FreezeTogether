@@ -6102,6 +6102,11 @@ namespace SkyCoop
 
         public static void LetChooseSpawnForClient(DataStr.SaveSlotSync Data)
         {
+            if (Data.m_SaveSlotType == (int)SaveSlotType.STORY)
+            {
+                ForcedCreateStory(Data);
+                return;
+            }
             MelonLogger.Msg("Prepare ui for creating save slot");
             InterfaceManager.TrySetPanelEnabled<Panel_Sandbox>(false);
             InterfaceManager.TrySetPanelEnabled<Panel_ChooseSandbox>(false);
@@ -6127,6 +6132,43 @@ namespace SkyCoop
             }
         }
 
+
+        // Story world is fixed, so the client just begins a new story game (no seed, region or survivor choice).
+        public static void ForcedCreateStory(DataStr.SaveSlotSync Data)
+        {
+            KillConsole();
+            MelonLogger.Msg("Creating story save slot, episode " + Data.m_Episode);
+            InterfaceManager.TrySetPanelEnabled<Panel_MissionsStory>(false);
+            GameManager.GetExperienceModeManagerComponent().SetExperienceModeType((ExperienceModeType)Data.m_ExperienceMode);
+            SaveGameSystem.SetCurrentSaveInfo((Episode)Data.m_Episode, SaveSlotType.STORY, SaveGameSlots.GetUnusedGameId(), null);
+            SaveGameSlots.SetSlotDisplayName(SaveGameSystem.GetCurrentSaveName(), "SkyCoop story " + DateTime.Now.ToString("yyyy-MM-dd HH-mm"));
+            InterloperHook = true;
+            PendingSave = null;
+            ShouldCreateSaveForHost = false;
+            GameManager.OnLoadStoryFromEmptyCallback();
+        }
+
+        public static bool StartSteamHostAfterLobby = false;
+        // Host the story save that is already running (F10), because the host menu only knows sandbox slots.
+        public static void HostCurrentStory()
+        {
+            if (iAmHost || sendMyPosition || level_name == "MainMenu" || !GameManager.IsStoryMode())
+            {
+                return;
+            }
+            DataStr.ServerSettingsData Saved = MPSaveManager.RequestServerCFG();
+            if (Saved != null) ServerConfig = Saved.m_CFG;
+            if (MaxPlayers < 2) MaxPlayers = 4;
+            MelonLogger.Msg("[Story] Hosting current story save");
+            if (SteamConnect.CanUseSteam)
+            {
+                StartSteamHostAfterLobby = true;
+                SteamConnect.Main.MakeLobby(1, MaxPlayers);
+            } else {
+                Shared.HostAServer(PortsToHostOn);
+            }
+            HUDMessage.AddMessage("Story multiplayer: server started");
+        }
 
         public static void ForcedCreateSave(DataStr.SaveSlotSync Data, string Name = "")
         {
@@ -11694,6 +11736,7 @@ namespace SkyCoop
         public override void OnUpdate()
         {
             SetAppBackgroundMode();
+            if (Input.GetKeyDown(KeyCode.F10)) HostCurrentStory();
             if (!KillOnUpdate)
             {
                 ModUpdate();

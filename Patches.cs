@@ -3329,7 +3329,13 @@ namespace SkyCoop
         {
             //MelonLogger.Msg("[Saving][MultiplayerDeath] Loading...");
             string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_genversion");
-            if (data != null)
+            if (SaveGameSystem.m_CurrentGameMode == SaveSlotType.STORY)
+            {
+                // Story world is hand-made, nothing is generated from the seed, so any story save is fine.
+                MyMod.LastLoadedGenVersion = MyMod.BuildInfo.RandomGenVersion;
+                MyMod.CantBeUsedForMP = false;
+            }
+            else if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();
                 MyMod.LastLoadedGenVersion = saveProxy[0];

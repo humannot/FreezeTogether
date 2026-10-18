@@ -2331,6 +2331,11 @@ namespace SkyCoop
             SaveData.m_Episode = 0;
             SaveData.m_SaveSlotType = 3;
 #if (!DEDICATED)
+            if (SaveGameSystem.m_CurrentGameMode == SaveSlotType.STORY)
+            {
+                SaveData.m_Episode = (int)SaveGameSystem.m_CurrentEpisode;
+                SaveData.m_SaveSlotType = (int)SaveSlotType.STORY;
+            }
             SaveData.m_Seed = GameManager.m_SceneTransitionData.m_GameRandomSeed;
             SaveData.m_ExperienceMode = (int)ExperienceModeManager.s_CurrentModeType;
             SaveData.m_Location = (int)RegionManager.GetCurrentRegion();
