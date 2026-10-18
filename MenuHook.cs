@@ -14,6 +14,24 @@ namespace SkyCoop
     public class MenuChange
     {
         public static string MenuMode = "Original";
+
+        // The ResumePreviewer mod appends " (save name)" to the first sandbox button every frame. That is right for
+        // the vanilla Resume button, but in our multiplayer menus the same button reads HOST SERVER / NEW GAME.
+        public static void PatchResumePreviewer(HarmonyLib.Harmony harmony)
+        {
+            MethodInfo target = AccessTools.TypeByName("ResumePreviewer.Core")?.GetMethod("RefreshSaveName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (target == null)
+            {
+                return;
+            }
+            harmony.Patch(target, new HarmonyMethod(typeof(MenuChange).GetMethod(nameof(ResumePreviewerPrefix), BindingFlags.Static | BindingFlags.Public)));
+            MelonLogger.Msg("[UI] ResumePreviewer found, its save name is hidden in multiplayer menus");
+        }
+        public static bool ResumePreviewerPrefix()
+        {
+            return MenuMode == "Original";
+        }
+
         public static string SandboxTitleId = "";
         public static int TempExperience = 0;
 

@@ -979,6 +979,15 @@ namespace SkyCoop
                 MelonLogger.Msg("[SteamWorks.NET] Patching SteamPlatformProvider complete!");
             }
 
+            try
+            {
+                MenuChange.PatchResumePreviewer(HarmonyInstance);
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Warning("[UI] Can't patch ResumePreviewer: " + e.Message);
+            }
+
             Supporters.GetSupportersList();
 
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
@@ -4764,7 +4773,9 @@ namespace SkyCoop
             }
         }
 
-        public static void MakeFakeCampfire(DataStr.FireSourcesSync SyncData)
+        static readonly Dictionary<string, GameObject> FakeCampfires = new Dictionary<string, GameObject>();
+
+        public static GameObject MakeFakeCampfire(DataStr.FireSourcesSync SyncData)
         {
             GameObject campfireObj = GameManager.GetFireManagerComponent().InstantiateCampFire().gameObject;
             campfireObj.transform.position = SyncData.m_Position;
@@ -4776,6 +4787,7 @@ namespace SkyCoop
             {
                 campFire.SetState(CampfireState.Lit);
             }
+            return campfireObj;
         }
 
         public static bool IsSameFire(DataStr.FireSourcesSync FindData, DataStr.FireSourcesSync SyncData)
@@ -4808,7 +4820,8 @@ namespace SkyCoop
             //MelonLogger.Msg("[FireSourcesSync] ApplyOtherFireSource Should apply "+ ApplyOtherCampfires);
             if (ApplyOtherCampfires == true && ServerConfig.m_FireSync != 0)
             {
-                if (FireManager.m_Fires.Count > 0)
+                // No "Count > 0" check: when the scene has no fire yet, the other player's campfire still has to be created.
+                if (FireManager.m_Fires != null)
                 {
                     bool FoundSource = false;
                     for (int i = 0; i < FireManager.m_Fires.Count; i++)
@@ -4858,8 +4871,14 @@ namespace SkyCoop
                         //MelonLogger.Msg("Not found fire object");
                         if (SyncData.m_IsCampfire == true)
                         {
-                            //MelonLogger.Msg("But is campfire, so creating an new one");
-                            MakeFakeCampfire(SyncData);
+                            // Remember what was created so a campfire that FireManager doesn't list yet isn't duplicated every tick.
+                            string campKey = level_guid + "|" + SyncData.m_Position.ToString("F1");
+                            GameObject existing;
+                            if (!FakeCampfires.TryGetValue(campKey, out existing) || existing == null)
+                            {
+                                MelonLogger.Msg("[FireSync] Creating campfire of other player at " + SyncData.m_Position);
+                                FakeCampfires[campKey] = MakeFakeCampfire(SyncData);
+                            }
                         }
                     }
                 }
@@ -4942,7 +4961,8 @@ namespace SkyCoop
                             {
                                 if (curfire.m_FireState == FireState.FullBurn)
                                 {
-                                    GameObject gear = UnityEngine.Object.Instantiate(GetGearItemObject(fuelName));
+                                    GameObject fuelPrefab = GetGearItemObject(fuelName);
+                                    GameObject gear = fuelPrefab != null ? UnityEngine.Object.Instantiate(fuelPrefab) : null;
                                     if (gear)
                                     {
                                         GearItem gearItem = gear.GetComponent<GearItem>();
@@ -5811,7 +5831,7 @@ namespace SkyCoop
         {
             MelonLogger.Msg("Going to spawn animal corpse " + GUID + " for Region " + SpawnRegionGUID);
 
-            GameObject reference = MyMod.GetGearItemObject(prefab);
+            GameObject reference = Compat.LoadAnimalPrefab(prefab);
 
             if (reference == null)
             {
@@ -12784,6 +12804,15 @@ namespace SkyCoop
                 AddHintScript(PortsObject);
                 AddHintScript(CheatModeListObj);
                 AddHintScript(SteamLobbyType);
+
+                // Take the font of the game's own menu buttons so the screen looks like the rest of the menu.
+                Font gameFont = null;
+                try
+                {
+                    gameFont = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align/Grid").GetChild(1).GetChild(0).GetComponent<UILabel>().trueTypeFont;
+                }
+                catch (Exception) { }
+                HostMenuSkin.Apply(UIHostMenu, gameFont);
             }
         }
 

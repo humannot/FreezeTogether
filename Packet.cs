@@ -813,6 +813,7 @@ namespace GameServer
             Write(obj.m_Rotation);
             Write(obj.m_IsCampfire);
             Write(obj.m_FuelName);
+            Write(obj.m_Fuel);
         }
         public void Write(DataStr.SlicedJsonData obj)
         {
@@ -1477,6 +1478,7 @@ namespace GameServer
             obj.m_Rotation = ReadQuaternion();
             obj.m_IsCampfire = ReadBool();
             obj.m_FuelName = ReadString();
+            obj.m_Fuel = ReadFloat();
 
             return obj;
         }

@@ -2866,6 +2866,7 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(Il2Cpp.SceneManager), "OnSceneLoaded")] // Once
         public class SceneManager_Load
         {
+            static bool s_LaunchArgsHandled = false;
             public static void Postfix()
             {
                 if (MyMod.CrazyPatchesLogger == true)
@@ -2875,16 +2876,31 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "[SceneManager] OnSceneLoaded");
-                if (MyMod.level_name == "Boot")
+                // 2.55 has no "Boot" scene anymore (the first scene is "Empty"), so run the launch-time setup once
+                // on the first scene load instead. Otherwise "+connect_lobby" from Steam's Join Game is never read.
+                if (!s_LaunchArgsHandled)
                 {
-                    if (uConsole.m_Instance == null)
+                    s_LaunchArgsHandled = true;
+                    try
                     {
-                        MelonLogger.Msg("No uConsole present, creating one.");
-                        UnityEngine.Object.Instantiate(Resources.Load("uConsole"));
+                        if (uConsole.m_Instance == null)
+                        {
+                            UnityEngine.Object uConsolePrefab = Resources.Load("uConsole");
+                            if (uConsolePrefab != null)
+                            {
+                                MelonLogger.Msg("No uConsole present, creating one.");
+                                UnityEngine.Object.Instantiate(uConsolePrefab);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        MelonLogger.Warning("Can't create uConsole: " + e.Message);
                     }
 
+                    // The version string no longer reliably contains "S"/"E", so trust the Steam API that SteamConnect initialized.
                     string v_type = "";
-                    if (GameManager.GetVersionString().Contains("S"))
+                    if (SteamConnect.CanUseSteam)
                     {
                         v_type = "Steam";
                     }
@@ -5583,7 +5599,7 @@ namespace SkyCoop
                     __instance.m_StartedByPlayer = true;
                     MyMod.SendMyFire(__instance);
                 }
-                if (__instance.m_StartedByPlayer == true)
+                if (__instance.m_StartedByPlayer == true && fuel != null)
                 {
                     MelonLogger.Msg("Added fuel to fire " + fuel.m_GearName);
                     MyMod.SendMyFire(__instance, fuel.m_GearName);
