@@ -22,6 +22,7 @@ namespace SkyCoop
             public bool m_CheckModsValidation = false;
             public bool m_SaveScamProtection = false;
             public bool m_PVP = true;
+            public bool m_SafeZones = true; // map circles; safe interiors (scenes) always apply
         }
         public class ServerSettingsData
         {

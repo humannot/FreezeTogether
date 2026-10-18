@@ -798,6 +798,7 @@ namespace GameServer
             Write(obj.m_CheckModsValidation);
             Write(obj.m_SaveScamProtection);
             Write(obj.m_PVP);
+            Write(obj.m_SafeZones);
         }
         public void Write(DataStr.HarvestableSyncData obj)
         {
@@ -1423,6 +1424,7 @@ namespace GameServer
             obj.m_CheckModsValidation = ReadBool();
             obj.m_SaveScamProtection = ReadBool();
             obj.m_PVP = ReadBool();
+            obj.m_SafeZones = ReadBool();
 
             return obj;
         }

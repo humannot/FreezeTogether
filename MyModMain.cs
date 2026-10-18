@@ -124,6 +124,8 @@ namespace SkyCoop
         public static string SteamServerWorks = "";
         public static string SteamLobbyToJoin = "";
         public static AssetBundle LoadedBundle = null;
+        public static AssetBundle GearBundle = null;
+        public static HashSet<string> GearBundleModels = new HashSet<string>();
         public static int MaxPlayers = 1;
         public static int GiveItemTo = -1;
         public static string MyHat = "";
@@ -539,6 +541,7 @@ namespace SkyCoop
             MelonLogger.Msg(System.ConsoleColor.Blue, "m_CheckModsValidation: " + ServerConfig.m_CheckModsValidation);
             MelonLogger.Msg(System.ConsoleColor.Blue, "m_SaveScamProtection: " + ServerConfig.m_SaveScamProtection);
             MelonLogger.Msg(System.ConsoleColor.Blue, "m_PVP: " + ServerConfig.m_PVP);
+            MelonLogger.Msg(System.ConsoleColor.Blue, "m_SafeZones: " + ServerConfig.m_SafeZones);
         }
 
         //STRUCTS
@@ -1004,6 +1007,15 @@ namespace SkyCoop
                 MelonLogger.Msg("Have problems with loading multiplayerstuff.unity3d!!");
             } else {
                 MelonLogger.Msg("Models loaded.");
+            }
+            // Held-item models for other players (incl. TFTFT), built by repack/Assets/Editor/GearModels.cs.
+            GearBundle = AssetBundle.LoadFromFile(Path.Combine(MelonLoader.Utils.MelonEnvironment.ModsDirectory, "mpgear.unity3d"));
+            if (GearBundle != null)
+            {
+                foreach (string n in GearBundle.GetAllAssetNames()) GearBundleModels.Add(Path.GetFileNameWithoutExtension(n).ToLowerInvariant());
+                MelonLogger.Msg("Gear models loaded: " + GearBundleModels.Count);
+            } else {
+                MelonLogger.Msg("mpgear.unity3d not found, held items without models will use game meshes.");
             }
 
             if (DedicatedServerAppMode)
@@ -9482,11 +9494,21 @@ namespace SkyCoop
         public static void UpdateMyEquipment()
         {
             string EQCheck = "";
-            MyHasRifle = GameManager.GetInventoryComponent().HasNonRuinedItem("GEAR_Rifle");
+            MyHasRifle = false;
+            MyHasRevolver = false;
+            // Scan by model so DLC rifle/revolver variants show on the back/hip too.
+            IL2CPP.List<GearItemObject> invGear = GameManager.GetInventoryComponent().m_Items;
+            for (int i = 0; i < invGear.Count; i++)
+            {
+                GearItem g = invGear[i]?.m_GearItem;
+                if (g == null || g.IsWornOut()) continue;
+                string model = Comps.MultiplayerPlayer.HeldModelName(g.m_GearName);
+                if (model == "GEAR_Rifle") MyHasRifle = true;
+                if (model == "GEAR_Revolver") MyHasRevolver = true;
+            }
             MyArrows = GameManager.GetInventoryComponent().NumGearInInventory("GEAR_Arrow");
             MyFlares = GameManager.GetInventoryComponent().NumGearInInventory("GEAR_FlareA");
-            MyBlueFlares = GameManager.GetInventoryComponent().NumGearInInventory("GEAR_FlareBlue");
-            MyHasRevolver = GameManager.GetInventoryComponent().HasNonRuinedItem("GEAR_Revolver");
+            MyBlueFlares = GameManager.GetInventoryComponent().NumGearInInventory("GEAR_BlueFlare");
             MyHasMedkit = GameManager.GetInventoryComponent().HasNonRuinedItem("GEAR_MedicalSupplies_hangar");
 
             bool axe = GameManager.GetInventoryComponent().HasNonRuinedItem("GEAR_Hatchet"); // Axe
@@ -11148,7 +11170,7 @@ namespace SkyCoop
                         Anim.Consumption();
                     } else if (Act == "Shoot")
                     {
-                        if (MyLightSourceName == "GEAR_Rifle")
+                        if (Comps.MultiplayerPlayer.HeldModelName(MyLightSourceName) == "GEAR_Rifle")
                         {
                             string shootStrhing = "RifleShoot";
                             if (MyAnimState == "Ctrl")
@@ -12636,6 +12658,8 @@ namespace SkyCoop
                 ServerConfig.m_FireSync = FireSyncMode;
                 ServerConfig.m_CheatsMode = CheatsMode;
                 ServerConfig.m_PVP = true;
+                Transform safeZonesToggle = UIHostMenu.transform.Find("SafeZones");
+                if (safeZonesToggle != null) ServerConfig.m_SafeZones = safeZonesToggle.GetComponent<UnityEngine.UI.Toggle>().isOn;
                 MaxPlayers = slotsMax;
                 ApplyOtherCampfires = true;
 
@@ -12764,6 +12788,16 @@ namespace SkyCoop
                 GameObject SpawnStyleList = UIHostMenu.transform.GetChild(2).gameObject;
                 SpawnStyleList.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_PlayersSpawnType);
 
+                // Extra option made from a copy of the "Items duplication" row, placed in the free space under the last row.
+                GameObject safeZonesCheckbox = UnityEngine.Object.Instantiate(dupesCheckbox, UIHostMenu.transform, false);
+                safeZonesCheckbox.name = "SafeZones";
+                ((RectTransform)safeZonesCheckbox.transform).anchoredPosition = new Vector2(0f, -150f);
+                safeZonesCheckbox.GetComponent<UnityEngine.UI.Toggle>().Set(ServerConfig.m_SafeZones);
+                foreach (UnityEngine.UI.Text t in safeZonesCheckbox.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+                {
+                    if (t.transform.parent.name == "HintPanel") t.text = "Safe zone circles.\n\nOn - players cannot hurt each other inside the safe circles on the map (settlements, camps). Safe interiors always stay safe.\n\nOff - PvP works everywhere except in safe interiors.";
+                    else if (t.name.StartsWith("Label")) t.text = "Safe zone circles";
+                }
 
                 GameObject IsSteamHost = UIHostMenu.transform.GetChild(4).gameObject;
                 GameObject PortsObject = UIHostMenu.transform.GetChild(8).gameObject;
@@ -12798,6 +12832,7 @@ namespace SkyCoop
 
                 AddHintScript(dupesCheckbox);
                 AddHintScript(dupesBoxesCheckbox);
+                AddHintScript(safeZonesCheckbox);
                 AddHintScript(SpawnStyleList);
                 AddHintScript(FireSyncObj);
                 AddHintScript(IsSteamHost);

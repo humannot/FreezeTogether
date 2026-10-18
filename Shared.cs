@@ -1513,6 +1513,11 @@ namespace SkyCoop
         public static bool ClientOnlyChatCommand(string Command)
         {
             Command = Command.ToLower();
+            if (Command == "!gearfit")
+            {
+                DeBugMenu.GearFitOpen = !DeBugMenu.GearFitOpen;
+                return true;
+            }
             if (Command == "!debug")
             {
                 if (Supporters.MyID == "76561198152259224" || Supporters.MyID == "76561198867520214")
