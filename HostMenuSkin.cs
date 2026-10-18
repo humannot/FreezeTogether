@@ -29,6 +29,7 @@ namespace SkyCoop
             { "Client's choice", "Выбор клиента" },
             { "Random", "Случайно" },
             { "Fixed place", "Фиксированное" },
+            { "Near host", "Рядом с хостом" },
             { "Players", "Игроки" },
             { "Steam P2P", "Steam P2P" },
             { "Public server", "Публичный сервер" },
@@ -219,6 +220,11 @@ namespace SkyCoop
                 // Option lists: the shown caption and the opened list are built from these.
                 foreach (Dropdown d in menu.GetComponentsInChildren<Dropdown>(true))
                 {
+                    // Spawn style list: extra "Near host" option (index 4).
+                    if (d.options.Count == 4 && d.options[3].text.Trim() == "Fixed place")
+                    {
+                        d.options.Add(new Dropdown.OptionData("Near host"));
+                    }
                     if (ru)
                     {
                         for (int i = 0; i < d.options.Count; i++)

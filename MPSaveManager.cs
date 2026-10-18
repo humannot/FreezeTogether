@@ -69,6 +69,7 @@ namespace SkyCoop
         public static float LeadKeyBrokeChance = 0.13f;
 
         public static Dictionary<string, Dictionary<string, BrokenFurnitureSync>> RecentBrokenFurns = new Dictionary<string, Dictionary<string, BrokenFurnitureSync>>();
+        public static Dictionary<string, Dictionary<string, MovedFurnitureSync>> RecentMovedFurns = new Dictionary<string, Dictionary<string, MovedFurnitureSync>>();
         public static Dictionary<string, Dictionary<long, PickedGearSync>> RecentPickedGears = new Dictionary<string, Dictionary<long, PickedGearSync>>();
         public static Dictionary<string, Dictionary<string, int>> RecentlyLootedContainers = new Dictionary<string, Dictionary<string, int>>();
         public static Dictionary<string, Dictionary<string, int>> RecentlyHarvastedPlants = new Dictionary<string, Dictionary<string, int>>();
@@ -781,6 +782,10 @@ namespace SkyCoop
             {
                 SaveData(GetKeyTemplate(SaveKeyTemplateType.Furns, item.Key), JSON.Dump(item.Value), SaveSeed);
             }
+            foreach (var item in RecentMovedFurns.ToList())
+            {
+                SaveData(GetKeyTemplate(SaveKeyTemplateType.MovedFurns, item.Key), JSON.Dump(item.Value), SaveSeed);
+            }
             foreach (var item in RecentPickedGears.ToList())
             {
                 SaveData(GetKeyTemplate(SaveKeyTemplateType.PickedGears, item.Key), JSON.Dump(item.Value), SaveSeed);
@@ -798,6 +803,7 @@ namespace SkyCoop
             RecentData = new Dictionary<string, Dictionary<int, DataStr.SlicedJsonDroppedGear>>();
             RecentOpenableThings = new Dictionary<string, Dictionary<string, bool>>();
             RecentBrokenFurns = new Dictionary<string, Dictionary<string, BrokenFurnitureSync>>();
+            RecentMovedFurns = new Dictionary<string, Dictionary<string, MovedFurnitureSync>>();
             RecentPickedGears = new Dictionary<string, Dictionary<long, PickedGearSync>>();
             RecentlyLootedContainers = new Dictionary<string, Dictionary<string, int>>();
             RecentlyHarvastedPlants = new Dictionary<string, Dictionary<string, int>>();
@@ -996,7 +1002,8 @@ namespace SkyCoop
             Furns = 4,
             PickedGears = 5,
             LootedContainers = 6,
-            HarvestedPlants = 7
+            HarvestedPlants = 7,
+            MovedFurns = 8
         }
 
         public static string GetKeyTemplate(SaveKeyTemplateType T, string Scene, string GUID = "")
@@ -1019,6 +1026,8 @@ namespace SkyCoop
                     return Scene + "_LootedContainers";
                 case SaveKeyTemplateType.HarvestedPlants:
                     return Scene + "_HarvestedPlants";
+                case SaveKeyTemplateType.MovedFurns:
+                    return Scene + "_MovedFurns";
                 default:
                     return "_UNKNOWN";
             }
@@ -1570,6 +1579,36 @@ namespace SkyCoop
             if (LoadedContent != "")
             {
                 return JSON.Load(LoadedContent).Make<Dictionary<long, PickedGearSync>>();
+            }
+            return null;
+        }
+
+        public static void AddMovedFurn(MovedFurnitureSync furn)
+        {
+            string Scene = furn.m_LevelGUID;
+            Dictionary<string, MovedFurnitureSync> Dict = LoadMovedFurnsData(Scene);
+
+            if (Dict == null)
+            {
+                Dict = new Dictionary<string, MovedFurnitureSync>();
+            }
+            Dict[furn.m_Guid] = furn;
+            RecentMovedFurns[Scene] = Dict;
+        }
+        public static Dictionary<string, MovedFurnitureSync> LoadMovedFurnsData(string scene)
+        {
+            Dictionary<string, MovedFurnitureSync> Dict;
+            if (RecentMovedFurns.TryGetValue(scene, out Dict))
+            {
+                return Dict;
+            }
+
+            string LoadedContent = LoadData(GetKeyTemplate(SaveKeyTemplateType.MovedFurns, scene), GetSeed());
+            if (LoadedContent != "")
+            {
+                Dict = JSON.Load(LoadedContent).Make<Dictionary<string, MovedFurnitureSync>>();
+                RecentMovedFurns.Add(scene, Dict);
+                return Dict;
             }
             return null;
         }

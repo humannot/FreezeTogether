@@ -143,7 +143,7 @@ namespace SkyCoop
             { "Give up", "Сдаться" },
             { "You died", "Вы погибли" },
             { "Stats", "Статистика" },
-            { "Your items stayed in a backpack where you fell.\nYou will respawn where you last slept indoors.", "Ваши вещи остались в рюкзаке на месте гибели.\nВы возродитесь там, где последний раз спали в помещении." },
+            { "Your items fell to the floor where you gave up.\nYou will respawn where you last slept indoors.", "Ваши вещи упали на пол там, где вы сдались.\nВы возродитесь там, где последний раз спали в помещении." },
             { "Wait", "Ждать" },
             { "Wait for a teammate to revive you with an emergency stim.\nPress Esc to open this window again.", "Ждите, пока союзник воскресит вас шприцем первой помощи.\nНажмите Esc, чтобы снова открыть это окно." },
             { "LOAD SAVE", "ЗАГРУЗИТЬ СОХРАНЕНИЕ" },

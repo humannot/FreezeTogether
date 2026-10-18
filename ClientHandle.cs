@@ -526,6 +526,15 @@ namespace SkyCoop
         {
 
         }
+        public static void FURNMOVED(Packet _packet)
+        {
+            DataStr.MovedFurnitureSync furn = _packet.ReadMovedFurn();
+
+            if (furn.m_LevelGUID == MyMod.level_guid)
+            {
+                MyMod.ApplyMovedFurniture(furn);
+            }
+        }
         public static void FURNBREAKINGGUID(Packet _packet)
         {
             DataStr.BrokenFurnitureSync furn = _packet.ReadFurn();

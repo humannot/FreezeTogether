@@ -70,6 +70,39 @@ internal static class Compat
         return Utils.SerializeObject(proxy);
     }
 
+    // Containers (backpacks, lockers) are prefabs in Addressables, not GearItems.
+    static readonly Dictionary<string, GameObject> s_ContainerPrefabs = new Dictionary<string, GameObject>();
+    public static GameObject LoadContainerPrefab(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return null;
+        if (s_ContainerPrefabs.TryGetValue(name, out GameObject cached) && cached != null) return cached;
+
+        GameObject prefab = null;
+        foreach (string key in new[] { name, "Assets/Prefabs/Containers/" + name + ".prefab" })
+        {
+            try
+            {
+                prefab = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>((Il2CppSystem.Object)key).WaitForCompletion();
+            }
+            catch (System.Exception) { }
+            if (prefab != null) break;
+        }
+        if (prefab == null)
+        {
+            GearItem gear = LoadGearPrefab(name);
+            if (gear != null) prefab = gear.gameObject;
+        }
+        if (prefab == null)
+        {
+            MelonLoader.MelonLogger.Warning("[SkyCoop] Container prefab '" + name + "' not found");
+        }
+        else
+        {
+            s_ContainerPrefabs[name] = prefab;
+        }
+        return prefab;
+    }
+
     // Animal prefabs are Addressables too (WILDLIFE_Wolf, ...), and not GearItems, so LoadGearPrefab can't find them.
     static readonly Dictionary<string, GameObject> s_AnimalPrefabs = new Dictionary<string, GameObject>();
     public static GameObject LoadAnimalPrefab(string name)

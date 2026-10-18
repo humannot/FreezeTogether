@@ -268,6 +268,11 @@ namespace SkyCoop
                             }
                         }
 
+                        if (MyMod.GetMovableFurnitureRoot(saveObj) != null)
+                        {
+                            MyMod.SendMovedFurniture(saveObj, true);
+                            return;
+                        }
 
                         MelonLogger.Msg("Gear placed!");
                         int variant = 0;
@@ -313,6 +318,29 @@ namespace SkyCoop
                             }
                         }
                     }
+                }
+            }
+        }
+        // Furniture taken into the inventory disappears for others; put back (or move cancelled) shows up again.
+        [HarmonyLib.HarmonyPatch(typeof(Il2CppTLD.Placement.PlaceableManager), "MoveToPlayer", new Type[] { typeof(Il2CppTLD.Placement.Placeable) })]
+        private static class PlaceableManager_MoveToPlayer
+        {
+            internal static void Postfix(Il2CppTLD.Placement.Placeable placeable)
+            {
+                if (MyMod.InOnline() && placeable != null && !MyMod.LoadingScreenIsOn && !Il2CppTLD.Placement.PlaceableManager.s_IsDeserializing)
+                {
+                    MyMod.SendMovedFurniture(placeable.gameObject, false);
+                }
+            }
+        }
+        [HarmonyLib.HarmonyPatch(typeof(Il2CppTLD.Placement.PlaceableManager), "ReturnFromPlayer", new Type[] { typeof(Il2CppTLD.Placement.Placeable) })]
+        private static class PlaceableManager_ReturnFromPlayer
+        {
+            internal static void Postfix(Il2CppTLD.Placement.Placeable placeable)
+            {
+                if (MyMod.InOnline() && placeable != null && !MyMod.LoadingScreenIsOn && !Il2CppTLD.Placement.PlaceableManager.s_IsDeserializing)
+                {
+                    MyMod.SendMovedFurniture(placeable.gameObject, true);
                 }
             }
         }
@@ -6091,6 +6119,15 @@ namespace SkyCoop
                     MyMod.PickedGearsBackup.Clear();
                 }
 
+                Dictionary<string, MovedFurnitureSync> MovedFurns = MPSaveManager.LoadMovedFurnsData(MyMod.level_guid);
+                if (MovedFurns != null)
+                {
+                    foreach (var item in MovedFurns)
+                    {
+                        MyMod.ApplyMovedFurniture(item.Value);
+                    }
+                }
+
                 Dictionary<string, UniversalSyncableObject> UniversalObjects = MPSaveManager.GetUniversalSyncablesForScene(MyMod.level_guid);
                 foreach (var item in UniversalObjects)
                 {
@@ -7070,7 +7107,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (MyMod.InOnline() == true)
+                if (MyMod.InOnline() == true && __instance.GetComponent<ObjectGuid>() != null)
                 {
                     MelonLogger.Msg("Opening container, request fake container");
                     MyMod.OpenFakeContainer(__instance);
@@ -7091,7 +7128,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 Container box = __instance.m_Container;
-                if (MyMod.InOnline() == true)
+                if (MyMod.InOnline() == true && (box == null || box.GetComponent<ObjectGuid>() != null))
                 {
                     if (__instance.ShouldEnterSectionNav() && __instance.m_Container != null && !__instance.m_Container.m_FilterLocked)
                     {
@@ -8154,7 +8191,6 @@ namespace SkyCoop
             {
                 GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_HandheldShortwave");
                 GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCHeatPack");
-                GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCEmergencyRation");
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Panel_Log), "UpdateMissionsPage")]
@@ -8424,7 +8460,10 @@ namespace SkyCoop
             private static void Postfix(Panel_Log __instance)
             {
                 MyMod.IsDead = true;
-                MyMod.DropAll();
+                if (!MyMod.InOnline() || MyMod.GaveUp) // Online the backpack is made when giving up
+                {
+                    MyMod.DropAll();
+                }
                 if (MyMod.InOnline())
                 {
                     // 2.55 enables the back button after a fade we skip, so give a working Respawn button.

@@ -712,6 +712,20 @@ namespace GameServer
 
             ServerSend.FURNBROKEN(_fromClient, furn, false);
         }
+        public static void FURNMOVED(int _fromClient, Packet _packet)
+        {
+            DataStr.MovedFurnitureSync furn = _packet.ReadMovedFurn();
+
+#if (!DEDICATED)
+            if (furn.m_LevelGUID == MyMod.level_guid)
+            {
+                MyMod.ApplyMovedFurniture(furn);
+            }
+#endif
+            MPSaveManager.AddMovedFurn(furn);
+
+            ServerSend.FURNMOVED(_fromClient, furn, false);
+        }
         public static void FURNBREAKINGGUID(int _fromClient, Packet _packet)
         {
             DataStr.BrokenFurnitureSync furn = _packet.ReadFurn();
@@ -1186,6 +1200,14 @@ namespace GameServer
                 foreach (var item in Furns)
                 {
                     ServerSend.FURNBROKEN(0, item.Value, false, _fromClient);
+                }
+            }
+            Dictionary<string, MovedFurnitureSync> MovedFurns = MPSaveManager.LoadMovedFurnsData(Scene);
+            if (MovedFurns != null)
+            {
+                foreach (var item in MovedFurns)
+                {
+                    ServerSend.FURNMOVED(0, item.Value, false, _fromClient);
                 }
             }
 

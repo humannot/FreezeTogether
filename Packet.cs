@@ -206,6 +206,7 @@ namespace GameServer
         ANIMALDESTORYGEAR,
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
+        FURNMOVED,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -400,6 +401,7 @@ namespace GameServer
         ANIMALDESTORYGEAR,
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
+        FURNMOVED,
     }
 
     public class Packet : IDisposable
@@ -770,6 +772,14 @@ namespace GameServer
             Write(obj.m_LevelID);
             Write(obj.m_LevelGUID);
             Write(obj.m_Broken);
+        }
+        public void Write(DataStr.MovedFurnitureSync obj)
+        {
+            Write(obj.m_Guid);
+            Write(obj.m_LevelGUID);
+            Write(obj.m_Position);
+            Write(obj.m_Rotation);
+            Write(obj.m_Active);
         }
         public void Write(DataStr.PickedGearSync obj)
         {
@@ -1384,6 +1394,18 @@ namespace GameServer
             obj.m_LevelID = ReadInt();
             obj.m_LevelGUID = ReadString();
             obj.m_Broken = ReadBool();
+
+            return obj;
+        }
+
+        public DataStr.MovedFurnitureSync ReadMovedFurn()
+        {
+            DataStr.MovedFurnitureSync obj = new DataStr.MovedFurnitureSync();
+            obj.m_Guid = ReadString();
+            obj.m_LevelGUID = ReadString();
+            obj.m_Position = ReadVector3();
+            obj.m_Rotation = ReadQuaternion();
+            obj.m_Active = ReadBool();
 
             return obj;
         }

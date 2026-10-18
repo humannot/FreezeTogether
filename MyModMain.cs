@@ -1141,7 +1141,7 @@ namespace SkyCoop
             }
 
             ///GameObject reference = GetGearItemObject("CONTAINER_InaccessibleGear");
-            GameObject reference = GetGearItemObject(data.m_ContainerPrefab);
+            GameObject reference = Compat.LoadContainerPrefab(data.m_ContainerPrefab);
             if (reference == null)
             {
                 return null;
@@ -1232,88 +1232,78 @@ namespace SkyCoop
             }
         }
 
+        // One backpack per death: giving up drops everything at once, the death screen must not make a second one.
+        public static bool DeathDropDone = false;
+
+        // Stays with the player after death: our starter items and collectibles (notes, postcards...) that only show in the journal.
+        public static bool IsKeptOnDeath(GearItem Gear)
+        {
+            return Gear.m_HandheldShortwaveItem || Gear.m_NarrativeCollectibleItem != null
+                || Gear.m_GearName == "GEAR_SCHeatPack" || Gear.m_GearName == "GEAR_SCHeatPackC" || Gear.m_GearName == "GEAR_SCEmergencyRation";
+        }
+
+        public static void DestroyInventoryExceptKept()
+        {
+            Inventory Inv = GameManager.GetInventoryComponent();
+            List<GearItem> ToDestroy = new List<GearItem>();
+            for (int i = 0; i < Inv.m_Items.Count; i++)
+            {
+                GearItem gi = (GearItem)Inv.m_Items[i];
+                if (gi && !IsKeptOnDeath(gi))
+                {
+                    ToDestroy.Add(gi);
+                }
+            }
+            foreach (GearItem gi in ToDestroy)
+            {
+                Inv.DestroyGear(gi.gameObject);
+            }
+        }
+
+        // Everything the player carries falls to the floor where they gave up (synced like a normal drop).
         public static void DropAll()
         {
-            DataStr.DeathContainerData ObjSync = new DataStr.DeathContainerData();
-            ObjSync.m_Guid = ObjectGuidManager.GenerateNewGuidString();
-            ObjSync.m_LevelKey = level_guid;
-            ObjSync.m_Position = GameManager.GetPlayerTransform().position;
-            ObjSync.m_Rotation = GameManager.GetPlayerTransform().rotation;
-            ObjSync.m_Owner = MyChatName;
-            ObjSync.m_ContainerPrefab = "CONTAINER_BackPack";
-            ObjSync.m_DeathTime = MyMod.MinutesFromStartServer;
-            bool SetFullWet = false;
-            if (GameManager.GetIceCrackingManager().FellInRecently())
+            if (DeathDropDone)
             {
-                MelonLogger.Msg("Died from falling in water");
-                ObjSync.m_Position = GameManager.GetIceCrackingManager().GetRespawnLocation();
-                SetFullWet = true;
+                MelonLogger.Msg("Items already dropped for this death");
+                return;
             }
+            DeathDropDone = true;
 
-            Container Box = MakeDeathCreate(ObjSync);
-            if (Box)
+            Inventory Inv = GameManager.GetInventoryComponent();
+            bool SetFullWet = GameManager.GetIceCrackingManager().FellInRecently();
+            List<GearItem> Gears = new List<GearItem>();
+            for (int index = 0; index < Inv.m_Items.Count; ++index)
             {
-                Inventory Inv = GameManager.GetInventoryComponent();
-                List<GearItem> Gears = new List<GearItem>();
-                for (int index = 0; index < Inv.m_Items.Count; ++index)
+                GearItem gearItem = (GearItem)Inv.m_Items[index];
+                if (gearItem && !IsKeptOnDeath(gearItem))
                 {
-                    GearItem gearItem = (GearItem)Inv.m_Items[index];
-                    if (gearItem)
-                    {
-                        if (SetFullWet && gearItem.m_ClothingItem)
-                        {
-                            gearItem.m_ClothingItem.SetFullyWet();
-                        }
-
-                        Gears.Add(gearItem);
-
-                        if (GameManager.GetPlayerManagerComponent().m_ItemInHands && GameManager.GetPlayerManagerComponent().m_ItemInHands == gearItem)
-                        {
-                            GameManager.GetPlayerManagerComponent().UnequipImmediate(false);
-                        }
-                    }
+                    Gears.Add(gearItem);
                 }
-
-                foreach (GearItem Gear in Gears)
-                {
-                    if (!Gear.m_HandheldShortwaveItem && Gear.m_GearName != "GEAR_SCHeatPack" && Gear.m_GearName != "GEAR_SCHeatPackC" && Gear.m_GearName != "GEAR_SCEmergencyRation")
-                    {
-                        if (Gear.m_WaterSupply)
-                        {
-                            InterfaceManager.GetPanel<Panel_PickWater>().TransferAllWaterInventoryToContainer(Box, Gear.m_WaterSupply);
-                        }
-                        else if (Gear.m_StackableItem && Box.AddToExistingStackable(Gear.name, Gear.GetNormalizedCondition(), Gear.m_StackableItem.m_Units, Gear))
-                        {
-                            Inv.DestroyGear(Gear.gameObject);
-                        } else {
-                            Box.AddGear(Gear);
-                            Inv.RemoveGear(Gear.gameObject, true);
-                        }
-                    }
-                }
-
-                string Content = Box.Serialize();
-
-                if (iAmHost)
-                {
-                    MPSaveManager.SaveContainer(ObjSync.m_LevelKey, ObjSync.m_Guid, Shared.CompressString(Content));
-                    DeathCreates.Add(ObjSync);
-                    ServerSend.ADDDEATHCONTAINER(ObjSync, ObjSync.m_LevelKey, 0);
-                }
-                else if (sendMyPosition)
-                {
-                    DoPleaseWait("Please wait...", "Sending container data...");
-                    Shared.SendContainerData(Shared.CompressString(Content), ObjSync.m_LevelKey, ObjSync.m_Guid, Content);
-                    using (Packet _packet = new Packet((int)ClientPackets.ADDDEATHCONTAINER))
-                    {
-                        _packet.Write(ObjSync);
-                        SendUDPData(_packet);
-                    }
-                }
-
-                Box.DestroyAllGear();
-                MelonLogger.Msg("Everything dropped");
             }
+            MelonLogger.Msg("[DropAll] Dropping " + Gears.Count + " items on the floor");
+
+            foreach (GearItem Gear in Gears)
+            {
+                try
+                {
+                    if (SetFullWet && Gear.m_ClothingItem)
+                    {
+                        Gear.m_ClothingItem.SetFullyWet();
+                    }
+                    if (GameManager.GetPlayerManagerComponent().m_ItemInHands == Gear)
+                    {
+                        GameManager.GetPlayerManagerComponent().UnequipImmediate(false);
+                    }
+                    int units = Gear.m_StackableItem ? Gear.m_StackableItem.m_Units : 1;
+                    Gear.Drop(units, false, true, true);
+                }
+                catch (Exception e)
+                {
+                    MelonLogger.Msg(System.ConsoleColor.Red, "[DropAll] Can't drop " + Gear.m_GearName + ": " + e.Message);
+                }
+            }
+            MelonLogger.Msg("Everything dropped");
         }
         public const int CustomSkillsStart = 9;
         public enum CustomSkills
@@ -2275,6 +2265,133 @@ namespace SkyCoop
             {
                 ServerSend.FURNBROKEN(0, furn, true);
                 MPSaveManager.AddBrokenFurn(furn);
+            }
+        }
+
+        // Movable furniture (Placeable / DecorationItem): its root and every decoration stacked on it.
+        public static void CollectMovedFurniture(GameObject obj, List<GameObject> found)
+        {
+            if (obj == null || found.Contains(obj))
+            {
+                return;
+            }
+            found.Add(obj);
+            DecorationItem decor = obj.GetComponent<DecorationItem>();
+            if (decor != null && decor.m_DecorationChildren != null)
+            {
+                for (int i = 0; i < decor.m_DecorationChildren.Count; i++)
+                {
+                    DecorationItem child = decor.m_DecorationChildren[i];
+                    if (child != null)
+                    {
+                        CollectMovedFurniture(child.gameObject, found);
+                    }
+                }
+            }
+        }
+        public static GameObject GetMovableFurnitureRoot(GameObject obj)
+        {
+            if (obj == null || obj.GetComponent<GearItem>() != null)
+            {
+                return null;
+            }
+            Il2CppTLD.Placement.Placeable placeable = obj.GetComponentInParent<Il2CppTLD.Placement.Placeable>();
+            if (placeable != null)
+            {
+                return placeable.gameObject;
+            }
+            DecorationItem decor = obj.GetComponentInParent<DecorationItem>();
+            if (decor != null)
+            {
+                return decor.gameObject;
+            }
+            return null;
+        }
+        public static string GetMovedFurnitureGuid(GameObject obj)
+        {
+            Il2CppTLD.Placement.Placeable placeable = obj.GetComponent<Il2CppTLD.Placement.Placeable>();
+            if (placeable != null && !string.IsNullOrEmpty(placeable.m_Guid))
+            {
+                return placeable.m_Guid;
+            }
+            ObjectGuid guid = obj.GetComponent<ObjectGuid>();
+            if (guid != null && !string.IsNullOrEmpty(guid.Get()))
+            {
+                return guid.Get();
+            }
+            return "";
+        }
+        public static void SendMovedFurniture(GameObject obj, bool active)
+        {
+            GameObject root = GetMovableFurnitureRoot(obj);
+            if (root == null)
+            {
+                return;
+            }
+            List<GameObject> found = new List<GameObject>();
+            CollectMovedFurniture(root, found);
+            foreach (GameObject furnObj in found)
+            {
+                string guid = GetMovedFurnitureGuid(furnObj);
+                if (guid == "")
+                {
+                    continue;
+                }
+                DataStr.MovedFurnitureSync furn = new DataStr.MovedFurnitureSync();
+                furn.m_Guid = guid;
+                furn.m_LevelGUID = level_guid;
+                furn.m_Position = furnObj.transform.position;
+                furn.m_Rotation = furnObj.transform.rotation;
+                furn.m_Active = active;
+                MelonLogger.Msg("Furniture " + furnObj.name + " " + guid + (active ? " moved to " + furn.m_Position : " picked up"));
+
+                if (sendMyPosition == true)
+                {
+                    using (Packet _packet = new Packet((int)ClientPackets.FURNMOVED))
+                    {
+                        _packet.Write(furn);
+                        SendUDPData(_packet);
+                    }
+                }
+                if (iAmHost == true)
+                {
+                    ServerSend.FURNMOVED(0, furn, true);
+                    MPSaveManager.AddMovedFurn(furn);
+                }
+            }
+        }
+        public static void ApplyMovedFurniture(DataStr.MovedFurnitureSync furn)
+        {
+            Il2CppTLD.Placement.Placeable placeable = null;
+            var placeables = Il2CppTLD.Placement.PlaceableManager.s_Placeables;
+            if (placeables != null && placeables.ContainsKey(furn.m_Guid))
+            {
+                placeable = placeables[furn.m_Guid].m_Handle;
+            }
+            GameObject obj = placeable != null ? placeable.gameObject : ObjectGuidManager.Lookup(furn.m_Guid);
+            if (obj == null)
+            {
+                return;
+            }
+            if (placeable != null)
+            {
+                Il2CppTLD.Placement.PlacementState state = Il2CppTLD.Placement.PlaceableManager.GetPlacementState(placeable);
+                if (state == Il2CppTLD.Placement.PlacementState.OnPlayer)
+                {
+                    return; // It's in my inventory, leave it be.
+                }
+                if (furn.m_Active != (state == Il2CppTLD.Placement.PlacementState.Active))
+                {
+                    Il2CppTLD.Placement.PlaceableManager.SetActive(placeable, furn.m_Active);
+                }
+            }
+            if (obj.activeSelf != furn.m_Active)
+            {
+                obj.SetActive(furn.m_Active);
+            }
+            if (furn.m_Active)
+            {
+                obj.transform.SetPositionAndRotation(furn.m_Position, furn.m_Rotation);
             }
         }
 
@@ -4134,6 +4251,7 @@ namespace SkyCoop
             }
             IsDowned = false;
             GaveUp = false;
+            DeathDropDone = false;
             InterfaceManager.GetPanel<Panel_Log>().Enable(false);
             SetRevivedStats();
             GameManager.GetPlayerManagerComponent().SetControlMode(PlayerControlMode.Normal);
@@ -4170,6 +4288,7 @@ namespace SkyCoop
             MelonLogger.Msg("[Downed] Player gave up");
             IsDowned = false;
             GaveUp = true;
+            DropAll();
             GameManager.HandlePlayerDeath(null);
         }
 
@@ -4177,7 +4296,7 @@ namespace SkyCoop
         {
             if (m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
             {
-                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "You died", "\nYour items stayed in a backpack where you fell.\nYou will respawn where you last slept indoors.", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Respawn"), Loc.T("Stats"), Panel_Confirmation.Background.Transperent, null, null);
+                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "You died", "\nYour items fell to the floor where you gave up.\nYou will respawn where you last slept indoors.", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Respawn"), Loc.T("Stats"), Panel_Confirmation.Background.Transperent, null, null);
             }
         }
 
@@ -6126,7 +6245,7 @@ namespace SkyCoop
                 Data.m_Location = (int)GameRegion.RandomRegion;
                 SelectGenderForConnection();
             }
-            else if (ServerConfig.m_PlayersSpawnType == 3) // Fixed place
+            else if (ServerConfig.m_PlayersSpawnType == 3 || ServerConfig.m_PlayersSpawnType == 4) // Fixed place / near host (the host sends its current place)
             {
                 SelectGenderForConnection();
             }
@@ -6315,11 +6434,12 @@ namespace SkyCoop
             IsDead = false;
             IsDowned = false;
             GaveUp = false;
+            DeathDropDone = false;
             RestoreAfterDeath();
             try
             {
             // Respawn without loot, everything stayed in the backpack on the death spot.
-            GameManager.GetInventoryComponent().DestroyAllGear();
+            DestroyInventoryExceptKept();
 
             GameManager.GetSkillArchery().SetPoints(0, SkillsManager.PointAssignmentMode.AssignOnlyInSandbox);
             GameManager.GetSkillRifle().SetPoints(0, SkillsManager.PointAssignmentMode.AssignOnlyInSandbox);
@@ -9428,9 +9548,28 @@ namespace SkyCoop
             TFHUD.Update();
         }
 
+        // The game's own check asks Steam Input and throws every frame when Steam isn't running (non-Steam copy), so fall back to the R key.
+        static bool s_ReloadCheckBroken = false;
+        public static bool ReloadPressed()
+        {
+            if (!s_ReloadCheckBroken)
+            {
+                try
+                {
+                    return InputManager.GetReloadPressed(InputManager.m_CurrentContext);
+                }
+                catch (Exception)
+                {
+                    s_ReloadCheckBroken = true;
+                    MelonLogger.Warning("InputManager.GetReloadPressed failed (Steam Input unavailable), using the R key instead");
+                }
+            }
+            return Input.GetKeyDown(KeyCode.R);
+        }
+
         public static void DebugCrap()
         {
-            if (InputManager.GetReloadPressed(InputManager.m_CurrentContext))
+            if (ReloadPressed())
             {
                 if (ExpeditionEditorUI != null && ExpeditionEditorUI.activeSelf)
                 {
@@ -10615,7 +10754,7 @@ namespace SkyCoop
                     }
                 }
             }
-            if (InputManager.GetReloadPressed(InputManager.m_CurrentContext) && MouseActionIsAllowed())
+            if (ReloadPressed() && MouseActionIsAllowed())
             {
                 ExpeditionHint();
             }
@@ -12170,6 +12309,7 @@ namespace SkyCoop
                 GameManager.GetConditionComponent().m_CurrentHP = 25;
             }
             IsDead = false;
+            DeathDropDone = false;
             GameManager.GetPlayerManagerComponent().m_Ghost = false;
             GameManager.GetFatigueComponent().m_CurrentFatigue = 25;
             GameManager.GetThirstComponent().m_CurrentThirst = 25;

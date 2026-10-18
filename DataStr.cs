@@ -406,6 +406,14 @@ namespace SkyCoop
                 }
             }
         }
+        public class MovedFurnitureSync
+        {
+            public string m_Guid = "";
+            public string m_LevelGUID = "";
+            public Vector3 m_Position = new Vector3(0, 0, 0);
+            public Quaternion m_Rotation = new Quaternion(0, 0, 0, 1);
+            public bool m_Active = true;
+        }
         public class PickedGearSync : IEquatable<PickedGearSync>
         {
             public Vector3 m_Spawn = new Vector3(0, 0, 0);

@@ -2341,6 +2341,13 @@ namespace SkyCoop
             SaveData.m_Location = (int)RegionManager.GetCurrentRegion();
             SaveData.m_FixedSpawnScene = MyMod.SavedSceneForSpawn;
             SaveData.m_FixedSpawnPosition = MyMod.SavedPositionForSpawn;
+            if (MyMod.ServerConfig.m_PlayersSpawnType == 4 && MyMod.iAmHost && MyMod.level_name != "MainMenu" && MyMod.level_name != "Empty" && !MyMod.LoadingScreenIsOn && GameManager.GetPlayerTransform() != null)
+            {
+                // Near host: the new player appears where the host stands right now.
+                Transform HostT = GameManager.GetPlayerTransform();
+                SaveData.m_FixedSpawnScene = MyMod.level_name;
+                SaveData.m_FixedSpawnPosition = HostT.position + HostT.right * 1.5f;
+            }
 #else
             SaveData.m_Seed = MPSaveManager.Seed;
             SaveData.m_ExperienceMode = ExperienceForDS;

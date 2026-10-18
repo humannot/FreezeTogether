@@ -37,8 +37,16 @@ namespace SkyCoop
 
         public static bool IsBundleItem(string gear) { return System.Array.IndexOf(BundleItems, gear) >= 0; }
 
+        // Every rifle (Barbs, Curators, Trader, Vaughns...) is held like the base rifle: they share its hand bone tuning.
+        static string Canon(string key)
+        {
+            int i = key.IndexOf("GEAR_Rifle_");
+            return key.StartsWith("HAND") && i > 0 ? key.Substring(0, i) + "GEAR_Rifle" : key;
+        }
+
         public static float[] Get(string key)
         {
+            key = Canon(key);
             if (!s_Loaded) Load();
             float[] v;
             if (!s_Values.TryGetValue(key, out v))
@@ -72,7 +80,8 @@ namespace SkyCoop
                 {
                     string[] kv = line.Split('=');
                     if (kv.Length != 2 || line.TrimStart().StartsWith("#")) continue;
-                    string key = kv[0].Trim();
+                    string key = Canon(kv[0].Trim());
+                    if (kv[0].Trim() != key) continue; // rifle variants follow the base rifle's hand values
                     string[] v = kv[1].Split(new[] { ' ', '\t', ';' }, System.StringSplitOptions.RemoveEmptyEntries);
                     int need = key.StartsWith("HAND") ? 6 : 7;
                     var f = new float[need];
