@@ -81,10 +81,45 @@ namespace SkyCoop
             player.AddComponent<PlayerModel>().m_MP = mp;
         }
 
+        // Shots, throws and melee hits of another player play their one-shot animation on the model.
+        public static void OnShoot(int from, string projectile)
+        {
+            if (from < 0 || from >= MyMod.players.Count || MyMod.players[from] == null)
+            {
+                return;
+            }
+            PlayerModel pm = MyMod.players[from].GetComponent<PlayerModel>();
+            if (pm == null || pm.m_Anim == null)
+            {
+                return;
+            }
+            if (projectile == "Melee")
+            {
+                pm.m_Anim.SetTrigger("Hit");
+            }
+            else if (projectile == "GEAR_Stone" || projectile == "GEAR_NoiseMaker")
+            {
+                pm.m_Anim.SetTrigger("Throw");
+            }
+            else
+            {
+                pm.m_Anim.SetTrigger("Shoot");
+            }
+        }
+
         public Comps.MultiplayerPlayer m_MP = null;
         GameObject m_Model = null;
         Animator m_Anim = null;
         int m_Layer = 0;
+
+        Transform m_Spine = null;
+        float m_Tilt = 0f;
+
+        // Lower lip, moved by the loudness of the player's voice.
+        Transform m_Lip = null;
+        readonly List<AudioSource> m_Voices = new List<AudioSource>();
+        Il2CppStructArray<float> m_VoiceSamples = null;
+        const float MouthOpenY = 0.03f, MouthClosedY = 0.053f, MouthGain = 50f;
 
         Vector3 m_LastPos = Vector3.zero;
         bool m_HasLastPos = false;
@@ -140,6 +175,23 @@ namespace SkyCoop
                 }
             }
             HideClassicMeshes();
+
+            m_Spine = Bone(HumanBodyBones.Spine);
+            Transform head = Bone(HumanBodyBones.Head);
+            m_Lip = head != null ? head.Find("Lip_Bottom") : null;
+            FindVoices();
+        }
+
+        void FindVoices()
+        {
+            m_Voices.Clear();
+            foreach (Comps.MultiplayerPlayerVoiceChatPlayer v in GetComponentsInChildren<Comps.MultiplayerPlayerVoiceChatPlayer>(true))
+            {
+                if (v.aSource != null)
+                {
+                    m_Voices.Add(v.aSource);
+                }
+            }
         }
 
         // The classic code keeps toggling its own meshes (held items, back items, clothing variants), so they are
@@ -169,6 +221,10 @@ namespace SkyCoop
             {
                 m_NextHideScan = Time.time + 0.5f;
                 HideClassicMeshes();
+                if (m_Voices.Count == 0)
+                {
+                    FindVoices();
+                }
             }
             DataStr.MultiPlayerClientData data = MyMod.playersData[m_MP.m_ID];
             string held = m_MP.m_HoldingItemRaw ?? "";
@@ -191,7 +247,9 @@ namespace SkyCoop
             Vector3 s = transform.lossyScale;
             m_Model.transform.localScale = new Vector3(1f / s.x, 1f / s.y, 1f / s.z);
             m_Model.transform.localPosition = new Vector3(0, data.m_Female ? 0.194f / s.y : 0f, 0);
-            DriveAnimator(data);
+            int action = DriveAnimator(data);
+            ApplyTilt(data, action);
+            AnimateMouth();
             // Lanterns hang upright from the hand by their handle.
             if (m_Hang && m_HeldGo != null && m_HeldGo.transform.parent != null)
             {

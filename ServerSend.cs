@@ -442,6 +442,21 @@ namespace GameServer
                 }
             }
         }
+        public static void TILT(int _from, float _msg, bool toEveryOne)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.TILT))
+            {
+                _packet.Write(_msg);
+                if (toEveryOne == true)
+                {
+                    _packet.Write(0);
+                    SendUDPDataToAll(_packet);
+                }else{
+                    _packet.Write(_from);
+                    SendUDPDataToAllButNotSender(_packet, _from);
+                }
+            }
+        }
         public static void SYNCWEATHER(DataStr.WeatherProxies _msg)
         {
             using (Packet _packet = new Packet((int)ServerPackets.SYNCWEATHER))
@@ -1695,6 +1710,7 @@ namespace GameServer
                 }
             }
         }
+        // A refused client is never marked ready, so the kick reason and the mods list skip the ready check.
         public static void KICKMESSAGE(int _toClient, string _msg)
         {
             using (Packet _packet = new Packet((int)ServerPackets.KICKMESSAGE))
@@ -1702,7 +1718,7 @@ namespace GameServer
                 _packet.Write(_msg);
                 _packet.Write(_toClient);
 
-                SendTCPData(_toClient, _packet);
+                SendTCPData(_toClient, _packet, true);
             }
         }
         public static void KICKMESSAGE(string _msg)
@@ -1731,7 +1747,7 @@ namespace GameServer
                 _packet.Write(_msg);
                 _packet.Write(_toClient);
 
-                SendTCPData(_toClient, _packet);
+                SendTCPData(_toClient, _packet, true);
             }
         }
 

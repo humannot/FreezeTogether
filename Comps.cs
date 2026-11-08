@@ -1350,6 +1350,8 @@ namespace SkyCoop
         {
             public MultiplayerPlayer(IntPtr ptr) : base(ptr) { }
 
+            const float SnapDistance = 5f;
+
             public int m_ID = 0;
             public List<GameObject> m_DamageColiders = new List<GameObject>();
 
@@ -2027,8 +2029,11 @@ namespace SkyCoop
                         bookClosed.SetActive(false);
                     }
 
-                    Vector3 togo = Vector3.Lerp(m_Player.transform.position, m_XYZ, Time.deltaTime * 20);
-                    Quaternion toRot = Quaternion.Lerp(m_Player.transform.rotation, m_XYZW, Time.deltaTime * 20);
+                    // Smooth between updates, but jump straight there after a teleport, respawn or scene load
+                    // instead of sliding across the map.
+                    bool far = Vector3.Distance(m_Player.transform.position, m_XYZ) > SnapDistance;
+                    Vector3 togo = far ? m_XYZ : Vector3.Lerp(m_Player.transform.position, m_XYZ, Time.deltaTime * 20);
+                    Quaternion toRot = far ? m_XYZW : Quaternion.Lerp(m_Player.transform.rotation, m_XYZW, Time.deltaTime * 20);
                     m_Player.transform.position = togo;
                     m_Player.transform.rotation = toRot;
 

@@ -208,6 +208,7 @@ namespace GameServer
         ANIMALSTOPSFEEDING,
         FURNMOVED,
         CONTAINERBUSY,
+        TILT,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -403,6 +404,7 @@ namespace GameServer
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
         FURNMOVED,
+        TILT,
     }
 
     public class Packet : IDisposable
@@ -766,6 +768,19 @@ namespace GameServer
             Write(obj.m_Scarf);
             Write(obj.m_Balaclava);
             Write(obj.m_Gloves);
+            Write(obj.m_Under);
+            Write(obj.m_Accs1);
+            Write(obj.m_Accs2);
+            Write(obj.m_TechPack);
+            Write(obj.m_Respirator);
+            Write(obj.m_HatWear);
+            Write(obj.m_TopWear);
+            Write(obj.m_UnderWear);
+            Write(obj.m_BottomWear);
+            Write(obj.m_BootsWear);
+            Write(obj.m_GlovesWear);
+            Write(obj.m_ScarfWear);
+            Write(obj.m_BalaclavaWear);
         }
         public void Write(DataStr.BrokenFurnitureSync obj)
         {
@@ -1385,6 +1400,19 @@ namespace GameServer
             obj.m_Scarf = ReadString();
             obj.m_Balaclava = ReadString();
             obj.m_Gloves = ReadString();
+            obj.m_Under = ReadString();
+            obj.m_Accs1 = ReadString();
+            obj.m_Accs2 = ReadString();
+            obj.m_TechPack = ReadBool();
+            obj.m_Respirator = ReadBool();
+            obj.m_HatWear = ReadFloat();
+            obj.m_TopWear = ReadFloat();
+            obj.m_UnderWear = ReadFloat();
+            obj.m_BottomWear = ReadFloat();
+            obj.m_BootsWear = ReadFloat();
+            obj.m_GlovesWear = ReadFloat();
+            obj.m_ScarfWear = ReadFloat();
+            obj.m_BalaclavaWear = ReadFloat();
 
             return obj;
         }

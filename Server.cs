@@ -452,6 +452,7 @@ namespace GameServer
                 { (int)ClientPackets.ANIMALDESTORYGEAR, ServerHandle.ANIMALDESTORYGEAR},
                 { (int)ClientPackets.ANIMALBITECORPSE, ServerHandle.ANIMALBITECORPSE},
                 { (int)ClientPackets.FURNMOVED, ServerHandle.FURNMOVED},
+                { (int)ClientPackets.TILT, ServerHandle.TILT},
             };
             Log("Initialized packets.");
         }

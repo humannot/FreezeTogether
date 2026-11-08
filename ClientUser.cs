@@ -481,6 +481,7 @@ namespace GameServer
             { (int)ServerPackets.REQUESTSPECIALITEMS, ClientHandle.REQUESTSPECIALITEMS},
             { (int)ServerPackets.ANIMALSTOPSFEEDING, ClientHandle.ANIMALSTOPSFEEDING},
             { (int)ServerPackets.FURNMOVED, ClientHandle.FURNMOVED},
+            { (int)ServerPackets.TILT, ClientHandle.TILT},
         };
             MelonLogger.Msg("Initialized packets.");
         }

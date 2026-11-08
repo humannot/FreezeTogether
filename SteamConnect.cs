@@ -1048,6 +1048,33 @@ namespace SkyCoop
                 MelonLogger.Msg("[SteamWorks.NET] Disconnected!");
             }
 
+            // Joining a lobby is refused while one is remembered, so a player refused by the server leaves it and can
+            // join again (for example after changing the nickname) without restarting the game.
+            public static void LeaveJoinedLobby()
+            {
+                if (MyMod.iAmHost || IsMyLobby)
+                {
+                    return;
+                }
+                if (MyMod.MyLobby != "")
+                {
+                    ulong lobby;
+                    if (ulong.TryParse(MyMod.MyLobby, out lobby))
+                    {
+                        SteamMatchmaking.LeaveLobby(new CSteamID(lobby));
+                    }
+                    MelonLogger.Msg("[SteamWorks.NET] Left lobby " + MyMod.MyLobby);
+                }
+                foreach (ulong member in new List<ulong>(MyMod.LobbyElements.Keys))
+                {
+                    MyMod.RemovePersonFromLobby(member);
+                }
+                MyMod.MyLobby = "";
+                MyMod.SteamServerWorks = "";
+                MyMod.ConnectedSteamWorks = false;
+                SteamFriends.ClearRichPresence();
+            }
+
             public static void HandleData(byte[] _data)
             {
                 if(MyMod.iAmHost == true)

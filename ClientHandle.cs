@@ -192,6 +192,16 @@ namespace SkyCoop
                 MyMod.playersData[from].m_AnimState = _anim;
             }
         }
+        public static void TILT(Packet _packet)
+        {
+            float tilt = _packet.ReadFloat();
+            int from = _packet.ReadInt();
+
+            if (from >= 0 && from < MyMod.playersData.Count && MyMod.playersData[from] != null)
+            {
+                MyMod.playersData[from].m_Tilt = tilt;
+            }
+        }
         public static void EQUIPMENT(Packet _packet)
         {
             DataStr.PlayerEquipmentData item = _packet.ReadEQ();
