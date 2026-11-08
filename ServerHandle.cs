@@ -25,27 +25,6 @@ namespace GameServer
 #endif
         }
 
-        // Nicknames identify players in chat, saves and stats, so two players on the server can not share one.
-        static bool IsNicknameTaken(int _fromClient, string _username)
-        {
-            string name = (_username ?? "").Trim();
-#if (!DEDICATED)
-            if (!MyMod.DedicatedServerAppMode && string.Equals(name, (MyMod.MyChatName ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-#endif
-            for (int i = 1; i <= Server.MaxPlayers; i++)
-            {
-                if (i != _fromClient && Server.clients.ContainsKey(i) && Server.clients[i].IsBusy() && Server.clients[i].Ready
-                    && MyMod.playersData[i] != null && string.Equals(name, (MyMod.playersData[i].m_Name ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public static void WelcomeReceived(int _fromClient, Packet _packet)
         {
             int _clientIdCheck = _packet.ReadInt();
@@ -78,19 +57,6 @@ namespace GameServer
                 }
             }else{
                 ServerSend.KICKMESSAGE(_fromClient, "Outdated RCON protocol!");
-                return;
-            }
-
-            if (IsNicknameTaken(_fromClient, _username))
-            {
-                ServerSend.KICKMESSAGE(_fromClient, "A player with this nickname is already on the server. Change your nickname and connect again.");
-                DataStr.MultiplayerChatMessage DisconnectMessage = new DataStr.MultiplayerChatMessage();
-                DisconnectMessage.m_Type = 0;
-                DisconnectMessage.m_By = _username;
-                DisconnectMessage.m_Message = _username + " can't join because this nickname is already taken!";
-                Shared.SendMessageToChat(DisconnectMessage, true);
-                Log("Client " + _fromClient + " can't join, nickname " + _username + " is already taken!");
-                Server.clients[_fromClient].udp.Disconnect();
                 return;
             }
 
@@ -174,10 +140,6 @@ namespace GameServer
                 Cdata.m_Hat = MyMod.MyHat;
                 Cdata.m_Top = MyMod.MyTop;
                 Cdata.m_Bottom = MyMod.MyBottom;
-                Cdata.m_Boots = MyMod.MyBoots;
-                Cdata.m_Scarf = MyMod.MyScarf;
-                Cdata.m_Balaclava = MyMod.MyBalaclava;
-                Cdata.m_Gloves = MyMod.MyGloves;
                 ServerSend.CLOTH(0, Cdata, false, _fromClient);
             }
 #endif
@@ -941,7 +903,15 @@ namespace GameServer
         {
             DataStr.ContainerOpenSync box = _packet.ReadContainer();
 
-            MyMod.SetPlayerContainer(_fromClient, box);
+            if (MyMod.playersData[_fromClient] != null)
+            {
+                if(box.m_Guid == "NULL")
+                {
+                    MyMod.playersData[_fromClient].m_Container = null;
+                }else{
+                    MyMod.playersData[_fromClient].m_Container = box;
+                }
+            }
 
             // Not marked as looted here any more: this arrives when the client only starts opening the container,
             // before its contents are requested. The client reports the real state when it closes it.
@@ -1326,13 +1296,6 @@ namespace GameServer
             string Scene = _packet.ReadString();
             string boxGUID = _packet.ReadString();
             Log("Client " + _fromClient + " request container data for " + boxGUID);
-            string Holder = MyMod.ContainerHolder(_fromClient, Scene, boxGUID);
-            if (Holder != null)
-            {
-                Log("Container " + boxGUID + " is used by " + Holder + ", refusing client " + _fromClient);
-                ServerSend.CONTAINERBUSY(_fromClient, Holder);
-                return;
-            }
             string CompressedData = MPSaveManager.LoadContainer(Scene, boxGUID);
 
             if (CompressedData == "")

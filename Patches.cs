@@ -3678,25 +3678,6 @@ namespace SkyCoop
                 return true;
             }
         }
-        // The open animation starts when the hold begins, so a container used by another player has to be
-        // refused here; refusing only on PerformInteraction leaves the lid stuck open.
-        [HarmonyLib.HarmonyPatch(typeof(ContainerInteraction), "PerformHold")] // Once
-        public static class ContainerInteraction_PerformHold
-        {
-            public static bool Prefix(ContainerInteraction __instance, ref bool __result)
-            {
-                string user = PlayerManager_ProcessContainerInteraction.UserOf(__instance.m_Container);
-                if (user == null)
-                {
-                    return true;
-                }
-                HUDMessage.AddMessage(user + " IS USING THIS");
-                GameAudioManager.PlayGUIError();
-                __result = false;
-                return false;
-            }
-        }
-
         [HarmonyLib.HarmonyPatch(typeof(ContainerInteraction), "PerformInteraction")] // Once
         public static class PlayerManager_ProcessContainerInteraction
         {
@@ -3705,30 +3686,6 @@ namespace SkyCoop
                 __result = false;
                 return Impl(GameManager.GetPlayerManagerComponent(), __instance.m_Container);
             }
-
-            // Name of another player who has this container open in the current scene, or null.
-            public static string UserOf(Container c)
-            {
-                if (c == null || c.gameObject == null || c.gameObject.GetComponent<ObjectGuid>() == null)
-                {
-                    return null;
-                }
-                string boxGUID = c.gameObject.GetComponent<ObjectGuid>().Get();
-
-                for (int i = 0; i < MyMod.playersData.Count; i++)
-                {
-                    if (MyMod.playersData[i] != null && MyMod.playersData[i].m_Container != null)
-                    {
-                        DataStr.ContainerOpenSync otherBox = MyMod.playersData[i].m_Container;
-                        if (otherBox.m_Guid == boxGUID && otherBox.m_LevelID == MyMod.levelid && otherBox.m_LevelGUID == MyMod.level_guid)
-                        {
-                            return MyMod.playersData[i].m_Name;
-                        }
-                    }
-                }
-                return null;
-            }
-
             static bool Impl(PlayerManager __instance, Container c)
             {
                 if (MyMod.CrazyPatchesLogger == true)
@@ -3737,17 +3694,33 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                string user = UserOf(c);
-                if (user != null)
+                string boxGUID = "";
+
+                if (c != null && c.gameObject != null && c.gameObject.GetComponent<ObjectGuid>() != null)
                 {
-                    HUDMessage.AddMessage(user + " IS USING THIS");
-                    GameAudioManager.PlayGUIError();
-                    // The container was claimed while this hold was already running: undo the opening animation.
-                    if (c.m_OpenInProgress || c.IsAnimating())
+                    boxGUID = c.gameObject.GetComponent<ObjectGuid>().Get();
+                }
+
+                DataStr.ContainerOpenSync box = new DataStr.ContainerOpenSync();
+                box.m_Guid = boxGUID;
+                box.m_LevelID = MyMod.levelid;
+                box.m_LevelGUID = GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent;
+
+                for (int i = 0; i < MyMod.playersData.Count; i++)
+                {
+                    if (MyMod.playersData[i] != null)
                     {
-                        c.BeginContainerClose();
+                        if (MyMod.playersData[i].m_Container != null)
+                        {
+                            DataStr.ContainerOpenSync otherBox = MyMod.playersData[i].m_Container;
+                            if (otherBox.m_Guid == box.m_Guid && otherBox.m_LevelID == MyMod.levelid && otherBox.m_LevelGUID == MyMod.level_guid)
+                            {
+                                HUDMessage.AddMessage(MyMod.playersData[i].m_Name + " IS USING THIS");
+                                GameAudioManager.PlayGUIError();
+                                return false;
+                            }
+                        }
                     }
-                    return false;
                 }
                 return true;
             }
@@ -4989,7 +4962,6 @@ namespace SkyCoop
                     if (MyMod.MyContainer == null || MyMod.MyContainer.Equals(pendingContainer) == false)
                     {
                         MyMod.MyContainer = pendingContainer;
-                        MyMod.ContainerClaimTicks[0] = DateTime.UtcNow.Ticks;
                         //MelonLogger.Msg("Interacting wtih container");
                         if (MyMod.sendMyPosition == true)
                         {
@@ -7290,7 +7262,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (isImmediate == true || MyMod.ApplyingRemoteOpenable)
+                if (isImmediate == true)
                 {
                     return;
                 }
@@ -7324,7 +7296,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (isImmediate == true || MyMod.ApplyingRemoteOpenable)
+                if (isImmediate == true)
                 {
                     return;
                 }

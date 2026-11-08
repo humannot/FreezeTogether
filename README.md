@@ -1,12 +1,12 @@
-# SkyCoop — The Long Dark 2.60 port
+# SkyCoop — The Long Dark 2.55 port
 
 **English** | [Русский](#русский)
 
-Unofficial port of [Filigrani's SkyCoop](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, this build reports 0.13.3) to **The Long Dark 2.60**. The original author did not release this build and does not support it.
+Unofficial port of [Filigrani's SkyCoop](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2) to **The Long Dark 2.55**. The original author did not release this build and does not support it.
 
 ## Requirements
-- The Long Dark **2.60**
-- MelonLoader **0.7.x** (tested on 0.7.3)
+- The Long Dark **2.55**
+- MelonLoader **0.7.x** (tested on 0.7.2)
 - ModComponent **7.x** (`ModComponent.dll` in `Mods`) — without it the mod's items will not appear
 
 ## Installation
@@ -16,15 +16,10 @@ Download the zip from [Releases](../../releases) and copy its contents into the 
 Mods\SkyCoop.dll
 Mods\SkyCoop.modcomponent
 Mods\multiplayerstuff.unity3d
-Mods\mpgear.unity3d
-Mods\skycoopplayer.unity3d
 UserLibs\Steamworks.NET.dll
 ```
 
 Remove any older SkyCoop files first. All players must use the same build.
-Reinstalling or updating MelonLoader can wipe `UserLibs`; check that `Steamworks.NET.dll` is still there.
-
-`skycoopplayer.unity3d` holds the humanoid player model (`SkyCoopPlayer` from the SkyCoop Reborn Unity project, built with Unity 6000.0.60f1). Other players are shown with it: clothes use the game's own gear materials, held items and hats/scarves are the game's gear meshes. Without the file players keep the classic model.
 
 ## Playing
 - **Steam:** host with "Host Server" (Steam lobby works), friends join via your Steam lobby.
@@ -103,11 +98,11 @@ Compared against upstream commit `c3e5d76`. The network protocol and game logic 
 <a name="русский"></a>
 # Русский
 
-Неофициальный порт [SkyCoop от Filigrani](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, эта сборка — 0.13.3) на **The Long Dark 2.60**. Оригинальный автор эту сборку не выпускал и не поддерживает.
+Неофициальный порт [SkyCoop от Filigrani](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2) на **The Long Dark 2.55**. Оригинальный автор эту сборку не выпускал и не поддерживает.
 
 ## Что нужно
-- The Long Dark **2.60**
-- MelonLoader **0.7.x** (проверено на 0.7.3)
+- The Long Dark **2.55**
+- MelonLoader **0.7.x** (проверено на 0.7.2)
 - ModComponent **7.x** (`ModComponent.dll` в папке `Mods`) — без него не появятся предметы мода
 
 ## Установка
@@ -117,14 +112,8 @@ Compared against upstream commit `c3e5d76`. The network protocol and game logic 
 Mods\SkyCoop.dll
 Mods\SkyCoop.modcomponent
 Mods\multiplayerstuff.unity3d
-Mods\mpgear.unity3d
-Mods\skycoopplayer.unity3d
 UserLibs\Steamworks.NET.dll
 ```
-
-После переустановки или обновления MelonLoader папка `UserLibs` может очиститься — проверь, что `Steamworks.NET.dll` на месте.
-
-`skycoopplayer.unity3d` — модель игрока-человека (`SkyCoopPlayer` из Unity-проекта SkyCoop Reborn, собрана на Unity 6000.0.60f1). Ею показываются другие игроки: одежда берёт материалы игровых вещей, предметы в руках, шапки и шарфы — меши игровых предметов. Без этого файла остаётся классическая модель.
 
 Старые файлы SkyCoop удали заранее. У всех игроков должна быть одна и та же сборка.
 

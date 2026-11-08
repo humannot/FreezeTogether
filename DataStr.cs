@@ -201,7 +201,6 @@ namespace SkyCoop
             public string m_Boots = "";
             public string m_Scarf = "";
             public string m_Balaclava = "";
-            public string m_Gloves = "";
         }
         public class MultiPlayerClientData
         {

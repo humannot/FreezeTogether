@@ -56,7 +56,7 @@ namespace GameServer
             {
                 if (MyMod.playersData[i] != null)
                 {
-                    if (MyMod.playersData[i].m_LevelGuid == level_guid && Server.clients.ContainsKey(i) && !Server.clients[i].RCON)
+                    if (MyMod.playersData[i].m_LevelGuid == level_guid && !Server.clients[i].RCON)
                     {
                         Server.clients[i].udp.SendData(_packet, IgnoreReady);
                     }
@@ -70,7 +70,7 @@ namespace GameServer
             {
                 if (MyMod.playersData[i] != null)
                 {
-                    if (MyMod.playersData[i].m_LastWeatherRegion == Region && Server.clients.ContainsKey(i) && !Server.clients[i].RCON)
+                    if (MyMod.playersData[i].m_LastWeatherRegion == Region && !Server.clients[i].RCON)
                     {
                         if (!IgnoreLoaders)
                         {
@@ -91,7 +91,7 @@ namespace GameServer
             _packet.WriteLength();
             for (int i = 1; i < MyMod.playersData.Count; i++)
             {
-                if (i != SenderId && MyMod.playersData[i] != null && Server.clients.ContainsKey(i) && !Server.clients[i].RCON)
+                if (i != SenderId && MyMod.playersData[i] != null && !Server.clients[i].RCON)
                 {
                     if (MyMod.playersData[i].m_LevelGuid == SpeakerScene && Vector3.Distance(MyMod.playersData[i].m_Position, SpeakerPossition) <= Shared.LocalChatMaxDistance)
                     {
@@ -116,7 +116,7 @@ namespace GameServer
             _packet.WriteLength();
             for (int i = 1; i < MyMod.playersData.Count; i++)
             {
-                if (i != SenderId && MyMod.playersData[i] != null && Server.clients.ContainsKey(i) && !Server.clients[i].RCON)
+                if (i != SenderId && MyMod.playersData[i] != null && !Server.clients[i].RCON)
                 {
                     if (!IsKey)
                     {
@@ -139,7 +139,7 @@ namespace GameServer
             _packet.WriteLength();
             for (int i = 1; i < MyMod.playersData.Count; i++)
             {
-                if (i != SenderId && MyMod.playersData[i] != null && Server.clients.ContainsKey(i) && !Server.clients[i].RCON)
+                if (i != SenderId && MyMod.playersData[i] != null && !Server.clients[i].RCON)
                 {                    
                     if (MyMod.playersData[i].m_LevelGuid == level_guid || MyMod.playersData[i].m_RadioFrequency == RadioF)
                     {
@@ -312,16 +312,6 @@ namespace GameServer
             using (Packet _packet = new Packet((int)ServerPackets.GOTITEMSLICE))
             {
                 _packet.Write(_msg);
-                _packet.Write(_toClient);
-
-                SendTCPData(_toClient, _packet);
-            }
-        }
-        public static void CONTAINERBUSY(int _toClient, string _holder)
-        {
-            using (Packet _packet = new Packet((int)ServerPackets.CONTAINERBUSY))
-            {
-                _packet.Write(_holder);
                 _packet.Write(_toClient);
 
                 SendTCPData(_toClient, _packet);

@@ -46,7 +46,6 @@ namespace SkyCoop
             ClassInjector.RegisterTypeInIl2Cpp<SpecialItemDummy>();
             ClassInjector.RegisterTypeInIl2Cpp<StatusBarHelper>();
             ClassInjector.RegisterTypeInIl2Cpp<FakeDecoy>();
-            ClassInjector.RegisterTypeInIl2Cpp<PlayerModel>();
         }
         
         
@@ -159,7 +158,6 @@ namespace SkyCoop
             public string m_Guid = "";
             public string m_LastAnim = "";
             public bool m_Empty = true;
-            public bool m_CheckedOtherUsers = false;
 
 
             void Update()
@@ -173,15 +171,6 @@ namespace SkyCoop
                     if (m_Guid == "" && m_Obj.GetComponent<ObjectGuid>() != null)
                     {
                         m_Guid = m_Obj.GetComponent<ObjectGuid>().Get();
-                    }
-                    // A player entering the scene sees containers that others already have open.
-                    if (!m_CheckedOtherUsers && m_Guid != "" && m_Cont != null)
-                    {
-                        m_CheckedOtherUsers = true;
-                        if (Pathes.PlayerManager_ProcessContainerInteraction.UserOf(m_Cont) != null)
-                        {
-                            Open();
-                        }
                     }
 
                     if (m_Guid != "" && m_Cont != null)
@@ -231,8 +220,6 @@ namespace SkyCoop
                 {
                     if (m_Cont.m_PendingClose)
                         return;
-                    // Set before playing so the ObjectAnim.Play hook does not send this state back.
-                    m_LastAnim = "open";
                     for (int index = 0; index < m_Cont.m_ObjectAnims.Length; ++index)
                     {
                         ObjectAnim objectAnim = m_Cont.m_ObjectAnims[index];
@@ -254,7 +241,6 @@ namespace SkyCoop
             {
                 if (m_Cont != null && m_Cont.m_ObjectAnims != null && m_LastAnim != "close")
                 {
-                    m_LastAnim = "close";
                     for (int index = 0; index < m_Cont.m_ObjectAnims.Length; ++index)
                     {
                         ObjectAnim objectAnim = m_Cont.m_ObjectAnims[index];
