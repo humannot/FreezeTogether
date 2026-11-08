@@ -452,6 +452,8 @@ namespace GameServer
                 { (int)ClientPackets.ANIMALDESTORYGEAR, ServerHandle.ANIMALDESTORYGEAR},
                 { (int)ClientPackets.ANIMALBITECORPSE, ServerHandle.ANIMALBITECORPSE},
                 { (int)ClientPackets.FURNMOVED, ServerHandle.FURNMOVED},
+                { (int)ClientPackets.RELIABLE, Reliable.ServerReceive},
+                { (int)ClientPackets.RELIABLEACK, (_fromClient, _packet) => Reliable.ForClient(_fromClient).Ack(_packet.ReadInt())},
             };
             Log("Initialized packets.");
         }

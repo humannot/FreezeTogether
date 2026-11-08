@@ -214,18 +214,40 @@ namespace GameServer
                 //IAsyncResult result = socket.BeginReceive(ReceiveCallback, null);
                 socket.BeginReceive(ReceiveCallback, null);
                 //bool success = result.AsyncWaitHandle.WaitOne(5000, true);
+                Reliable.ToServer.Reset();
                 using (Packet _packet = new Packet())
                 {
                     _packet.Write(myId);
                     //_packet.Write(SubNetworkClientGUID);
 
-                    SendData(_packet);
+                    SendRaw(_packet);
                 }
             }
 
             /// <summary>Sends data to the client via UDP.</summary>
             /// <param name="_packet">The packet to send.</param>
             public void SendData(Packet _packet, bool IgnoreQuit = false)
+            {
+                if (!IgnoreQuit && MyMod.QuitWhenSaveOperationFinished)
+                {
+                    return;
+                }
+                Packet toSend = Reliable.WrapForServer(_packet);
+                try
+                {
+                    SendRaw(toSend, IgnoreQuit);
+                }
+                finally
+                {
+                    if (toSend != _packet)
+                    {
+                        toSend.Dispose();
+                    }
+                }
+            }
+
+            // Puts the packet on the socket as it is, without the reliable wrapper.
+            public void SendRaw(Packet _packet, bool IgnoreQuit = false)
             {
                 if (!IgnoreQuit && MyMod.QuitWhenSaveOperationFinished)
                 {
@@ -411,6 +433,7 @@ namespace GameServer
             { (int)ServerPackets.GETREQUESTEDFORPLACESLICE, ClientHandle.GETREQUESTEDFORPLACESLICE},
             { (int)ServerPackets.GOTCONTAINERSLICE, ClientHandle.GOTCONTAINERSLICE},
             { (int)ServerPackets.OPENEMPTYCONTAINER, ClientHandle.OPENEMPTYCONTAINER},
+            { (int)ServerPackets.CONTAINERBUSY, ClientHandle.CONTAINERBUSY},
             { (int)ServerPackets.MARKSEARCHEDCONTAINERS, ClientHandle.MARKSEARCHEDCONTAINERS},
             { (int)ServerPackets.READYSENDNEXTSLICE, ClientHandle.READYSENDNEXTSLICE},
             { (int)ServerPackets.CHANGEAIM, ClientHandle.CHANGEAIM},
@@ -480,6 +503,8 @@ namespace GameServer
             { (int)ServerPackets.REQUESTSPECIALITEMS, ClientHandle.REQUESTSPECIALITEMS},
             { (int)ServerPackets.ANIMALSTOPSFEEDING, ClientHandle.ANIMALSTOPSFEEDING},
             { (int)ServerPackets.FURNMOVED, ClientHandle.FURNMOVED},
+            { (int)ServerPackets.RELIABLE, Reliable.ClientReceive},
+            { (int)ServerPackets.RELIABLEACK, _packet => Reliable.ToServer.Ack(_packet.ReadInt())},
         };
             MelonLogger.Msg("Initialized packets.");
         }

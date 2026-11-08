@@ -903,15 +903,7 @@ namespace GameServer
         {
             DataStr.ContainerOpenSync box = _packet.ReadContainer();
 
-            if (MyMod.playersData[_fromClient] != null)
-            {
-                if(box.m_Guid == "NULL")
-                {
-                    MyMod.playersData[_fromClient].m_Container = null;
-                }else{
-                    MyMod.playersData[_fromClient].m_Container = box;
-                }
-            }
+            MyMod.SetPlayerContainer(_fromClient, box);
 
             // Not marked as looted here any more: this arrives when the client only starts opening the container,
             // before its contents are requested. The client reports the real state when it closes it.
@@ -1296,6 +1288,13 @@ namespace GameServer
             string Scene = _packet.ReadString();
             string boxGUID = _packet.ReadString();
             Log("Client " + _fromClient + " request container data for " + boxGUID);
+            string Holder = MyMod.ContainerHolder(_fromClient, Scene, boxGUID);
+            if (Holder != null)
+            {
+                Log("Container " + boxGUID + " is used by " + Holder + ", refusing client " + _fromClient);
+                ServerSend.CONTAINERBUSY(_fromClient, Holder);
+                return;
+            }
             string CompressedData = MPSaveManager.LoadContainer(Scene, boxGUID);
 
             if (CompressedData == "")

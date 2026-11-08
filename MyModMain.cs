@@ -34,7 +34,7 @@ namespace SkyCoop
             public const string Description = "Multiplayer mod";
             public const string Author = "Filigrani";
             public const string Company = null;
-            public const string Version = "0.13.2";
+            public const string Version = "0.13.3";
             public const string DownloadLink = null;
             public const int RandomGenVersion = 5;
         }
@@ -4691,6 +4691,89 @@ namespace SkyCoop
             }
         }
 
+        // When each player claimed the container they use (index 0 is the host). The server gives a
+        // container to whoever claimed it first, so two players starting at once can't both open it.
+        public static Dictionary<int, long> ContainerClaimTicks = new Dictionary<int, long>();
+
+        // Name of the player who holds the container, if they claimed it before the requesting client.
+        public static string ContainerHolder(int requester, string scene, string guid)
+        {
+            long mine = long.MaxValue;
+            if (playersData[requester] != null && SameContainer(playersData[requester].m_Container, scene, guid) && ContainerClaimTicks.TryGetValue(requester, out long t))
+            {
+                mine = t;
+            }
+            for (int i = 1; i < playersData.Count; i++)
+            {
+                if (i != requester && playersData[i] != null && SameContainer(playersData[i].m_Container, scene, guid)
+                    && (!ContainerClaimTicks.TryGetValue(i, out long other) || other <= mine))
+                {
+                    return playersData[i].m_Name;
+                }
+            }
+#if (!DEDICATED)
+            if (!DedicatedServerAppMode && SameContainer(MyContainer, scene, guid)
+                && (!ContainerClaimTicks.TryGetValue(0, out long host) || host <= mine))
+            {
+                return MyChatName;
+            }
+#endif
+            return null;
+        }
+
+        static bool SameContainer(DataStr.ContainerOpenSync box, string scene, string guid)
+        {
+            return box != null && box.m_Guid == guid && (scene == "TRAVOIS" || box.m_LevelGUID == scene);
+        }
+
+        // The server refused the container because another player holds it: undo the started opening.
+        public static void CancelOpeningFakeContainer(string holder)
+        {
+            Container box = GoingToOpenContinaer;
+            GoingToOpenContinaer = null;
+            RemovePleaseWait();
+            HUDMessage.AddMessage(holder + " IS USING THIS");
+            GameAudioManager.PlayGUIError();
+            if (box == null)
+            {
+                return;
+            }
+            GameManager.GetPlayerManagerComponent().SetControlMode(box.m_RestoreControlMode);
+            GameManager.GetPlayerManagerComponent().m_ContainerBeingSearched = null;
+            InterfaceManager.GetPanel<Panel_HUD>().CancelItemProgressBar();
+            box.m_SearchInProgress = false;
+            box.StopSearchAudio();
+            box.m_OpenInProgress = false;
+            box.BeginContainerClose();
+        }
+
+        // Stores which container a player is using and shows it open on this side while they use it, so the
+        // lid follows the lock on every client.
+        public static void SetPlayerContainer(int player, DataStr.ContainerOpenSync box)
+        {
+            if (player >= playersData.Count || playersData[player] == null)
+            {
+                return;
+            }
+            DataStr.ContainerOpenSync oldBox = playersData[player].m_Container;
+            DataStr.ContainerOpenSync newBox = box.m_Guid == "NULL" ? null : box;
+            playersData[player].m_Container = newBox;
+            if (newBox != null && (oldBox == null || oldBox.m_Guid != newBox.m_Guid))
+            {
+                ContainerClaimTicks[player] = DateTime.UtcNow.Ticks;
+            }
+#if (!DEDICATED)
+            if (oldBox != null && oldBox.m_LevelGUID == level_guid && (newBox == null || newBox.m_Guid != oldBox.m_Guid))
+            {
+                DoSyncContainer(new DataStr.ContainerOpenSync { m_Guid = oldBox.m_Guid, m_State = false });
+            }
+            if (newBox != null && newBox.m_LevelGUID == level_guid)
+            {
+                DoSyncContainer(new DataStr.ContainerOpenSync { m_Guid = newBox.m_Guid, m_State = true });
+            }
+#endif
+        }
+
         public static void DoSyncContainer(DataStr.ContainerOpenSync sync)
         {
             Il2CppSystem.Collections.Generic.List<Container> Boxes = ContainerManager.m_Containers;
@@ -5284,6 +5367,15 @@ namespace SkyCoop
 
         public static void EverySecond()
         {
+            TransformResendCounter++;
+            if (TransformResendCounter >= 2)
+            {
+                TransformResendCounter = 0;
+                if (InOnline())
+                {
+                    ResendMyTransform();
+                }
+            }
             if (DsServerIsUp == true)
             {
                 SecondsWithoutSaving++;
@@ -8558,86 +8650,41 @@ namespace SkyCoop
             }
         }
 
+        // Set while a state that came from the network is applied, so the OpenClose hooks do not send it back.
+        public static bool ApplyingRemoteOpenable = false;
+
+        // Openables animate through an Animator, an ObjectAnim or a Timeline, and only the game's own
+        // Open/Close drives all of them; animating by hand left Timeline cabinets visually unchanged.
         public static void FakeClose(OpenClose OpCl)
         {
             if (OpCl.IsOpen() == false)
                 return;
-            if (OpCl.m_Animator != null)
+            ApplyingRemoteOpenable = true;
+            try
             {
-                OpCl.SetAnimationSpeed(OpCl.m_DefaultOpenCloseSpeedMultiplierValue);
-                OpCl.AnimateOpen(false);
+                OpCl.Close(false, false);
             }
-            if (OpCl.m_ObjectAnim != null)
+            finally
             {
-                OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "open" : "close");
-                OpCl.m_Animating = true;
-                if (OpCl.m_DisableCollisionDuringAnimation)
-                    OpCl.SetCollisionEnabled(false);
-            }
-
-            bool sound = true;
-            if (OpCl.gameObject != null)
-            {
-                Vector3 doorV3 = OpCl.gameObject.transform.position;
-                Vector3 playerV3 = GameManager.GetPlayerObject().transform.position;
-                float dis = Vector3.Distance(playerV3, doorV3);
-                if (dis > 50)
-                {
-                    sound = false;
-                }
-            }
-
-            if (sound == true)
-            {
-                int num = (int)GameAudioManager.PlaySound(OpCl.m_CloseAudio, OpCl.gameObject);
+                ApplyingRemoteOpenable = false;
             }
             OpCl.m_IsOpen = false;
-            MelonLogger.Msg("Forcing openable thing to close");
         }
 
         public static void FakeOpen(OpenClose OpCl)
         {
             if (OpCl.IsOpen())
                 return;
-            if (OpCl.m_Safe != null && !OpCl.m_Safe.m_Cracked)
+            ApplyingRemoteOpenable = true;
+            try
             {
-                OpCl.m_Safe.EnableSafeCrackingInterface();
+                OpCl.Open(false, false);
             }
-            else
+            finally
             {
-                if (OpCl.m_Animator != null)
-                {
-                    OpCl.SetAnimationSpeed(OpCl.m_DefaultOpenCloseSpeedMultiplierValue);
-                    OpCl.AnimateOpen(true);
-                }
-                if (OpCl.m_ObjectAnim != null)
-                {
-                    OpCl.m_AnimsReversed = OpCl.PlayAnimInReverse();
-                    OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "close" : "open");
-                    OpCl.m_Animating = true;
-                    if (OpCl.m_DisableCollisionDuringAnimation)
-                        OpCl.SetCollisionEnabled(false);
-                }
-
-                bool sound = true;
-                if (OpCl.gameObject != null)
-                {
-                    Vector3 doorV3 = OpCl.gameObject.transform.position;
-                    Vector3 playerV3 = GameManager.GetPlayerObject().transform.position;
-                    float dis = Vector3.Distance(playerV3, doorV3);
-                    if (dis > 50)
-                    {
-                        sound = false;
-                    }
-                }
-
-                if (sound == true)
-                {
-                    int num = (int)GameAudioManager.PlaySound(OpCl.m_OpenAudio, OpCl.gameObject);
-                }
-                OpCl.m_IsOpen = true;
+                ApplyingRemoteOpenable = false;
             }
-            MelonLogger.Msg("Forcing openable thing to open");
+            OpCl.m_IsOpen = true;
         }
 
 
@@ -10208,6 +10255,8 @@ namespace SkyCoop
                 }
             }
 
+            LastSentPosition = v3;
+            HasLastSentTransform = true;
             if (sendMyPosition == true) // CLIENT
             {
                 using (Packet _packet = new Packet((int)ClientPackets.XYZ))
@@ -10220,6 +10269,40 @@ namespace SkyCoop
             if (iAmHost == true)
             {
                 ServerSend.XYZ(0, v3, true);
+            }
+        }
+
+        // Position and rotation are sent only when they change, as plain UDP. If the last packet before the
+        // player stops is lost, the others see them a few steps away until they move again, so the last sent
+        // transform is repeated every couple of seconds.
+        static Vector3 LastSentPosition = Vector3.zero;
+        static Quaternion LastSentRotation = Quaternion.identity;
+        static bool HasLastSentTransform = false;
+        static int TransformResendCounter = 0;
+
+        static void ResendMyTransform()
+        {
+            if (!HasLastSentTransform)
+            {
+                return;
+            }
+            if (sendMyPosition == true)
+            {
+                using (Packet _packet = new Packet((int)ClientPackets.XYZ))
+                {
+                    _packet.Write(LastSentPosition);
+                    SendUDPData(_packet);
+                }
+                using (Packet _packet = new Packet((int)ClientPackets.XYZW))
+                {
+                    _packet.Write(LastSentRotation);
+                    SendUDPData(_packet);
+                }
+            }
+            if (iAmHost == true)
+            {
+                ServerSend.XYZ(0, LastSentPosition, true);
+                ServerSend.XYZW(0, LastSentRotation, true);
             }
         }
 
@@ -10236,6 +10319,7 @@ namespace SkyCoop
                 }
             }
 
+            LastSentRotation = rot;
             if (sendMyPosition == true) // CLIENT
             {
                 using (Packet _packet = new Packet((int)ClientPackets.XYZW))
@@ -11888,6 +11972,7 @@ namespace SkyCoop
         {
             SetAppBackgroundMode();
             if (Input.GetKeyDown(KeyCode.F10)) HostCurrentStory();
+            Reliable.Tick();
             if (!KillOnUpdate)
             {
                 ModUpdate();

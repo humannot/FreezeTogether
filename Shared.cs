@@ -2314,6 +2314,14 @@ namespace SkyCoop
             {
                 if (MyMod.playersData[_from] != null)
                 {
+                    // Release the container the player had open, or it stays locked and open for everyone.
+                    if (MyMod.playersData[_from].m_Container != null)
+                    {
+                        DataStr.ContainerOpenSync released = new DataStr.ContainerOpenSync();
+                        released.m_Guid = "NULL";
+                        MyMod.SetPlayerContainer(_from, released);
+                        ServerSend.CONTAINERINTERACT(_from, released, false);
+                    }
                     MyMod.playersData[_from] = new DataStr.MultiPlayerClientData();
                 }
                 ServerSend.EQUIPMENT(_from, new DataStr.PlayerEquipmentData(), false);

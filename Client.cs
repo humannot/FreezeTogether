@@ -62,6 +62,7 @@ namespace GameServer
             {
                 Log($"Incoming connection from {_endPoint.Address}...");
                 endPoint = _endPoint;
+                Reliable.ForClient(id).Reset();
                 ServerSend.Welcome(id, Server.MaxPlayers);
             }
             public void ConnectSteamWorks(string _sid)
@@ -81,7 +82,23 @@ namespace GameServer
                 
                 if(Server.UsingSteamWorks == false)
                 {
-                    Server.SendUDPData(endPoint, _packet);
+                    if (endPoint == null || client.RCON)
+                    {
+                        Server.SendUDPData(endPoint, _packet);
+                        return;
+                    }
+                    Packet toSend = Reliable.WrapForClient(id, _packet);
+                    try
+                    {
+                        Server.SendUDPData(endPoint, toSend);
+                    }
+                    finally
+                    {
+                        if (toSend != _packet)
+                        {
+                            toSend.Dispose();
+                        }
+                    }
                 }else{
                     Server.SendP2PData(sid, _packet);
                 }
@@ -111,6 +128,7 @@ namespace GameServer
             /// <summary>Cleans up the UDP connection.</summary>
             public void Disconnect()
             {
+                Reliable.ForClient(id).Reset();
                 endPoint = null;
                 sid = "";
                 client.Ready = false;

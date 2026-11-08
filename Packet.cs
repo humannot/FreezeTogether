@@ -207,6 +207,9 @@ namespace GameServer
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
         FURNMOVED,
+        RELIABLE,
+        RELIABLEACK,
+        CONTAINERBUSY,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -402,6 +405,8 @@ namespace GameServer
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
         FURNMOVED,
+        RELIABLE,
+        RELIABLEACK,
     }
 
     public class Packet : IDisposable
