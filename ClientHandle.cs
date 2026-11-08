@@ -765,15 +765,7 @@ namespace SkyCoop
             DataStr.ContainerOpenSync box = _packet.ReadContainer();
             int from = _packet.ReadInt();
 
-            if (MyMod.playersData[from] != null)
-            {
-                if (box.m_Guid == "NULL")
-                {
-                    MyMod.playersData[from].m_Container = null;
-                }else{
-                    MyMod.playersData[from].m_Container = box;
-                }
-            }
+            MyMod.SetPlayerContainer(from, box);
         }
         public static void LOOTEDCONTAINER(Packet _packet)
         {

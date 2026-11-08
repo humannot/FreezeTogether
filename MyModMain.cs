@@ -957,6 +957,14 @@ namespace SkyCoop
 
         public override void OnInitializeMelon()
         {
+            try
+            {
+                SteamConnect.UseGameSteamApi();
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Warning("[Steamworks.NET] Could not bind to the game's steam_api64.dll: " + e.Message);
+            }
             SetAppBackgroundMode();
             bool DedicatedServerWithRender = Environment.GetCommandLineArgs().Contains("-dedicated");
             DedicatedServerAppMode = DedicatedServerWithRender || Application.isBatchMode;
@@ -4689,6 +4697,30 @@ namespace SkyCoop
                     GameAudioManager.NotifyAiAudioEvent(players[from], players[from].transform.position, GameAudioAiEvent.Gunshot);
                 }
             }
+        }
+
+        // Stores which container a player is using and shows it open on this side while they use it.
+        // Driven by the reliable CONTAINERINTERACT packet, so a lost open/close animation packet can not
+        // leave the container in a different state for different players.
+        public static void SetPlayerContainer(int player, DataStr.ContainerOpenSync box)
+        {
+            if (playersData[player] == null)
+            {
+                return;
+            }
+            DataStr.ContainerOpenSync oldBox = playersData[player].m_Container;
+            DataStr.ContainerOpenSync newBox = box.m_Guid == "NULL" ? null : box;
+            playersData[player].m_Container = newBox;
+#if (!DEDICATED)
+            if (oldBox != null && oldBox.m_LevelGUID == level_guid && (newBox == null || newBox.m_Guid != oldBox.m_Guid))
+            {
+                DoSyncContainer(new DataStr.ContainerOpenSync { m_Guid = oldBox.m_Guid, m_State = false });
+            }
+            if (newBox != null && newBox.m_LevelGUID == level_guid)
+            {
+                DoSyncContainer(new DataStr.ContainerOpenSync { m_Guid = newBox.m_Guid, m_State = true });
+            }
+#endif
         }
 
         public static void DoSyncContainer(DataStr.ContainerOpenSync sync)
@@ -8558,86 +8590,41 @@ namespace SkyCoop
             }
         }
 
+        // Set while a state that came from the network is applied, so the OpenClose hooks do not send it back.
+        public static bool ApplyingRemoteOpenable = false;
+
+        // Openables animate through an Animator, an ObjectAnim or a Timeline, and only the game's own
+        // Open/Close drives all of them; animating by hand left Timeline cabinets visually unchanged.
         public static void FakeClose(OpenClose OpCl)
         {
             if (OpCl.IsOpen() == false)
                 return;
-            if (OpCl.m_Animator != null)
+            ApplyingRemoteOpenable = true;
+            try
             {
-                OpCl.SetAnimationSpeed(OpCl.m_DefaultOpenCloseSpeedMultiplierValue);
-                OpCl.AnimateOpen(false);
+                OpCl.Close(false, false);
             }
-            if (OpCl.m_ObjectAnim != null)
+            finally
             {
-                OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "open" : "close");
-                OpCl.m_Animating = true;
-                if (OpCl.m_DisableCollisionDuringAnimation)
-                    OpCl.SetCollisionEnabled(false);
-            }
-
-            bool sound = true;
-            if (OpCl.gameObject != null)
-            {
-                Vector3 doorV3 = OpCl.gameObject.transform.position;
-                Vector3 playerV3 = GameManager.GetPlayerObject().transform.position;
-                float dis = Vector3.Distance(playerV3, doorV3);
-                if (dis > 50)
-                {
-                    sound = false;
-                }
-            }
-
-            if (sound == true)
-            {
-                int num = (int)GameAudioManager.PlaySound(OpCl.m_CloseAudio, OpCl.gameObject);
+                ApplyingRemoteOpenable = false;
             }
             OpCl.m_IsOpen = false;
-            MelonLogger.Msg("Forcing openable thing to close");
         }
 
         public static void FakeOpen(OpenClose OpCl)
         {
             if (OpCl.IsOpen())
                 return;
-            if (OpCl.m_Safe != null && !OpCl.m_Safe.m_Cracked)
+            ApplyingRemoteOpenable = true;
+            try
             {
-                OpCl.m_Safe.EnableSafeCrackingInterface();
+                OpCl.Open(false, false);
             }
-            else
+            finally
             {
-                if (OpCl.m_Animator != null)
-                {
-                    OpCl.SetAnimationSpeed(OpCl.m_DefaultOpenCloseSpeedMultiplierValue);
-                    OpCl.AnimateOpen(true);
-                }
-                if (OpCl.m_ObjectAnim != null)
-                {
-                    OpCl.m_AnimsReversed = OpCl.PlayAnimInReverse();
-                    OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "close" : "open");
-                    OpCl.m_Animating = true;
-                    if (OpCl.m_DisableCollisionDuringAnimation)
-                        OpCl.SetCollisionEnabled(false);
-                }
-
-                bool sound = true;
-                if (OpCl.gameObject != null)
-                {
-                    Vector3 doorV3 = OpCl.gameObject.transform.position;
-                    Vector3 playerV3 = GameManager.GetPlayerObject().transform.position;
-                    float dis = Vector3.Distance(playerV3, doorV3);
-                    if (dis > 50)
-                    {
-                        sound = false;
-                    }
-                }
-
-                if (sound == true)
-                {
-                    int num = (int)GameAudioManager.PlaySound(OpCl.m_OpenAudio, OpCl.gameObject);
-                }
-                OpCl.m_IsOpen = true;
+                ApplyingRemoteOpenable = false;
             }
-            MelonLogger.Msg("Forcing openable thing to open");
+            OpCl.m_IsOpen = true;
         }
 
 
