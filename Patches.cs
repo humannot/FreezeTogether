@@ -4989,6 +4989,7 @@ namespace SkyCoop
                     if (MyMod.MyContainer == null || MyMod.MyContainer.Equals(pendingContainer) == false)
                     {
                         MyMod.MyContainer = pendingContainer;
+                        MyMod.ContainerClaimTicks[0] = DateTime.UtcNow.Ticks;
                         //MelonLogger.Msg("Interacting wtih container");
                         if (MyMod.sendMyPosition == true)
                         {

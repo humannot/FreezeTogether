@@ -207,6 +207,7 @@ namespace GameServer
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
         FURNMOVED,
+        CONTAINERBUSY,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -764,6 +765,7 @@ namespace GameServer
             Write(obj.m_Boots);
             Write(obj.m_Scarf);
             Write(obj.m_Balaclava);
+            Write(obj.m_Gloves);
         }
         public void Write(DataStr.BrokenFurnitureSync obj)
         {
@@ -1382,6 +1384,7 @@ namespace GameServer
             obj.m_Boots = ReadString();
             obj.m_Scarf = ReadString();
             obj.m_Balaclava = ReadString();
+            obj.m_Gloves = ReadString();
 
             return obj;
         }

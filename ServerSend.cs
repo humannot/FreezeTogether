@@ -317,6 +317,16 @@ namespace GameServer
                 SendTCPData(_toClient, _packet);
             }
         }
+        public static void CONTAINERBUSY(int _toClient, string _holder)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.CONTAINERBUSY))
+            {
+                _packet.Write(_holder);
+                _packet.Write(_toClient);
+
+                SendTCPData(_toClient, _packet);
+            }
+        }
         public static void OPENEMPTYCONTAINER(int _toClient, bool _msg)
         {
             using (Packet _packet = new Packet((int)ServerPackets.OPENEMPTYCONTAINER))

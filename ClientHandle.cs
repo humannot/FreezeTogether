@@ -978,6 +978,12 @@ namespace SkyCoop
         {
 
         }
+        public static void CONTAINERBUSY(Packet _packet)
+        {
+            string Holder = _packet.ReadString();
+            MyMod.DiscardRepeatPacket();
+            MyMod.CancelOpeningFakeContainer(Holder);
+        }
         public static void OPENEMPTYCONTAINER(Packet _packet)
         {
             bool NeverLooted = _packet.ReadBool();

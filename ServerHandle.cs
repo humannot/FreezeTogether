@@ -174,6 +174,10 @@ namespace GameServer
                 Cdata.m_Hat = MyMod.MyHat;
                 Cdata.m_Top = MyMod.MyTop;
                 Cdata.m_Bottom = MyMod.MyBottom;
+                Cdata.m_Boots = MyMod.MyBoots;
+                Cdata.m_Scarf = MyMod.MyScarf;
+                Cdata.m_Balaclava = MyMod.MyBalaclava;
+                Cdata.m_Gloves = MyMod.MyGloves;
                 ServerSend.CLOTH(0, Cdata, false, _fromClient);
             }
 #endif
@@ -1322,6 +1326,13 @@ namespace GameServer
             string Scene = _packet.ReadString();
             string boxGUID = _packet.ReadString();
             Log("Client " + _fromClient + " request container data for " + boxGUID);
+            string Holder = MyMod.ContainerHolder(_fromClient, Scene, boxGUID);
+            if (Holder != null)
+            {
+                Log("Container " + boxGUID + " is used by " + Holder + ", refusing client " + _fromClient);
+                ServerSend.CONTAINERBUSY(_fromClient, Holder);
+                return;
+            }
             string CompressedData = MPSaveManager.LoadContainer(Scene, boxGUID);
 
             if (CompressedData == "")

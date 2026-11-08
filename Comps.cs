@@ -46,6 +46,7 @@ namespace SkyCoop
             ClassInjector.RegisterTypeInIl2Cpp<SpecialItemDummy>();
             ClassInjector.RegisterTypeInIl2Cpp<StatusBarHelper>();
             ClassInjector.RegisterTypeInIl2Cpp<FakeDecoy>();
+            ClassInjector.RegisterTypeInIl2Cpp<PlayerModel>();
         }
         
         

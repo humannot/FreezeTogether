@@ -411,6 +411,7 @@ namespace GameServer
             { (int)ServerPackets.GETREQUESTEDFORPLACESLICE, ClientHandle.GETREQUESTEDFORPLACESLICE},
             { (int)ServerPackets.GOTCONTAINERSLICE, ClientHandle.GOTCONTAINERSLICE},
             { (int)ServerPackets.OPENEMPTYCONTAINER, ClientHandle.OPENEMPTYCONTAINER},
+            { (int)ServerPackets.CONTAINERBUSY, ClientHandle.CONTAINERBUSY},
             { (int)ServerPackets.MARKSEARCHEDCONTAINERS, ClientHandle.MARKSEARCHEDCONTAINERS},
             { (int)ServerPackets.READYSENDNEXTSLICE, ClientHandle.READYSENDNEXTSLICE},
             { (int)ServerPackets.CHANGEAIM, ClientHandle.CHANGEAIM},

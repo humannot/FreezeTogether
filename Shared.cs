@@ -2314,6 +2314,14 @@ namespace SkyCoop
             {
                 if (MyMod.playersData[_from] != null)
                 {
+                    // Release the container the player had open, or it stays locked and open for everyone.
+                    if (MyMod.playersData[_from].m_Container != null)
+                    {
+                        DataStr.ContainerOpenSync released = new DataStr.ContainerOpenSync();
+                        released.m_Guid = "NULL";
+                        MyMod.SetPlayerContainer(_from, released);
+                        ServerSend.CONTAINERINTERACT(_from, released, false);
+                    }
                     MyMod.playersData[_from] = new DataStr.MultiPlayerClientData();
                 }
                 ServerSend.EQUIPMENT(_from, new DataStr.PlayerEquipmentData(), false);
@@ -2456,6 +2464,7 @@ namespace SkyCoop
                             m_Player.transform.rotation = MyMod.playersData[i].m_Rotation;
                         }
                         MyMod.ApplyDamageZones(m_Player, mP);
+                        PlayerModel.Attach(m_Player, mP);
                         m_Player.SetActive(false);
 
                         mP.m_TorchIgniter = m_Player.transform.GetChild(3).GetChild(8).GetChild(0).GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(8).GetChild(1).gameObject; //Tourch Fire
