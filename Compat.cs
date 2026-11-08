@@ -47,7 +47,9 @@ internal static class Compat
         if (string.IsNullOrEmpty(name)) return null;
         try
         {
-            return GearItem.LoadGearItemPrefab(CleanGearName(name));
+            // 2.58 removed GearItem.LoadGearItemPrefab; gear prefabs are addressable by their GEAR_ name.
+            GameObject go = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>((Il2CppSystem.Object)CleanGearName(name)).WaitForCompletion();
+            return go != null ? go.GetComponent<GearItem>() : null;
         }
         catch (System.Exception)
         {
@@ -143,6 +145,16 @@ internal static class Compat
         public float m_DailyHPDecay => gi.GearItemData.DailyHPDecay;
     }
 
+    extension(GearItem)
+    {
+        // Removed in 2.58.
+        public static string GetGearDisplayName(string name)
+        {
+            GearItem gi = LoadGearPrefab(name);
+            return gi != null ? gi.DisplayName : name;
+        }
+    }
+
     extension(GearItem gi)
     {
         public float m_WeightKG { get => gi.WeightKG.ToQuantity(1f); set => gi.WeightKG = ItemWeight.FromKilograms(value); }
@@ -191,7 +203,7 @@ internal static class Compat
         {
             GearItem prefab = LoadGearPrefab(gearName);
             if (prefab == null) { WarnMissingGear(gearName); return null; }
-            return pm.InstantiateItemAtPlayersFeet(prefab, units);
+            return pm.InstantiateItemAtPlayersFeet(prefab.name, units);
         }
 
         // Old "pick up with inspect screen" is now the default path of ProcessPickupItemInteraction.
@@ -364,6 +376,9 @@ internal static class Compat
     extension(ObjectGuid og)
     {
         public void Set(string guid) => PdidTable.RuntimeAddOrReplace(og, guid);
+        // 2.58 removed ObjectGuid.Get() and the m_Guid field; the id lives on PdidObjectBase.
+        public string Get() => og.PDID;
+        public string m_Guid { get => og.PDID; set => PdidTable.RuntimeAddOrReplace(og, value); }
         public void Generate() => PdidTable.RuntimeAddOrReplace(og, PdidTable.GenerateNewID());
     }
 
@@ -464,7 +479,12 @@ internal static class RegionIds
 
 internal static class RegionManager
 {
-    public static GameRegion GetCurrentRegion() => (GameRegion)RegionIds.Of(GameManager.TryGetCurrentRegion());
+    // 2.58 only exposes the region name; null (menu, no region yet) maps to LakeRegion like RegionIds.Of(null).
+    public static GameRegion GetCurrentRegion()
+    {
+        string name = GameManager.TryGetCurrentRegionName();
+        return string.IsNullOrEmpty(name) ? GameRegion.LakeRegion : (GameRegion)RegionIds.OfName(name);
+    }
     public static bool GetRegionFromString(string name, out GameRegion region) => System.Enum.TryParse(name, out region);
 }
 

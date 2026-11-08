@@ -1616,6 +1616,11 @@ namespace SkyCoop
             for (int i = 0; i < GearManager.m_Gear.Count; i++)
             {
                 GearItem currentGear = GearManager.m_Gear[i];
+                // The list can hold items already destroyed by the scene reload (e.g. after respawn).
+                if (currentGear == null)
+                {
+                    continue;
+                }
                 GameObject obj = currentGear.gameObject;
                 long Key = MPSaveManager.GetPickedGearKey(obj.transform.position);
 
@@ -3291,22 +3296,8 @@ namespace SkyCoop
             if (spRobj != null && spRobj.GetComponent<SpawnRegion>() != null)
             {
                 SpawnRegion spR = spRobj.GetComponent<SpawnRegion>();
-                Vector3 zero = Vector3.zero;
-                Quaternion identity = Quaternion.identity;
-                BaseAi newAnimal = null;
-
-                if (spR.m_SpawnablePrefab == null)
-                {
-                    // TLD 2.55 resolves animal prefabs via addressable tables, so m_SpawnablePrefab is null.
-                    newAnimal = spR.InstantiateAndPlaceSpawn(WildlifeMode.Normal);
-                }
-                else if (spR.TryGetSpawnPositionAndRotation(ref zero, ref identity) == true)
-                {
-                    if (spR.PositionValidForSpawn(zero) == true)
-                    {
-                        newAnimal = spR.InstantiateSpawnInternal(spR.m_SpawnablePrefab, WildlifeMode.Normal, zero, identity);
-                    }
-                }
+                // TLD resolves animal prefabs via addressable tables (m_SpawnablePrefab is gone in 2.58).
+                BaseAi newAnimal = spR.InstantiateAndPlaceSpawn(WildlifeMode.Normal);
                 if (newAnimal != null)
                 {
                     GameObject animal = newAnimal.gameObject;
@@ -7216,17 +7207,32 @@ namespace SkyCoop
             return r;
         }
 
-        public static bool SnareCanTrap(Vector3 pos, string prefabname)
+        // Snare fields differ between game builds. A missing member throws when the method touching it is JIT-compiled,
+        // so it is read in its own method: then only snares break, not the whole drop that calls this.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        static AssetReferenceBaseAi SnareRabbit(SnareItem snare) => snare.m_RabbitAssetReference;
+        public static bool SnareCanTrapSafe(Vector3 pos, SnareItem snare)
         {
-            //MelonLogger.Msg(System.ConsoleColor.Yellow, "Snare looking for region with "+ prefabname + "...");
+            try
+            {
+                return SnareCanTrap(pos, SnareRabbit(snare));
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Msg(System.ConsoleColor.Red, "[Snare] " + e.Message);
+                return false;
+            }
+        }
+
+        // 2.58: regions list animals as addressable references, so match by reference instead of prefab name.
+        public static bool SnareCanTrap(Vector3 pos, AssetReferenceBaseAi animal)
+        {
             SpawnRegionManager SRM = GameManager.GetSpawnRegionManager();
             for (int index = 0; index < SRM.m_SpawnRegions.Count; ++index)
             {
                 float dis = Vector3.Distance(pos, SRM.m_SpawnRegions[index].m_Center);
                 float mindis = SRM.m_SpawnRegions[index].m_Radius;
-                string spPrefab = SRM.m_SpawnRegions[index].m_SpawnablePrefab.name;
-                //MelonLogger.Msg(index + ". Distance to snare " + dis + " maximal allowed distance " + mindis+" animal prefab "+ spPrefab);
-                if (dis <= mindis && prefabname == spPrefab)
+                if (dis <= mindis && SRM.m_SpawnRegions[index].HasSpawnAnimal(animal))
                 {
                     //MelonLogger.Msg(System.ConsoleColor.Yellow, "Snare inside spawnregion " + SRM.m_SpawnRegions[index].gameObject.name);
                     return true;
@@ -8392,7 +8398,7 @@ namespace SkyCoop
 
                     if (variant == 1)
                     {
-                        if (SnareCanTrap(v3, gear.m_SnareItem.m_RabbitPrefab.name) == true)
+                        if (SnareCanTrapSafe(v3, gear.m_SnareItem) == true)
                         {
                             NeedToDry = 720;
                             if (GameManager.GetFeatExpertTrapper().IsUnlockedAndEnabled() == true)
@@ -8563,8 +8569,7 @@ namespace SkyCoop
             }
             if (OpCl.m_ObjectAnim != null)
             {
-                if (!OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "open" : "close"))
-                    return;
+                OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "open" : "close");
                 OpCl.m_Animating = true;
                 if (OpCl.m_DisableCollisionDuringAnimation)
                     OpCl.SetCollisionEnabled(false);
@@ -8608,8 +8613,7 @@ namespace SkyCoop
                 if (OpCl.m_ObjectAnim != null)
                 {
                     OpCl.m_AnimsReversed = OpCl.PlayAnimInReverse();
-                    if (!OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "close" : "open"))
-                        return;
+                    OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "close" : "open");
                     OpCl.m_Animating = true;
                     if (OpCl.m_DisableCollisionDuringAnimation)
                         OpCl.SetCollisionEnabled(false);

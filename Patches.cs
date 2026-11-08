@@ -1231,7 +1231,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if ((UnityEngine.Object)__instance.m_Weapon == (UnityEngine.Object)null || (double)Time.time < (double)__instance.m_NextAllowedFireTime || (__instance.m_Weapon.ReloadInProgress() || !GameManager.GetPlayerAnimationComponent().IsAllowedToFire(__instance.m_Weapon.m_GunItem.m_AllowHipFire)) || GameManager.GetPlayerAnimationComponent().IsReloading())
+                if ((UnityEngine.Object)__instance.m_Weapon == (UnityEngine.Object)null || (double)Time.time < (double)__instance.m_NextAllowedFireTime || (__instance.m_Weapon.ReloadInProgress() || !GameManager.GetPlayerAnimationComponent().IsAllowedToFire(__instance.m_Weapon.m_GunItem.m_AllowHipFire, __instance.m_Weapon.m_GunItem.m_GunType)) || GameManager.GetPlayerAnimationComponent().IsReloading())
                 {
                     //MelonLogger.Msg("[vp_FPSShooter] Can't shoot now!");
                     return;
@@ -7168,10 +7168,10 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InstantiateItemAtPlayersFeet", new System.Type[] { typeof(GearItem), typeof(int) })] // Once
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InstantiateItemAtPlayersFeet", new System.Type[] { typeof(string), typeof(int) })] // Once
         internal static class PlayerManager_InstantiateItemAtPlayersFeet
         {
-            private static void Postfix(GearItem gearItemPrefab, int numUnits, GearItem __result)
+            private static void Postfix(string gearItemName, int numUnits, GearItem __result)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {

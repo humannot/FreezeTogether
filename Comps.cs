@@ -223,8 +223,8 @@ namespace SkyCoop
                     for (int index = 0; index < m_Cont.m_ObjectAnims.Length; ++index)
                     {
                         ObjectAnim objectAnim = m_Cont.m_ObjectAnims[index];
-                        if ((bool)(UnityEngine.Object)objectAnim && !objectAnim.Play("open"))
-                            return;
+                        // 2.58: Play returns void, so there is no failure to bail out on.
+                        if ((bool)(UnityEngine.Object)objectAnim) objectAnim.Play("open");
                     }
 
                     if (m_Cont.gameObject != null && GameManager.GetPlayerObject() != null)
@@ -244,11 +244,7 @@ namespace SkyCoop
                     for (int index = 0; index < m_Cont.m_ObjectAnims.Length; ++index)
                     {
                         ObjectAnim objectAnim = m_Cont.m_ObjectAnims[index];
-                        if ((bool)(UnityEngine.Object)objectAnim && !objectAnim.Play("close"))
-                        {
-                            m_Cont.m_PendingClose = true;
-                            return;
-                        }
+                        if ((bool)(UnityEngine.Object)objectAnim) objectAnim.Play("close");
                     }
                     if (m_Cont.gameObject != null && GameManager.GetPlayerObject() != null)
                     {

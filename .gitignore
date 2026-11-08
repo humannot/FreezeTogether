@@ -1,7 +1,4 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
+﻿
 /bin/Release
 /obj/Release
 /obj/Dedicated Linux
@@ -16,3 +13,16 @@
 /.vs/SkyCoop/FileContentIndex/21446d54-1b42-4ff8-9b99-e8e0dc7639ce.vsidx
 /.vs/SkyCoop/v17/.suo
 /.vs/SkyCoop/FileContentIndex
+obj/
+bin/
+dist/
+graphify-out/
+.vs/
+
+
+
+
+
+
+*.user
+*.suo

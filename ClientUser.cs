@@ -41,9 +41,9 @@ namespace GameServer
             // Request of server status should be done via UDP.
             // Use same port as game server use.
             // Default port of Sky Co-op Server is 26950 (if not listed otherwise).
-            // Example: Game server with address 87.254.159.105:26950
+            // Example: Game server with address 11.111.111.111:26950
             // Will respond with status data by same 26950 port,
-            // aswell as servers that listed as 87.254.159.105
+            // aswell as servers that listed as 11.111.111.111
             // will respond by port 26950, but I think is obvious.
 
             // Send to server (signed int) -2 message to request servers status.
