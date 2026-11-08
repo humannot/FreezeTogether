@@ -18,6 +18,32 @@ namespace SkyCoop
         public static bool IsMyLobby = false;
         public static bool HasDLC = false;
 
+        // A steam_api64.dll from a different SDK version can end up next to tld.exe, and the default
+        // native probe prefers it over the copy the game already loaded from its Plugins folder.
+        // Running against that foreign copy makes RestartAppIfNecessary quit the game, so bind
+        // Steamworks.NET to the game's own library.
+        public static void UseGameSteamApi()
+        {
+            string gameApi = Path.Combine(MelonLoader.Utils.MelonEnvironment.UnityGameDataDirectory, "Plugins", "x86_64", "steam_api64.dll");
+            if (!File.Exists(gameApi))
+            {
+                return;
+            }
+            GameSteamApiPath = gameApi;
+            System.Runtime.InteropServices.NativeLibrary.SetDllImportResolver(typeof(SteamAPI).Assembly, ResolveSteamApi);
+        }
+
+        private static string GameSteamApiPath;
+
+        private static IntPtr ResolveSteamApi(string name, System.Reflection.Assembly assembly, System.Runtime.InteropServices.DllImportSearchPath? searchPath)
+        {
+            if (name.StartsWith("steam_api", StringComparison.OrdinalIgnoreCase))
+            {
+                return System.Runtime.InteropServices.NativeLibrary.Load(GameSteamApiPath);
+            }
+            return IntPtr.Zero;
+        }
+
         public static void Init()
         {
             try

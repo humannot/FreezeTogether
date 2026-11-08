@@ -957,6 +957,14 @@ namespace SkyCoop
 
         public override void OnInitializeMelon()
         {
+            try
+            {
+                SteamConnect.UseGameSteamApi();
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Warning("[Steamworks.NET] Could not bind to the game's steam_api64.dll: " + e.Message);
+            }
             SetAppBackgroundMode();
             bool DedicatedServerWithRender = Environment.GetCommandLineArgs().Contains("-dedicated");
             DedicatedServerAppMode = DedicatedServerWithRender || Application.isBatchMode;
