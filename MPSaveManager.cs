@@ -794,6 +794,11 @@ namespace SkyCoop
             {
                 SaveData(GetKeyTemplate(SaveKeyTemplateType.LootedContainers, item.Key), JSON.Dump(item.Value), SaveSeed);
             }
+            foreach (var item in SceneItemsSync.Recent.ToList())
+            {
+                SaveData(GetKeyTemplate(SaveKeyTemplateType.SceneItems, item.Key), JSON.Dump(item.Value), SaveSeed);
+            }
+            SceneItemsSync.Recent = new Dictionary<string, Dictionary<string, string>>();
             foreach (var item in RecentlyHarvastedPlants.ToList())
             {
                 SaveData(GetKeyTemplate(SaveKeyTemplateType.HarvestedPlants, item.Key), JSON.Dump(item.Value), SaveSeed);
@@ -1003,7 +1008,8 @@ namespace SkyCoop
             PickedGears = 5,
             LootedContainers = 6,
             HarvestedPlants = 7,
-            MovedFurns = 8
+            MovedFurns = 8,
+            SceneItems = 9
         }
 
         public static string GetKeyTemplate(SaveKeyTemplateType T, string Scene, string GUID = "")
@@ -1028,6 +1034,8 @@ namespace SkyCoop
                     return Scene + "_HarvestedPlants";
                 case SaveKeyTemplateType.MovedFurns:
                     return Scene + "_MovedFurns";
+                case SaveKeyTemplateType.SceneItems:
+                    return Scene + "_SceneItems";
                 default:
                     return "_UNKNOWN";
             }

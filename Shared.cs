@@ -2464,6 +2464,7 @@ namespace SkyCoop
                             m_Player.transform.rotation = MyMod.playersData[i].m_Rotation;
                         }
                         MyMod.ApplyDamageZones(m_Player, mP);
+                        PlayerModel.Attach(m_Player, mP);
                         m_Player.SetActive(false);
 
                         mP.m_TorchIgniter = m_Player.transform.GetChild(3).GetChild(8).GetChild(0).GetChild(0).GetChild(0).GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(8).GetChild(1).gameObject; //Tourch Fire

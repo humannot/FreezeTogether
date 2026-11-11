@@ -615,7 +615,7 @@ namespace SkyCoop
                     Supporters.SetFlairsUpdateData();
                     MyMod.NotificationString = "";
                     MyMod.m_Panel_Sandbox.Enable(true);
-                    MenuChange.ChangeMenuItems("MultiProfileSettings");
+                    MenuChange.ChangeMenuItems("Multiplayer");
                     MenuChange.OpenFlairsMenu();
 
                 }
@@ -1722,18 +1722,6 @@ namespace SkyCoop
                 return false;
             }
         }
-        public static bool GarbadgeFilter(string GearName)
-        {
-            if (GearName == "GEAR_CrowFeather"
-                || GearName == "GEAR_Stone"
-                || GearName == "GEAR_Stick")
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "ProcessPickupItemInteraction")] // Once
         private static class Inventory_Pickup
         {
@@ -1778,7 +1766,7 @@ namespace SkyCoop
                     {
                         return;
                     }
-                    if (GarbadgeFilter(GearName))
+                    if (SceneItemsSync.OnPickup(pickupItem.gameObject))
                     {
                         return;
                     }
@@ -1825,7 +1813,7 @@ namespace SkyCoop
                     {
                         return;
                     }
-                    if (GarbadgeFilter(GearName))
+                    if (SceneItemsSync.OnPickup(pickupItem.gameObject))
                     {
                         return;
                     }
@@ -1846,7 +1834,7 @@ namespace SkyCoop
                 }
                 string GearName = gi.m_GearName;
                 gi.m_BeenInPlayerInventory = true;
-                if (DuppableGearItem(GearName) || gi.GetComponent<NarrativeCollectibleItem>() != null || GarbadgeFilter(GearName))
+                if (DuppableGearItem(GearName) || gi.GetComponent<NarrativeCollectibleItem>() != null || SceneItemsSync.OnPickup(gi.gameObject))
                 {
                     return;
                 }
@@ -1897,7 +1885,7 @@ namespace SkyCoop
                         {
                             return;
                         }
-                        if (GarbadgeFilter(GearName))
+                        if (SceneItemsSync.OnPickup(pickupItem.gameObject))
                         {
                             return;
                         }
@@ -2873,7 +2861,6 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading other scene...");
-                MyMod.ApplyOtherCampfires = false;
                 AutoSaveAllTheCost = true;
             }
         }
@@ -2889,7 +2876,6 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading other scene...");
-                MyMod.ApplyOtherCampfires = false;
             }
         }
 
@@ -5634,44 +5620,6 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(Fire), "AddFuel")] // Once can be triggered often
-        public static class Fire_AddFuel
-        {
-            public static void Postfix(Fire __instance, GearItem fuel)
-            {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
-                if (__instance.gameObject != null && fuel != null)
-                {
-                    MelonLogger.Msg("[Fire][AddFuel] " + __instance.gameObject.name + " fuel is " + fuel.m_GearName);
-                }
-                else if (__instance.gameObject != null && fuel == null)
-                {
-                    MelonLogger.Msg("[Fire][AddFuel] " + __instance.gameObject.name + " fuel is null");
-                }
-                else if (__instance.gameObject == null)
-                {
-                    MelonLogger.Msg("[Fire][AddFuel] firesource is null");
-                }
-
-                if (__instance.m_StartedByPlayer == false)
-                {
-                    MelonLogger.Msg("Assign firesource of other player to myself");
-                    __instance.m_StartedByPlayer = true;
-                    MyMod.SendMyFire(__instance);
-                }
-                if (__instance.m_StartedByPlayer == true && fuel != null)
-                {
-                    MelonLogger.Msg("Added fuel to fire " + fuel.m_GearName);
-                    MyMod.SendMyFire(__instance, fuel.m_GearName);
-                }
-            }
-        }
-
         //[HarmonyLib.HarmonyPatch(typeof(PlacePoints), "ShouldShow")] // Unknown
         //public static class PlacePoints_ShouldShow
         //{
@@ -6105,7 +6053,6 @@ namespace SkyCoop
             MyMod.SendSpawnData();
             MyMod.UpdateDeployedRopes();
             MyMod.LoadAllSnowSheltersByOther();
-            MyMod.ApplyOtherCampfires = true;
             MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading done!");
             MyMod.DroppedGearsObjs.Clear();
             MyMod.TrackableDroppedGearsObjs.Clear();
@@ -6224,6 +6171,7 @@ namespace SkyCoop
                     Shared.RegisterWeatherSetForRegion(0, GetWeatherVolunteerData());
                 }
             }
+            SceneItemsSync.OnSceneLoaded();
             if (MyMod.sendMyPosition == true)
             {
                 MyMod.DoPleaseWait("Please wait...", "Downloading scene drops...");
@@ -8786,6 +8734,22 @@ namespace SkyCoop
             private static void Postfix(WeatherSetData __instance)
             {
                 WeatherTransition.m_WeatherTransitionTimeScalar = 1;
+            }
+        }
+        [HarmonyLib.HarmonyPatch(typeof(Panel_ActionPicker), "DismantleFireCallback")]
+        internal static class Panel_ActionPicker_DismantleFireCallback
+        {
+            private static void Prefix(Panel_ActionPicker __instance)
+            {
+                if (!MyMod.InOnline() || __instance.m_ObjectInteractedWith == null)
+                {
+                    return;
+                }
+                Fire fire = __instance.m_ObjectInteractedWith.GetComponent<Fire>();
+                if (fire != null && fire.m_Campfire != null)
+                {
+                    SceneItemsSync.OnFireDismantled(fire);
+                }
             }
         }
         public static bool ShowInvitesAfterPicker = false;

@@ -1,12 +1,12 @@
-# SkyCoop — The Long Dark 2.55 port
+﻿# SkyCoop — The Long Dark 2.60 port
 
 **English** | [Русский](#русский)
 
-Unofficial port of [Filigrani's SkyCoop](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2) to **The Long Dark 2.55**. The original author did not release this build and does not support it.
+Unofficial port of [Filigrani's SkyCoop](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, this build reports 0.13.4) to **The Long Dark 2.60**. The original author did not release this build and does not support it.
 
 ## Requirements
-- The Long Dark **2.55**
-- MelonLoader **0.7.x** (tested on 0.7.2)
+- The Long Dark **2.60**
+- MelonLoader **0.7.x** (tested on 0.7.3)
 - ModComponent **7.x** (`ModComponent.dll` in `Mods`) — without it the mod's items will not appear
 
 ## Installation
@@ -16,10 +16,15 @@ Download the zip from [Releases](../../releases) and copy its contents into the 
 Mods\SkyCoop.dll
 Mods\SkyCoop.modcomponent
 Mods\multiplayerstuff.unity3d
+Mods\mpgear.unity3d
+Mods\skycoopplayer.unity3d
 UserLibs\Steamworks.NET.dll
 ```
 
 Remove any older SkyCoop files first. All players must use the same build.
+Reinstalling or updating MelonLoader can wipe `UserLibs`; check that `Steamworks.NET.dll` is still there.
+
+`skycoopplayer.unity3d` holds the humanoid player model (`SkyCoopPlayer` from the SkyCoop Reborn Unity project, built with Unity 6000.0.60f1). Other players are shown with it: clothes use the game's own gear materials, held items and hats/scarves are the game's gear meshes. Without the file players keep the classic model.
 
 ## Playing
 - **Steam:** host with "Host Server" (Steam lobby works), friends join via your Steam lobby.
@@ -53,7 +58,9 @@ Compared against upstream commit `c3e5d76`. The network protocol and game logic 
 | Scene loading | Custom start scene | Vanilla `LoadScene`, interiors load with floors; respawn scene is loaded like a door |
 | Containers | Marked looted when opening starts | Marked on close; unopened ones show their own seeded loot |
 | Dropped / picked-up items | Key by exact position | Child colliders, fallback match by name + distance, cookware keeps its condition |
-| Campfires | Sent as is | Fuel amount synced (`m_Fuel` added to the packet), burn time reconciled every 30 s, no duplicate fake campfires |
+| Sticks, stones, limbs (radial spawners) | Each player had their own, not synced | Shared: one player per scene (the host if present) runs the game's spawning and respawn, the others load each spawner's state from the host; taking one removes it for everyone |
+| Items on the floor | Same only if everyone rolled the same random spawns | The first player in a scene records which items lie where; every player entering it later gets that set once (missing items created, extra ones removed) |
+| Campfires, stoves, fireplaces | Sent as is | One state per fire: the game's own save snapshot of it (state, burn time, heat, charcoal, campfire ring), identified by the fire's guid, which a campfire copy keeps in that player's save. The host stores it per scene and sends it on scene entry; whoever changes a fire (fuel, torch, lighting, wind, charcoal, placing) sends the new snapshot; a dismantled campfire disappears for everyone |
 | Revive | Medkit (`GEAR_MedicalSupplies_hangar`) | Emergency stim (`GEAR_EmergencyStim`) |
 | Mod validation | `MelonHandler` hashes | `MelonMod.RegisteredMelons` / `MelonAssembly.Hash` |
 | Launch args | Read on the `Boot` scene | Read on the first scene load (2.55 has no `Boot`), so Steam *Join Game* (`+connect_lobby`) works |
@@ -61,7 +68,7 @@ Compared against upstream commit `c3e5d76`. The network protocol and game logic 
 | JSON | `MelonLoader.TinyJSON` | Bundled `TinyJSON` |
 
 ### Added
-- English / Russian language choice (Auto / English / Russian) in Multiplayer > Settings (`Loc.cs`); the original had Russian hard-coded in places.
+- English / Russian text (`Loc.cs`), following the game language; `Language` in `UserData/MelonPreferences.cfg` (Auto / English / Russian) overrides it. The original had Russian hard-coded in places.
 - **Downed state**: at 0 HP the player lies down; a teammate revives them with an emergency stim, or they give up and respawn at the last indoor sleep place. Respawn button on the death screen; the vanilla *Life After Death* screen is blocked online.
 - Death backpack works again in 2.55; the stim no longer sticks in the hands.
 - Cooperative respawn: both players end up in the same scene.
@@ -98,11 +105,11 @@ Compared against upstream commit `c3e5d76`. The network protocol and game logic 
 <a name="русский"></a>
 # Русский
 
-Неофициальный порт [SkyCoop от Filigrani](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2) на **The Long Dark 2.55**. Оригинальный автор эту сборку не выпускал и не поддерживает.
+Неофициальный порт [SkyCoop от Filigrani](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, эта сборка — 0.13.4) на **The Long Dark 2.60**. Оригинальный автор эту сборку не выпускал и не поддерживает.
 
 ## Что нужно
-- The Long Dark **2.55**
-- MelonLoader **0.7.x** (проверено на 0.7.2)
+- The Long Dark **2.60**
+- MelonLoader **0.7.x** (проверено на 0.7.3)
 - ModComponent **7.x** (`ModComponent.dll` в папке `Mods`) — без него не появятся предметы мода
 
 ## Установка
@@ -112,8 +119,14 @@ Compared against upstream commit `c3e5d76`. The network protocol and game logic 
 Mods\SkyCoop.dll
 Mods\SkyCoop.modcomponent
 Mods\multiplayerstuff.unity3d
+Mods\mpgear.unity3d
+Mods\skycoopplayer.unity3d
 UserLibs\Steamworks.NET.dll
 ```
+
+После переустановки или обновления MelonLoader папка `UserLibs` может очиститься — проверь, что `Steamworks.NET.dll` на месте.
+
+`skycoopplayer.unity3d` — модель игрока-человека (`SkyCoopPlayer` из Unity-проекта SkyCoop Reborn, собрана на Unity 6000.0.60f1). Ею показываются другие игроки: одежда берёт материалы игровых вещей, предметы в руках, шапки и шарфы — меши игровых предметов. Без этого файла остаётся классическая модель.
 
 Старые файлы SkyCoop удали заранее. У всех игроков должна быть одна и та же сборка.
 
@@ -149,7 +162,9 @@ UserLibs\Steamworks.NET.dll
 | Загрузка сцен | Свой стартовый сценарий | Ванильный `LoadScene`, интерьеры с полами; сцена респавна грузится как дверь |
 | Контейнеры | Помечались залутанными при начале открытия | Помечаются при закрытии; нетронутые показывают свой лут по сиду |
 | Выброшенные / подобранные предметы | Ключ по точной позиции | Дочерние коллайдеры, запасной поиск по имени и расстоянию, посуда хранит состояние |
-| Костры | Отправлялись как есть | Синхронизируется топливо (в пакет добавлено поле `m_Fuel`), время горения сверяется раз в 30 с, нет дублей фейковых костров |
+| Палки, камни, ветки (радиальные спавнеры) | У каждого игрока свои, не синхронизировались | Общие: в каждой сцене один игрок (хост, если он там) ведёт спавн и респаун игры, остальные получают состояние каждого спавнера от хоста; взятый предмет исчезает у всех |
+| Предметы на полу | Совпадали, только если у всех одинаково выпали случайные спавны | Первый игрок в сцене записывает, что где лежит; каждый, кто зайдёт позже, один раз получает этот набор (недостающие предметы создаются, лишние убираются) |
+| Костры, печи, камины | Отправлялись как есть | У каждого огня одно состояние — его снимок из сохранения самой игры (состояние, время горения, тепло, уголь, кольцо камней) по GUID огня, который копия костра сохраняет в сохранении игрока. Хост хранит снимки по сценам и отдаёт их при входе в сцену; кто изменил огонь (дрова, факел, розжиг, ветер, уголь, установка), тот рассылает новый снимок; разобранный костёр исчезает у всех |
 | Реанимация | Аптечка (`GEAR_MedicalSupplies_hangar`) | Экстренный стимулятор (`GEAR_EmergencyStim`) |
 | Проверка модов | Хэши через `MelonHandler` | `MelonMod.RegisteredMelons` / `MelonAssembly.Hash` |
 | Аргументы запуска | Читались на сцене `Boot` | Читаются при первой загрузке сцены (в 2.55 `Boot` нет), поэтому Steam *Join Game* (`+connect_lobby`) работает |
@@ -157,7 +172,7 @@ UserLibs\Steamworks.NET.dll
 | JSON | `MelonLoader.TinyJSON` | Встроенный `TinyJSON` |
 
 ### Что появилось
-- Выбор языка English / Русский (Авто / English / Русский) в Multiplayer > Settings (`Loc.cs`); в оригинале русский местами был зашит в код.
+- Тексты на английском и русском (`Loc.cs`) по языку игры; параметр `Language` в `UserData/MelonPreferences.cfg` (Auto / English / Russian) задаёт язык явно. В оригинале русский местами был зашит в код.
 - **Состояние «повержен»**: при 0 HP игрок лежит; напарник поднимает его экстренным стимом, либо игрок сдаётся и возрождается у последнего места сна в помещении. Кнопка Respawn на экране смерти; ванильный экран *Life After Death* в сети заблокирован.
 - Рюкзак смерти снова работает в 2.55; стим больше не «залипает» в руках.
 - Кооперативный респавн: оба игрока оказываются в одной сцене.
@@ -178,8 +193,8 @@ UserLibs\Steamworks.NET.dll
 
 ### Известные ограничения этого порта
 - Готовка не синхронизируется (котелок видит только тот, кто его поставил).
-- Печка: подсказка исправлена и топливо огня синхронизируется, но состояние печки у игроков может отличаться.
-- **Клиенты получают меньше тепла от костра, чем хост** (по диагностике около 10 °C); причина не устранена. Погода синхронизируется по сиду, а замерзание и температура тела считаются локально на каждом клиенте.
+- Печка: огонь синхронизируется, но открытая или закрытая дверца печи у игроков может отличаться.
+- **Клиенты получали меньше тепла от костра, чем хост** (по диагностике около 10 °C). С 0.13.4 у всех один и тот же снимок огня, включая тепло; в совместной игре ещё не проверено. Погода синхронизируется по сиду, а замерзание и температура тела считаются локально на каждом клиенте.
 - Коротковолновая рация не отображается от первого лица (модель в 2.55 не создаётся).
 - Машины (Working Vehicles) не синхронизируются.
 - Epic / без Steam: только подключение по IP, должен быть открыт UDP 26950.

@@ -201,6 +201,7 @@ namespace SkyCoop
             public string m_Boots = "";
             public string m_Scarf = "";
             public string m_Balaclava = "";
+            public string m_Gloves = "";
         }
         public class MultiPlayerClientData
         {
@@ -493,34 +494,6 @@ namespace SkyCoop
                     return false;
 
                 if (this.m_LevelID == other.m_LevelID && this.m_LevelGUID == other.m_LevelGUID && this.m_Position == other.m_Position)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-        public class FireSourcesSync : IEquatable<FireSourcesSync>
-        {
-            public string m_Guid = "";
-            public int m_LevelId = 0;
-            public string m_LevelGUID = "";
-            public Vector3 m_Position = new Vector3(0, 0, 0);
-            public Quaternion m_Rotation = new Quaternion(0, 0, 0, 0);
-            public float m_Fuel = 0;
-            public int m_RemoveIn = 0;
-            public bool m_IsCampfire = false;
-            public string m_FuelName = "";
-
-            public bool Equals(FireSourcesSync other)
-            {
-                if (other == null)
-                    return false;
-
-                if ((this.m_LevelId == other.m_LevelId && this.m_LevelGUID == other.m_LevelGUID)
-                 && ((this.m_Guid != "" && this.m_Guid == other.m_Guid) || this.m_Position == other.m_Position))
                 {
                     return true;
                 }

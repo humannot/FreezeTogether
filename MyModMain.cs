@@ -34,7 +34,7 @@ namespace SkyCoop
             public const string Description = "Multiplayer mod";
             public const string Author = "Filigrani";
             public const string Company = null;
-            public const string Version = "0.13.3";
+            public const string Version = "0.13.4";
             public const string DownloadLink = null;
             public const int RandomGenVersion = 5;
         }
@@ -134,6 +134,7 @@ namespace SkyCoop
         public static string MyBoots = "";
         public static string MyScarf = "";
         public static string MyBalaclava = "";
+        public static string MyGloves = "";
         public static List<DataStr.PickedGearSync> RecentlyPickedGears = new List<DataStr.PickedGearSync>();
         public static List<DataStr.ClimbingRopeSync> DeployedRopes = new List<DataStr.ClimbingRopeSync>();
         public static List<DataStr.DeathContainerData> DeathCreates = new List<DataStr.DeathContainerData>();
@@ -158,7 +159,6 @@ namespace SkyCoop
         public static int NeedLoadSaveAfterLoad = -1;
         public static int UpdateSnowshelters = -1;
         public static int UpdateRopesAndFurns = -1;
-        public static int UpdateCampfires = -1;
         public static int UpdateEverything = -1;
         public static int RemoveAttachedGears = -1;
         public static int StartDSAfterLoad = -1;
@@ -194,7 +194,6 @@ namespace SkyCoop
 
         public static string CustomServerName = "";
         public static string MyLobby = "";
-        public static bool ApplyOtherCampfires = false;
         public static Dictionary<long, string> SlicedJsonDataBuffer = new Dictionary<long, string>();
         public static Dictionary<int, List<byte>> SlicedBytesDataBuffer = new Dictionary<int, List<byte>>();
         public static bool DebugTrafficCheck = false;
@@ -1520,7 +1519,7 @@ namespace SkyCoop
             if (breakDown.gameObject.transform.parent && breakDown.gameObject.transform.parent.GetComponent<RadialObjectSpawner>())
             {
                 BreakDown.m_BreakDownObjects.Remove(breakDown);
-                breakDown.gameObject.transform.parent.GetComponent<RadialObjectSpawner>().RemoveFromSpawns(breakDown.gameObject);
+                SceneItemsSync.RunRemote(() => breakDown.gameObject.transform.parent.GetComponent<RadialObjectSpawner>().RemoveFromSpawns(breakDown.gameObject));
                 RadialSpawnManager.ReturnToObjectPool(breakDown.gameObject);
             }
             breakDown.StickSurfaceObjectsToGround(false);
@@ -4928,378 +4927,6 @@ namespace SkyCoop
             }
         }
 
-        // Every 30 s per fire: make the remaining burn time match the player who sends it.
-        // A mirrored fire (not lit by us) takes the sender's time; a fire both players fed keeps the longer of the
-        // two, so both sides converge on the same value without ever cutting a fire short.
-        static readonly Dictionary<string, float> NextFireTimerCheck = new Dictionary<string, float>();
-        const float FireTimerCheckSeconds = 30f;
-        const float FireTimerToleranceSeconds = 60f;
-
-        public static void SyncFireTimer(Fire fire, DataStr.FireSourcesSync SyncData)
-        {
-            if (fire == null || fire.m_IsPerpetual || SyncData.m_Fuel <= 0f || fire.m_FireState == FireState.Off)
-            {
-                return;
-            }
-            string key = level_guid + "|" + (SyncData.m_Guid != "" ? SyncData.m_Guid : SyncData.m_Position.ToString());
-            float next;
-            if (NextFireTimerCheck.TryGetValue(key, out next) && Time.time < next)
-            {
-                return;
-            }
-            NextFireTimerCheck[key] = Time.time + FireTimerCheckSeconds;
-
-            float mine = fire.GetRemainingLifeTimeSeconds();
-            float theirs = SyncData.m_Fuel;
-            float target = fire.m_StartedByPlayer ? Mathf.Max(mine, theirs) : theirs;
-            if (Mathf.Abs(target - mine) <= FireTimerToleranceSeconds)
-            {
-                return;
-            }
-            float maxSeconds = GameManager.GetFireManagerComponent().m_MaxDurationHoursOfFire * 60f * 60f;
-            fire.m_MaxOnTODSeconds = Mathf.Clamp(fire.m_ElapsedOnTODSeconds + target, 0f, maxSeconds);
-            MelonLogger.Msg("[FireSync] Burn time corrected for " + fire.gameObject.name + ": " + Mathf.RoundToInt(mine / 60f) + " -> " + Mathf.RoundToInt(fire.GetRemainingLifeTimeSeconds() / 60f) + " min");
-        }
-
-        public static void MakeFakeFire(Fire fire)
-        {
-            fire.m_StartedByPlayer = false;
-            if (fire.m_FireState != FireState.FullBurn)
-            {
-                fire.FireStateSet(FireState.FullBurn);
-            }
-            fire.m_HeatSource.TurnOn();
-            fire.m_FX.TriggerStage(FireState.FullBurn, true, true);
-            fire.m_FuelHeatIncrease = fire.m_HeatSource.m_MaxTempIncrease;
-            fire.m_ElapsedOnTODSeconds = 0.0f;
-            fire.m_ElapsedOnTODSecondsUnmodified = 0.0f;
-            fire.ForceBurnTimeInMinutes(5);
-            fire.PlayFireLoop(100f);
-
-            if (fire.m_Campfire != null)
-            {
-                Campfire campFire = fire.m_Campfire.GetComponent<Campfire>();
-                if (campFire.m_State != CampfireState.Lit)
-                {
-                    campFire.SetState(CampfireState.Lit);
-                }
-            }
-        }
-
-        static readonly Dictionary<string, GameObject> FakeCampfires = new Dictionary<string, GameObject>();
-
-        public static GameObject MakeFakeCampfire(DataStr.FireSourcesSync SyncData)
-        {
-            GameObject campfireObj = GameManager.GetFireManagerComponent().InstantiateCampFire().gameObject;
-            campfireObj.transform.position = SyncData.m_Position;
-            campfireObj.transform.rotation = SyncData.m_Rotation;
-            Fire cfFire = campfireObj.GetComponent<Fire>();
-            MakeFakeFire(cfFire);
-            Campfire campFire = campfireObj.GetComponent<Campfire>();
-            if (campFire.m_State != CampfireState.Lit)
-            {
-                campFire.SetState(CampfireState.Lit);
-            }
-            return campfireObj;
-        }
-
-        public static bool IsSameFire(DataStr.FireSourcesSync FindData, DataStr.FireSourcesSync SyncData)
-        {
-            if (SyncData.m_IsCampfire == true)
-            {
-                if (SyncData.m_Position == FindData.m_Position)
-                {
-                    return true;
-                }
-            } else {
-                if (FindData.m_Guid != "")
-                {
-                    if (SyncData.m_Guid == FindData.m_Guid)
-                    {
-                        return true;
-                    }
-                } else {
-                    if (SyncData.m_Position == FindData.m_Position)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public static void ApplyOtherFireSource(DataStr.FireSourcesSync SyncData)
-        {
-            //MelonLogger.Msg("[FireSourcesSync] ApplyOtherFireSource Should apply "+ ApplyOtherCampfires);
-            if (ApplyOtherCampfires == true && ServerConfig.m_FireSync != 0)
-            {
-                // No "Count > 0" check: when the scene has no fire yet, the other player's campfire still has to be created.
-                if (FireManager.m_Fires != null)
-                {
-                    bool FoundSource = false;
-                    for (int i = 0; i < FireManager.m_Fires.Count; i++)
-                    {
-                        Fire curfire = FireManager.m_Fires[i];
-                        //MelonLogger.Msg("[FireSourcesSync] ApplyOtherFireSource index " + i+"/"+ FireManager.m_Fires.Count);
-                        if (curfire != null)
-                        {
-                            //MelonLogger.Msg("[FireSourcesSync] Object exist "+ curfire.gameObject.name);
-                            DataStr.FireSourcesSync FindData = new DataStr.FireSourcesSync();
-                            FindData.m_LevelId = levelid;
-                            FindData.m_LevelGUID = level_guid;
-                            FindData.m_Position = curfire.gameObject.transform.position;
-                            FindData.m_Rotation = curfire.gameObject.transform.rotation;
-                            FindData.m_Guid = "";
-
-                            if (curfire.gameObject.GetComponent<ObjectGuid>() != null)
-                            {
-                                FindData.m_Guid = curfire.gameObject.GetComponent<ObjectGuid>().Get();
-                                //MelonLogger.Msg("[FireSourcesSync] Has GUID " + FindData.m_Guid);
-                            }
-
-                            if (IsSameFire(FindData, SyncData) == true)
-                            {
-                                //MelonLogger.Msg("Found same fire");
-                                if (curfire.m_FireState == FireState.Off)
-                                {
-                                    //MelonLogger.Msg("Apply fire on existen object");
-                                    MakeFakeFire(curfire);
-                                    // Just lit: take the sender's burn time right away instead of the 5 min default.
-                                    NextFireTimerCheck.Remove(level_guid + "|" + (SyncData.m_Guid != "" ? SyncData.m_Guid : SyncData.m_Position.ToString()));
-                                }
-                                // A mirrored fire that is already burning is no longer re-forced to 5 minutes every
-                                // second: that wiped the synced burn time. Its time now follows the sender.
-                                FoundSource = true;
-                                SyncFireTimer(curfire, SyncData);
-                                break;
-                            } else {
-                                //MelonLogger.Msg("Object is not same");
-                            }
-                        } else {
-                            //MelonLogger.Msg("[FireSourcesSync] Object in array not exist!");
-                        }
-                    }
-                    if (FoundSource == false)
-                    {
-                        //MelonLogger.Msg("Not found fire object");
-                        if (SyncData.m_IsCampfire == true)
-                        {
-                            // Remember what was created so a campfire that FireManager doesn't list yet isn't duplicated every tick.
-                            string campKey = level_guid + "|" + SyncData.m_Position.ToString("F1");
-                            GameObject existing;
-                            if (!FakeCampfires.TryGetValue(campKey, out existing) || existing == null)
-                            {
-                                MelonLogger.Msg("[FireSync] Creating campfire of other player at " + SyncData.m_Position);
-                                FakeCampfires[campKey] = MakeFakeCampfire(SyncData);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void AddFuelNoSync(Fire fire, GearItem fuel)
-        {
-            if (fire.gameObject != null && fuel != null)
-            {
-                MelonLogger.Msg("[Fire][AddFuelNoSync] " + fire.gameObject.name + " fuel is " + fuel.m_GearName);
-            }
-            else if (fire.gameObject != null && fuel == null)
-            {
-                MelonLogger.Msg("[Fire][AddFuelNoSync] " + fire.gameObject.name + " fuel is null");
-            }
-            else if (fire.gameObject == null)
-            {
-                MelonLogger.Msg("[Fire][AddFuelNoSync] firesource is null");
-            }
-            fire.OnFuelBurnt(fuel);
-            if (fire.IsEmbers())
-            {
-                fire.m_FX.TriggerStage(FireState.FullBurn, true);
-                fire.m_HeatSource.TurnOn();
-            }
-            float num1 = (float)((double)fuel.m_FuelSourceItem.GetModifiedBurnDurationHours(fuel.GetNormalizedCondition()) * 60.0 * 60.0);
-            if (!fire.m_IsPerpetual)
-            {
-                fire.m_MaxOnTODSeconds += num1;
-                float num2 = fire.m_MaxOnTODSeconds - (float)((double)GameManager.GetFireManagerComponent().m_MaxDurationHoursOfFire * 60.0 * 60.0);
-                if ((double)num2 > 0.0)
-                {
-                    fire.m_ElapsedOnTODSeconds -= num2;
-                    fire.m_ElapsedOnTODSeconds = Mathf.Clamp(fire.m_ElapsedOnTODSeconds, 0.0f, float.PositiveInfinity);
-                }
-                fire.m_MaxOnTODSeconds = Mathf.Clamp(fire.m_MaxOnTODSeconds, 0.0f, (float)((double)GameManager.GetFireManagerComponent().m_MaxDurationHoursOfFire * 60.0 * 60.0));
-            }
-            fire.m_FuelHeatIncrease += Mathf.Min(Mathf.Clamp(!false || (double)fuel.m_FuelSourceItem.m_FireAgeMinutesBeforeAdding <= 0.0 ? GameManager.GetFireManagerComponent().m_MaxHeatIncreaseOfFire - fire.m_FuelHeatIncrease : GameManager.GetFireManagerComponent().m_MaxHeatIncreaseOfFireInForge - fire.m_FuelHeatIncrease, 0.0f, float.PositiveInfinity), fuel.m_FuelSourceItem.m_HeatIncrease * fuel.GetNormalizedCondition());
-            if (fire.m_ApplyToHeatSource)
-            {
-                fire.m_HeatSource.m_MaxTempIncrease = fire.m_FuelHeatIncrease;
-                fire.m_HeatSource.m_MaxTempIncreaseInnerRadius = Mathf.Max(fuel.m_FuelSourceItem.m_HeatInnerRadius, fire.m_HeatSource.m_MaxTempIncreaseInnerRadius);
-                fire.m_HeatSource.m_MaxTempIncreaseOuterRadius = Mathf.Max(fuel.m_FuelSourceItem.m_HeatOuterRadius * fire.GetFireOuterRadiusScale(), fire.m_HeatSource.m_MaxTempIncreaseOuterRadius);
-            }
-            fire.m_FX.TriggerFlareupLarge();
-            fire.m_StartedByPlayer = true;
-
-            if (fuel != null && fuel.gameObject)
-            {
-                UnityEngine.Object.Destroy(fuel.gameObject);
-            }
-        }
-
-
-        public static void AddOtherFuel(DataStr.FireSourcesSync SyncData, string fuelName)
-        {
-            if (ApplyOtherCampfires == true)
-            {
-                if (FireManager.m_Fires.Count > 0)
-                {
-                    for (int i = 0; i < FireManager.m_Fires.Count; i++)
-                    {
-                        Fire curfire = FireManager.m_Fires[i];
-                        if (curfire != null)
-                        {
-                            DataStr.FireSourcesSync FindData = new DataStr.FireSourcesSync();
-                            FindData.m_LevelId = levelid;
-                            FindData.m_LevelGUID = level_guid;
-                            FindData.m_Position = curfire.gameObject.transform.position;
-                            FindData.m_Rotation = curfire.gameObject.transform.rotation;
-                            FindData.m_Guid = "";
-
-                            if (curfire.gameObject.GetComponent<ObjectGuid>() != null)
-                            {
-                                FindData.m_Guid = curfire.gameObject.GetComponent<ObjectGuid>().Get();
-                            }
-
-                            if (IsSameFire(FindData, SyncData) == true)
-                            {
-                                if (curfire.m_FireState == FireState.FullBurn)
-                                {
-                                    GameObject fuelPrefab = GetGearItemObject(fuelName);
-                                    GameObject gear = fuelPrefab != null ? UnityEngine.Object.Instantiate(fuelPrefab) : null;
-                                    if (gear)
-                                    {
-                                        GearItem gearItem = gear.GetComponent<GearItem>();
-                                        if (gearItem)
-                                        {
-                                            AddFuelNoSync(curfire, gearItem);
-                                        }
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static List<DataStr.FireSourcesSync> FireSources = new List<DataStr.FireSourcesSync>();
-        public static void MayAddFireSources(DataStr.FireSourcesSync fire)
-        {
-            //MelonLogger.Msg("[FireSourcesSync] MayAddFireSources "+ fire.m_LevelId+" "+ fire.m_LevelGUID);
-            if (fire.m_LevelId != levelid || fire.m_LevelGUID != level_guid)
-            {
-                return;
-            }
-            //MelonLogger.Msg("MayAddFireSources for SyncData " + fire.m_LevelId + " m_LevelGUID " + fire.m_LevelGUID + " m_Position" + fire.m_Position.x + " " + fire.m_Position.y + " " + fire.m_Position.z);
-            //MelonLogger.Msg("FireSources Size" + FireSources.Count);
-            fire.m_RemoveIn = 5;
-            for (int i = 0; i < FireSources.Count; i++)
-            {
-                DataStr.FireSourcesSync currFire = FireSources[i];
-                //MelonLogger.Msg("FireSources["+i+ "] m_LevelId" + currFire.m_LevelId + " m_LevelGUID "+ currFire.m_LevelGUID + " m_Position" + currFire.m_Position.x+" "+ currFire.m_Position.y+" "+ currFire.m_Position.z);
-                bool UpdateCurr = false;
-                if (currFire.m_LevelId == fire.m_LevelId && currFire.m_LevelGUID == fire.m_LevelGUID)
-                {
-                    if (currFire.m_Guid != "")
-                    {
-                        if (currFire.m_Guid == fire.m_Guid)
-                        {
-                            UpdateCurr = true;
-                        }
-                    } else {
-                        if (currFire.m_Position == fire.m_Position)
-                        {
-                            UpdateCurr = true;
-                        }
-                    }
-                }
-                if (UpdateCurr == true)
-                {
-                    FireSources[i].m_Fuel = fire.m_Fuel;
-                    FireSources[i].m_RemoveIn = fire.m_RemoveIn;
-                    return;
-                }
-            }
-            FireSources.Add(fire);
-        }
-
-        public static void SendMyFire(Fire fireTosend, string fuel = "")
-        {
-            if (ServerConfig.m_FireSync == 0)
-            {
-                return;
-            }
-            if (fuel != "" && ServerConfig.m_FireSync == 1)
-            {
-                return;
-            }
-
-
-            //MelonLogger.Msg("SendMyFire");
-            DataStr.FireSourcesSync SendData = new DataStr.FireSourcesSync();
-            SendData.m_Fuel = fireTosend.GetRemainingLifeTimeSeconds();
-            SendData.m_Guid = "";
-            if (fireTosend.gameObject.GetComponent<ObjectGuid>() != null)
-            {
-                SendData.m_Guid = fireTosend.gameObject.GetComponent<ObjectGuid>().Get();
-            }
-            SendData.m_LevelGUID = level_guid;
-            SendData.m_LevelId = levelid;
-            SendData.m_Position = fireTosend.gameObject.transform.position;
-            SendData.m_Rotation = fireTosend.gameObject.transform.rotation;
-
-            if (fireTosend.m_Campfire == null)
-            {
-                SendData.m_IsCampfire = false;
-            } else {
-                SendData.m_IsCampfire = true;
-                SendData.m_Guid = "";
-            }
-
-            if (fuel == "")
-            {
-                if (sendMyPosition == true)
-                {
-                    using (Packet _packet = new Packet((int)ClientPackets.FIRE))
-                    {
-                        _packet.Write(SendData);
-                        SendUDPData(_packet);
-                    }
-                }
-
-                if (iAmHost == true)
-                {
-                    ServerSend.FIRE(0, SendData, true);
-                }
-            } else {
-                SendData.m_FuelName = fuel;
-                if (sendMyPosition == true)
-                {
-                    using (Packet _packet = new Packet((int)ClientPackets.FIREFUEL))
-                    {
-                        _packet.Write(SendData);
-                        SendUDPData(_packet);
-                    }
-                }
-
-                if (iAmHost == true)
-                {
-                    ServerSend.FIREFUEL(0, SendData, true);
-                }
-            }
-        }
-
         public static bool DsServerIsUp = false;
         public static int SecondsWithoutSaving = 0;
         public static int SecondsWithoutRestart = 0;
@@ -5496,37 +5123,7 @@ namespace SkyCoop
             if (!DedicatedServerAppMode)
             {
                 PlayersUpdateManager();
-                for (int i = 0; i < FireSources.Count; i++)
-                {
-                    if (FireSources[i] != null)
-                    {
-                        if (FireSources[i].m_RemoveIn > 0)
-                        {
-                            FireSources[i].m_RemoveIn = FireSources[i].m_RemoveIn - 1;
-
-                            if (FireSources[i].m_LevelId == levelid && FireSources[i].m_LevelGUID == level_guid)
-                            {
-                                ApplyOtherFireSource(FireSources[i]);
-                            }
-                        }else{
-                            FireSources.RemoveAt(i);
-                        }
-                    }
-                }
-                if (FireManager.m_Fires.Count > 0)
-                {
-                    for (int i = 0; i < FireManager.m_Fires.Count; i++)
-                    {
-                        Fire fireCur = FireManager.m_Fires[i];
-                        if (fireCur != null)
-                        {
-                            if (fireCur.m_FireState == FireState.FullBurn && fireCur.m_StartedByPlayer == true)
-                            {
-                                SendMyFire(fireCur);
-                            }
-                        }
-                    }
-                }
+                SceneItemsSync.EverySecond();
             }
 
            
@@ -5649,23 +5246,11 @@ namespace SkyCoop
                 if (UpdateRopesAndFurns > 0)
                 {
                     UpdateRopesAndFurns = UpdateRopesAndFurns - 1;
-                    //MelonLogger.Msg(System.ConsoleColor.Blue, "Apply other campfires");
-                    ApplyOtherCampfires = true;
 
                     if (UpdateRopesAndFurns == 0)
                     {
                         //MelonLogger.Msg(System.ConsoleColor.Blue, "Apply ropes and furns");
                         UpdateDeployedRopes();
-                    }
-                }
-                if (UpdateCampfires > 0)
-                {
-                    UpdateCampfires = UpdateCampfires - 1;
-
-                    if (UpdateCampfires == 0)
-                    {
-                        //MelonLogger.Msg(System.ConsoleColor.Blue, "Apply other campfires");
-                        ApplyOtherCampfires = true;
                     }
                 }
                 if (UpdateEverything > 0)
@@ -7293,8 +6878,6 @@ namespace SkyCoop
                 GameAudioManager.SetRTPCValue(Il2CppAK.GAME_PARAMETERS.GLOBALVOLUME, 0 * 100f, (GameObject)null);
             }
         }
-
-        public static DataStr.FireSourcesSync DebugFireSource = null;
 
         public static string CloneTrimer(string name)
         {
@@ -12956,7 +12539,6 @@ namespace SkyCoop
                 Transform safeZonesToggle = UIHostMenu.transform.Find("SafeZones");
                 if (safeZonesToggle != null) ServerConfig.m_SafeZones = safeZonesToggle.GetComponent<UnityEngine.UI.Toggle>().isOn;
                 MaxPlayers = slotsMax;
-                ApplyOtherCampfires = true;
 
                 Shared.InitAllPlayers();
                 Transform Align = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
@@ -13234,6 +12816,7 @@ namespace SkyCoop
                 MyBoots = m_Boots;
                 MyScarf = m_Scarf;
                 MyBalaclava = m_Balaclava;
+                MyGloves = Hands;
                 //MelonLogger.Msg("[MyClothing] Hat " + m_Hat);
                 //MelonLogger.Msg("[MyClothing] Torso " + m_Top);
                 //MelonLogger.Msg("[MyClothing] Legs " + m_Bottom);
@@ -13246,6 +12829,7 @@ namespace SkyCoop
                 Cdata.m_Boots = MyBoots;
                 Cdata.m_Scarf = MyScarf;
                 Cdata.m_Balaclava = MyBalaclava;
+                Cdata.m_Gloves = MyGloves;
 
                 if (sendMyPosition == true) // CLIENT
                 {

@@ -151,44 +151,35 @@ namespace SkyCoop
                     {
                         if (SteamConnect.CanUseSteam)
                         {
-                            __instance.m_DescriptionLabel.text = "Find a server or join by IP address.";
+                            __instance.m_DescriptionLabel.text = "Find a server, join by IP address or change your nickname.";
                         }else{
-                            __instance.m_DescriptionLabel.text = "Join by IP address.";
+                            __instance.m_DescriptionLabel.text = "Join by IP address or change your nickname.";
                         }
-                    }
-                    else if (__instance.m_ItemModelList[buttonIndex].m_Id == "Feats")
-                    {
-                        __instance.m_DescriptionLabel.text = "Change your nickname and customize your appeal.";
                     }
                 }
                 else if(MenuMode == "Join")
                 {
-                    if (__instance.m_ItemModelList[buttonIndex].m_Id == "NewSurvival")
+                    string Id = __instance.m_ItemModelList[buttonIndex].m_Id;
+                    if (!SteamConnect.CanUseSteam)
+                    {
+                        // slots 1 and 2 hold "connect by IP" and "change nickname"
+                        Id = Id == "NewSurvival" ? "LoadSurvival" : "Nickname";
+                    }
+                    if (Id == "NewSurvival")
                     {
                         __instance.m_DescriptionLabel.text = "Browse public servers.";
                     }
-                    else if(__instance.m_ItemModelList[buttonIndex].m_Id == "LoadSurvival")
+                    else if(Id == "LoadSurvival")
                     {
                         __instance.m_DescriptionLabel.text = "Connect to a server by IP address.";
                     }
-                    else if(__instance.m_ItemModelList[buttonIndex].m_Id == "Feats")
+                    else if(Id == "Feats")
                     {
                         __instance.m_DescriptionLabel.text = "Opens steam friends overlay.";
                     }
-                }
-                else if(MenuMode == "MultiProfileSettings")
-                {
-                    if (__instance.m_ItemModelList[buttonIndex].m_Id == "NewSurvival")
+                    else // the last slot: change nickname
                     {
                         __instance.m_DescriptionLabel.text = "Change your character name. Other players will see it ingame.";
-                    }
-                    else if (__instance.m_ItemModelList[buttonIndex].m_Id == "LoadSurvival")
-                    {
-                        __instance.m_DescriptionLabel.text = "Toggle supporter bonuses and select flairs.";
-                    }
-                    else if (__instance.m_ItemModelList[buttonIndex].m_Id == "Feats")
-                    {
-                        __instance.m_DescriptionLabel.text = "Copy to clipboard EGS or Steam Account ID.";
                     }
                 }
                 else if(MenuMode == "Lobby")
@@ -446,10 +437,6 @@ namespace SkyCoop
                 {
                     ChangeMenuItems("Multiplayer");
                     return false;
-                }else if (MenuMode == "MultiProfileSettings")
-                {
-                    ChangeMenuItems("Multiplayer");
-                    return false;
                 }
                 else if(MenuMode == "Nothing")
                 {
@@ -497,7 +484,7 @@ namespace SkyCoop
                     if(MyMod.TargetFlairSlot == -1)
                     {
                         MyMod.CustomizeUiPanel("Close");
-                        MenuMode = "MultiProfileSettings";
+                        ChangeMenuItems("Multiplayer");
                         Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
                         Align.Find("Selected").gameObject.SetActive(true); //SelectIcon
                         Align.Find("Grid").gameObject.SetActive(true); //Grid
@@ -928,21 +915,21 @@ namespace SkyCoop
             {
                 OverrideMenuButton(Grid, 1, "HOST SERVER");
                 OverrideMenuButton(Grid, 2, "JOIN SERVER");
-                OverrideMenuButton(Grid, 3, "SETTINGS");
             }
             else if(mode == "Join")
             {
-                OverrideMenuButton(Grid, 1, "BROWSE SERVERS");
-                OverrideMenuButton(Grid, 2, "CONNECT BY IP");
-                OverrideMenuButton(Grid, 3, "CONNECT TO FRIEND");
-            }else if(mode == "MultiProfileSettings")
-            {
-                OverrideMenuButton(Grid, 1, "CHANGE NICKNAME");
-                OverrideMenuButton(Grid, 2, "CUSTOMIZATION");
-                OverrideMenuButton(Grid, 3, "COPY ACCOUNT ID");
-                // Slot 4 has no menu model of its own, put it under slot 3 like the menu grid would.
-                Grid.GetChild(4).localPosition = Grid.GetChild(3).localPosition + (Grid.GetChild(3).localPosition - Grid.GetChild(2).localPosition);
-                OverrideMenuButton(Grid, 4, Loc.ModeButtonText());
+                if (SteamConnect.CanUseSteam)
+                {
+                    OverrideMenuButton(Grid, 1, "BROWSE SERVERS");
+                    OverrideMenuButton(Grid, 2, "CONNECT BY IP");
+                    OverrideMenuButton(Grid, 3, "CONNECT TO FRIEND");
+                    // Slot 4 has no menu model of its own, put it under slot 3 like the menu grid would.
+                    Grid.GetChild(4).localPosition = Grid.GetChild(3).localPosition + (Grid.GetChild(3).localPosition - Grid.GetChild(2).localPosition);
+                    OverrideMenuButton(Grid, 4, "CHANGE NICKNAME");
+                }else{
+                    OverrideMenuButton(Grid, 1, "CONNECT BY IP");
+                    OverrideMenuButton(Grid, 2, "CHANGE NICKNAME");
+                }
             }
             else if(mode == "Lobby")
             {
@@ -1240,48 +1227,16 @@ namespace SkyCoop
                                 }
                                 else if (CustomId == 2)
                                 {
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        ChangeMenuItems("Join");
-                                    }else{
-                                        ConnectByIp();
-                                    }
-                                }
-                                else if (CustomId == 3)
-                                {
-                                    ChangeMenuItems("MultiProfileSettings");
-                                }
-                            }
-                            else if(MenuMode == "MultiProfileSettings")
-                            {
-                                if (CustomId == 1)
-                                {
-                                    InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
-                                }
-                                else if (CustomId == 2)
-                                {
-                                    OpenFlairsMenu();
-                                }
-                                else if(CustomId == 3)
-                                {
-                                    if (Supporters.IsLoaded())
-                                    {
-                                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Your ID was copied to clipboard", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
-                                        GUIUtility.systemCopyBuffer = Supporters.MyID;
-                                    }else{
-                                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't detect your account ID", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
-                                    }
-                                }
-                                else if (CustomId == 4)
-                                {
-                                    Loc.CycleMode();
-                                    MyMod.m_Panel_Sandbox.m_TitleLocalizationId = Loc.T("MULTIPLAYER");
-                                    MyMod.m_Panel_Sandbox.m_BasicMenu.UpdateTitle(Loc.T("MULTIPLAYER"));
-                                    ChangeMenuItems("MultiProfileSettings");
+                                    ChangeMenuItems("Join");
                                 }
                             }
                             else if(MenuMode == "Join")
                             {
+                                // Without Steam the menu holds only slots 1 (by IP) and 2 (nickname).
+                                if (!SteamConnect.CanUseSteam)
+                                {
+                                    CustomId = CustomId == 1 ? 2 : 4;
+                                }
                                 if (CustomId == 1)
                                 {
                                     Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
@@ -1298,10 +1253,11 @@ namespace SkyCoop
                                 }
                                 else if (CustomId == 3)
                                 {
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        SteamConnect.Main.OpenFriends();
-                                    }
+                                    SteamConnect.Main.OpenFriends();
+                                }
+                                else if (CustomId == 4)
+                                {
+                                    InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                                 }
                             }
                             else if (MenuMode == "Lobby")

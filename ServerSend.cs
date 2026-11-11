@@ -1561,56 +1561,6 @@ namespace GameServer
                 }
             }
         }
-        public static void FIRE(int _From, DataStr.FireSourcesSync _msg, bool toEveryOne, int OnlyFor = -1)
-        {
-            using (Packet _packet = new Packet((int)ServerPackets.FIRE))
-            {
-                if (toEveryOne == true)
-                {
-                    _packet.Write(_msg);
-                    _packet.Write(0);
-                    SendUDPDataToAll(_packet);
-                }else{
-                    if (OnlyFor == -1)
-                    {
-                        _packet.Write(_msg);
-                        _packet.Write(_From);
-                        SendUDPDataToAllButNotSender(_packet, _From);
-                    }else{
-                        _packet.Write(_msg);
-                        _packet.Write(_From);
-                        SendUDPData(OnlyFor, _packet);
-                    }
-                }
-            }
-        }
-        public static void FIREFUEL(int _From, DataStr.FireSourcesSync _msg, bool toEveryOne, int OnlyFor = -1)
-        {
-            using (Packet _packet = new Packet((int)ServerPackets.FIREFUEL))
-            {
-                if (toEveryOne == true)
-                {
-                    _packet.Write(_msg);
-                    _packet.Write(0);
-                    SendUDPDataToAll(_packet);
-                }
-                else
-                {
-                    if (OnlyFor == -1)
-                    {
-                        _packet.Write(_msg);
-                        _packet.Write(_From);
-                        SendUDPDataToAllButNotSender(_packet, _From);
-                    }
-                    else
-                    {
-                        _packet.Write(_msg);
-                        _packet.Write(_From);
-                        SendUDPData(OnlyFor, _packet);
-                    }
-                }
-            }
-        }
 
         public static void DROPITEM(int _From, DataStr.DroppedGearItemDataPacket _msg, bool toEveryOne, int OnlyFor = -1)
         {

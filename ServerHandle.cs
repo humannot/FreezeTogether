@@ -176,6 +176,10 @@ namespace GameServer
                 Cdata.m_Hat = MyMod.MyHat;
                 Cdata.m_Top = MyMod.MyTop;
                 Cdata.m_Bottom = MyMod.MyBottom;
+                Cdata.m_Boots = MyMod.MyBoots;
+                Cdata.m_Scarf = MyMod.MyScarf;
+                Cdata.m_Balaclava = MyMod.MyBalaclava;
+                Cdata.m_Gloves = MyMod.MyGloves;
                 ServerSend.CLOTH(0, Cdata, false, _fromClient);
             }
 #endif
@@ -1033,25 +1037,6 @@ namespace GameServer
             }
             ServerSend.USESHELTER(_fromClient, shelter, false);
         }
-        public static void FIRE(int _fromClient, Packet _packet)
-        {
-            DataStr.FireSourcesSync FireSource = _packet.ReadFire();
-#if (!DEDICATED)
-            MyMod.MayAddFireSources(FireSource);
-#endif
-            ServerSend.FIRE(_fromClient, FireSource, false);
-        }
-        public static void FIREFUEL(int _fromClient, Packet _packet)
-        {
-            DataStr.FireSourcesSync FireSource = _packet.ReadFire();
-#if (!DEDICATED)
-            if (FireSource.m_LevelId == MyMod.levelid && FireSource.m_LevelGUID == MyMod.level_guid)
-            {
-                MyMod.AddOtherFuel(FireSource, FireSource.m_FuelName);
-            }
-#endif
-            ServerSend.FIREFUEL(_fromClient, FireSource, false);
-        }
         public static void CUSTOM(int _fromClient, Packet _packet)
         {
 #if (!DEDICATED)
@@ -1249,6 +1234,7 @@ namespace GameServer
                     ServerSend.FURNMOVED(0, item.Value, false, _fromClient);
                 }
             }
+            SkyCoop.SceneItemsSync.SendSceneTo(_fromClient, Scene);
 
             Dictionary<long, PickedGearSync> PickedGears = MPSaveManager.LoadPickedGearsData(Scene);
             if (PickedGears != null)

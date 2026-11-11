@@ -443,7 +443,6 @@ namespace SkyCoop
         {
             DataStr.SaveSlotSync SaveData = _packet.ReadSaveSlot();
             MyMod.RemoveWaitForConnect();
-            MyMod.ApplyOtherCampfires = true;
 
             if (MyMod.level_name != "MainMenu")
             {
@@ -871,22 +870,6 @@ namespace SkyCoop
                     MyMod.playersData[from].m_Shelter = shelter;
                 }
             }
-        }
-        public static void FIRE(Packet _packet)
-        {
-            DataStr.FireSourcesSync FireSource = _packet.ReadFire();
-            int from = _packet.ReadInt();
-            MyMod.MayAddFireSources(FireSource);
-        }
-        public static void FIREFUEL(Packet _packet)
-        {
-            DataStr.FireSourcesSync FireSource = _packet.ReadFire();
-            if(FireSource.m_LevelId != MyMod.levelid || FireSource.m_LevelGUID != MyMod.level_guid)
-            {
-                return;
-            }
-            int from = _packet.ReadInt();
-            MyMod.AddOtherFuel(FireSource, FireSource.m_FuelName);
         }
         public static void CUSTOM(Packet _packet)
         {

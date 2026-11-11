@@ -27,12 +27,6 @@ namespace SkyCoop
                 }
                 return Array.IndexOf(Modes, LanguageEntry.Value) >= 0 ? LanguageEntry.Value : "Auto";
             }
-            set
-            {
-                string unused = Mode;
-                LanguageEntry.Value = value;
-                MelonPreferences.Save();
-            }
         }
 
         public static bool IsRussian
@@ -46,28 +40,6 @@ namespace SkyCoop
                 }
                 return M == "Russian";
             }
-        }
-
-        public static void CycleMode()
-        {
-            Mode = Modes[(Array.IndexOf(Modes, Mode) + 1) % Modes.Length];
-        }
-
-        public static string ModeButtonText()
-        {
-            string M = Mode;
-            string Name;
-            if (M == "English")
-            {
-                Name = "ENGLISH";
-            }
-            else if (M == "Russian")
-            {
-                Name = "РУССКИЙ";
-            }else{
-                Name = IsRussian ? "АВТО (РУССКИЙ)" : "AUTO (ENGLISH)";
-            }
-            return (IsRussian ? "ЯЗЫК: " : "LANGUAGE: ") + Name;
         }
 
         public static string T(string en)

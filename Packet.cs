@@ -210,6 +210,7 @@ namespace GameServer
         RELIABLE,
         RELIABLEACK,
         CONTAINERBUSY,
+        SCENEITEMS,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -407,6 +408,7 @@ namespace GameServer
         FURNMOVED,
         RELIABLE,
         RELIABLEACK,
+        SCENEITEMS,
     }
 
     public class Packet : IDisposable
@@ -769,6 +771,7 @@ namespace GameServer
             Write(obj.m_Boots);
             Write(obj.m_Scarf);
             Write(obj.m_Balaclava);
+            Write(obj.m_Gloves);
         }
         public void Write(DataStr.BrokenFurnitureSync obj)
         {
@@ -819,17 +822,6 @@ namespace GameServer
         {
             Write(obj.m_Guid);
             Write(obj.m_State);
-        }
-        public void Write(DataStr.FireSourcesSync obj)
-        {
-            Write(obj.m_Guid);
-            Write(obj.m_LevelGUID);
-            Write(obj.m_LevelId);
-            Write(obj.m_Position);
-            Write(obj.m_Rotation);
-            Write(obj.m_IsCampfire);
-            Write(obj.m_FuelName);
-            Write(obj.m_Fuel);
         }
         public void Write(DataStr.SlicedJsonData obj)
         {
@@ -1387,6 +1379,7 @@ namespace GameServer
             obj.m_Boots = ReadString();
             obj.m_Scarf = ReadString();
             obj.m_Balaclava = ReadString();
+            obj.m_Gloves = ReadString();
 
             return obj;
         }
@@ -1497,21 +1490,6 @@ namespace GameServer
 
             return obj;
         }
-        public DataStr.FireSourcesSync ReadFire()
-        {
-            DataStr.FireSourcesSync obj = new DataStr.FireSourcesSync();
-            obj.m_Guid = ReadString();
-            obj.m_LevelGUID = ReadString();
-            obj.m_LevelId = ReadInt();
-            obj.m_Position = ReadVector3();
-            obj.m_Rotation = ReadQuaternion();
-            obj.m_IsCampfire = ReadBool();
-            obj.m_FuelName = ReadString();
-            obj.m_Fuel = ReadFloat();
-
-            return obj;
-        }
-
         public DataStr.SlicedJsonData ReadSlicedGear()
         {
             DataStr.SlicedJsonData obj = new DataStr.SlicedJsonData();
