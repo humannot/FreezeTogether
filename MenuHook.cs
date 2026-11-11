@@ -808,7 +808,8 @@ namespace SkyCoop
         {
             int T = MyMod.ServerConfig.m_PlayersSpawnType;
 
-            if(T == 0 || T == 3)
+            // Same as host, fixed place and near host start where the host's save does; choose and random don't.
+            if(T == 0 || T == 3 || T == 4)
             {
                 return true;
             }else{
