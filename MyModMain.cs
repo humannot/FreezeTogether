@@ -6981,6 +6981,10 @@ namespace SkyCoop
             MelonLogger.Msg("Kicked by server, message from host: " + txt);
             ClientUser.LastConnectedIp = "";
             Disconnect();
+            if (SteamConnect.CanUseSteam)
+            {
+                SteamConnect.Main.LeaveJoinedLobby();
+            }
         }
 
         public static void DoOKMessage(string title, string txt)

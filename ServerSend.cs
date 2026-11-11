@@ -1702,7 +1702,8 @@ namespace GameServer
                 _packet.Write(_msg);
                 _packet.Write(_toClient);
 
-                SendTCPData(_toClient, _packet);
+                // Refusals (version, mods, nickname) are sent before the client is marked ready.
+                SendTCPData(_toClient, _packet, true);
             }
         }
         public static void KICKMESSAGE(string _msg)

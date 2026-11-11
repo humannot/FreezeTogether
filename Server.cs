@@ -144,7 +144,7 @@ namespace GameServer
 
                     if (_clientId == 0)
                     {
-                        int freeSlot = 1;
+                        int freeSlot = -1;
                         bool ReConnection = false;
 
                         Log("[UDP] Checking all slots for " + _clientEndPoint.Address.ToString() +" subnetwork GUID "+ SubNetworkGUID);
@@ -169,7 +169,7 @@ namespace GameServer
                         if (ReConnection == false)
                         {
                             Log("[UDP] Got new connection " + _clientEndPoint.Address + " subnetwork GUID " + SubNetworkGUID);
-                            for (int i = 1; i <= MaxPlayers; i++)
+                            for (int i = 1; i <= MaxPlayers && i < MyMod.playersData.Count; i++)
                             {
                                 if (clients[i].udp.endPoint == null)
                                 {
@@ -183,6 +183,13 @@ namespace GameServer
                                     break;
                                 }
                             }
+                        }
+                        if (freeSlot == -1)
+                        {
+                            // Slot 0 is the host, so a server for N players has N - 1 client slots.
+                            Log("[UDP] No free slot for " + _clientEndPoint.Address + ", server is full");
+                            ServerSend.KICKMESSAGE(_clientEndPoint, "Server is full!");
+                            return;
                         }
                         _clientId = freeSlot;
                     }else if(_clientId == -1)

@@ -25,6 +25,29 @@ namespace GameServer
 #endif
         }
 
+        // Nicknames identify players in chat, saves and stats, so two players on the server can not share one.
+        // Compared without case and surrounding spaces; the joining player's own slot (a reconnection) is skipped.
+        static bool IsNicknameTaken(int _fromClient, string _username)
+        {
+            string name = (_username ?? "").Trim();
+#if (!DEDICATED)
+            if (!MyMod.DedicatedServerAppMode && string.Equals(name, (MyMod.MyChatName ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+#endif
+            for (int i = 1; i <= Server.MaxPlayers; i++)
+            {
+                if (i != _fromClient && Server.clients.ContainsKey(i) && Server.clients[i].IsBusy() && Server.clients[i].Ready
+                    && i < MyMod.playersData.Count && MyMod.playersData[i] != null
+                    && string.Equals(name, (MyMod.playersData[i].m_Name ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static void WelcomeReceived(int _fromClient, Packet _packet)
         {
             int _clientIdCheck = _packet.ReadInt();
@@ -57,6 +80,19 @@ namespace GameServer
                 }
             }else{
                 ServerSend.KICKMESSAGE(_fromClient, "Outdated RCON protocol!");
+                return;
+            }
+
+            if (IsNicknameTaken(_fromClient, _username))
+            {
+                ServerSend.KICKMESSAGE(_fromClient, "A player with this nickname is already in the lobby. Change your nickname and connect again.");
+                DataStr.MultiplayerChatMessage DisconnectMessage = new DataStr.MultiplayerChatMessage();
+                DisconnectMessage.m_Type = 0;
+                DisconnectMessage.m_By = _username;
+                DisconnectMessage.m_Message = _username + " can't join because this nickname is already taken!";
+                Shared.SendMessageToChat(DisconnectMessage, true);
+                Log("Client " + _fromClient + " can't join, nickname " + _username + " is already taken!");
+                Server.clients[_fromClient].udp.Disconnect();
                 return;
             }
 
@@ -663,15 +699,16 @@ namespace GameServer
                     ReConnection = true;
                     Log("[SteamWorks.NET] Reconnecting " + sid + " as client " + i);
                     Server.clients[i].TimeOutTime = 0;
-                    ServerSend.Welcome(freeSlot, Server.MaxPlayers);
                     freeSlot = i;
+                    ServerSend.Welcome(freeSlot, Server.MaxPlayers);
                     break;
                 }
             }
 
             if(ReConnection == false)
             {
-                for (int i = 1; i <= Server.MaxPlayers; i++)
+                // Slot 0 is the host, so a server for N players has N - 1 client slots.
+                for (int i = 1; i <= Server.MaxPlayers && i < MyMod.playersData.Count; i++)
                 {
                     if (Server.clients[i].IsBusy() == false)
                     {
@@ -680,6 +717,16 @@ namespace GameServer
                         Server.clients[i].udp.sid = sid;
                         ServerSend.Welcome(freeSlot, Server.MaxPlayers);
                         break;
+                    }
+                }
+                if (freeSlot == 0)
+                {
+                    Log("[SteamWorks.NET] No free slot for " + sid + ", server is full");
+                    using (Packet _kick = new Packet((int)ServerPackets.KICKMESSAGE))
+                    {
+                        _kick.Write("Server is full!");
+                        _kick.WriteLength();
+                        Server.SendP2PData(sid, _kick);
                     }
                 }
             }
