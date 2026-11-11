@@ -597,7 +597,7 @@ namespace SkyCoop
                 if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT SERVER ADDRESS")
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
-                    ClientUser.DoConnectToIp(text);
+                    IpLobby.Join(text);
                 }
                 if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INVALID CONTAINER DATA")
                 {
@@ -2040,10 +2040,7 @@ namespace SkyCoop
                 }
                 if(MenuChange.MenuMode == "Vote")
                 {
-                    if (SteamConnect.CanUseSteam)
-                    {
-                        SteamConnect.Main.VoteForRegion(RegionIds.Of(__instance.m_SelectedItem.Region));
-                    }
+                    Lobby.VoteForRegion(RegionIds.Of(__instance.m_SelectedItem.Region));
                     __instance.Enable(false);
                     MyMod.m_Panel_Sandbox.Enable(true);
                     MenuChange.ChangeMenuItems("Lobby");
@@ -2052,8 +2049,8 @@ namespace SkyCoop
                 {
                     MyMod.LobbyStartingRegion = RegionIds.Of(__instance.m_SelectedItem.Region);
                     MyMod.LobbyStartingExperience = MenuChange.TempExperience;
-                    SteamConnect.Main.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
-                    SteamConnect.Main.SetLobbyState("SelectedNewSave");
+                    Lobby.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
+                    Lobby.SetState("SelectedNewSave");
                     __instance.Enable(false);
                     MyMod.m_Panel_Sandbox.Enable(true);
                     MenuChange.ChangeMenuItems("Lobby");
@@ -5353,7 +5350,7 @@ namespace SkyCoop
                 }
                 else if (Model.m_LabelText == "MULTIPLAYER" && View.m_Label != null)
                 {
-                    string txt = Loc.T(MyMod.MyLobby != "" ? "LOBBY" : "MULTIPLAYER");
+                    string txt = Loc.T(Lobby.InLobby ? "LOBBY" : "MULTIPLAYER");
                     View.m_Label.mText = txt;
                     View.m_Label.text = txt;
                     View.m_Label.ProcessText();

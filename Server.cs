@@ -110,6 +110,14 @@ namespace GameServer
                     int _clientId = _packet.ReadInt();
                     string SubNetworkGUID = "";
 
+                    if (_clientId == SkyCoop.IpLobby.Magic)
+                    {
+                        // A player looking for the lobby, but the host is already in the game: tell them to connect.
+                        byte[] reply = SkyCoop.IpLobby.GameRunningReply();
+                        udpListener.BeginSend(reply, reply.Length, _clientEndPoint, null, null);
+                        return;
+                    }
+
                     if(_clientId != -2 && _clientId != -1)
                     {
                         if (_packet.UnreadLength() > 12)

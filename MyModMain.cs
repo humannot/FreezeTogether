@@ -7265,6 +7265,8 @@ namespace SkyCoop
             if (StartServerAfterSelectSave)
             {
                 StartServerAfterSelectSave = false;
+                // The lobby holds the port until the game server takes it over.
+                IpLobby.HandOverToGame();
                 Shared.HostAServer(PortsToHostOn);
             }
         }
@@ -11985,6 +11987,7 @@ namespace SkyCoop
             SetAppBackgroundMode();
             if (Input.GetKeyDown(KeyCode.F10)) HostCurrentStory();
             Reliable.Tick();
+            IpLobby.Tick();
             if (!KillOnUpdate)
             {
                 ModUpdate();
@@ -12964,9 +12967,14 @@ namespace SkyCoop
 
                 if (ShouldUseSteam == false)
                 {
-                    StartServerAfterSelectSave = true;
+                    // Same lobby as the Steam one: players join it from the main menu before the game starts.
                     PortsToHostOn = PortToHost;
-                    MenuChange.ChangeMenuItems("LobbySettings");
+                    if (IpLobby.StartHost(PortToHost))
+                    {
+                        MenuChange.ChangeMenuItems("Lobby");
+                    }else{
+                        MenuChange.ChangeMenuItems("Multiplayer");
+                    }
                 } else {
                     SteamConnect.Main.MakeLobby(LobbyType, MaxPlayers);
                     MenuChange.ChangeMenuItems("Lobby");

@@ -130,7 +130,7 @@ namespace SkyCoop
                 }
                 if (__instance.m_ItemModelList[buttonIndex].m_DescriptionText == "GAMEPLAY_Description31")
                 {
-                    if(MyMod.MyLobby == "")
+                    if(!Lobby.InLobby)
                     {
                         __instance.m_DescriptionLabel.text = "Host or join a multiplayer session.";
                     }else{
@@ -246,7 +246,7 @@ namespace SkyCoop
 
         public static void SetLobbyState(string state)
         {
-            SteamConnect.Main.SetLobbyState(state);
+            Lobby.SetState(state);
         }
 
         public static void ReturnOriginalButtons(Transform Grid, int index)
@@ -663,8 +663,8 @@ namespace SkyCoop
                     MyMod.LobbyStartingRegion = (int)Reg;
                     MyMod.LobbyStartingExperience = (int)SaveInfo.m_XPMode;
 
-                    SteamConnect.Main.SetSaveSlotSeed(MyMod.SelectedSaveSeed);
-                    SteamConnect.Main.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
+                    Lobby.SetSaveSeed(MyMod.SelectedSaveSeed);
+                    Lobby.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
                     MelonLogger.Msg("Selected save with seed "+ MyMod.SelectedSaveSeed);
                     InterfaceManager.TrySetPanelEnabled<Panel_Sandbox>(true);
                     ChangeMenuItems("Lobby");
@@ -721,10 +721,7 @@ namespace SkyCoop
                 }
                 if (MenuMode == "Vote")
                 {
-                    if (SteamConnect.CanUseSteam)
-                    {
-                        SteamConnect.Main.VoteForExperienceMode((int)selectedMenuItem.m_Type);
-                    }
+                    Lobby.VoteForExperience((int)selectedMenuItem.m_Type);
                     __instance.Enable(false);
                     InterfaceManager.TrySetPanelEnabled<Panel_Sandbox>(true);
                     ChangeMenuItems("Lobby");
@@ -745,8 +742,8 @@ namespace SkyCoop
                     {
                         MyMod.LobbyStartingRegion = (int)GameRegion.RandomRegion;
                         MyMod.LobbyStartingExperience = TempExperience;
-                        SteamConnect.Main.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
-                        SteamConnect.Main.SetLobbyState("SelectedNewSave");
+                        Lobby.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
+                        Lobby.SetState("SelectedNewSave");
                         __instance.Enable(false);
                         MyMod.m_Panel_Sandbox.Enable(true);
                         ChangeMenuItems("Lobby");
@@ -952,9 +949,9 @@ namespace SkyCoop
             {
                 if (!VoteInProcess())
                 {
-                    if (SteamConnect.IsMyLobby)
+                    if (Lobby.IsHost)
                     {
-                        if (SteamConnect.IsMyLobby == true)
+                        if (Lobby.IsHost)
                         {
                             if (CanStartServer())
                             {
@@ -967,8 +964,14 @@ namespace SkyCoop
                     OverrideMenuButton(Grid, 1, "VOTE");
                 }
 
-                OverrideMenuButton(Grid, 2, "INVITE FRIEND");
-                OverrideMenuButton(Grid, 3, "COPY INVITE LINK");
+                if (IpLobby.Active)
+                {
+                    // An IP lobby has no Steam invites; leaving it (or closing it, for the host) frees the player.
+                    OverrideMenuButton(Grid, 2, IpLobby.IsHost ? "CLOSE LOBBY" : "LEAVE LOBBY");
+                }else{
+                    OverrideMenuButton(Grid, 2, "INVITE FRIEND");
+                    OverrideMenuButton(Grid, 3, "COPY INVITE LINK");
+                }
                 MyMod.LobbyUI.SetActive(true);
                 MyMod.LobbyRegion.SetActive(VoteInProcess() && CanVoteForRegion());
                 MyMod.LobbyExperience.SetActive(VoteInProcess());
@@ -1041,7 +1044,7 @@ namespace SkyCoop
                     {
                         bool Found = false;
 
-                        if (SteamConnect.IsMyLobby)
+                        if (Lobby.IsHost)
                         {
                             Found = SetSaveSlotInfo(0, MyMod.SelectedSaveName);
                         }else{
@@ -1154,7 +1157,7 @@ namespace SkyCoop
                     }
 
 
-                    if(MyMod.MyLobby == "")
+                    if(!Lobby.InLobby)
                     {
                         ChangeMenuItems("Multiplayer");
                     }else{
@@ -1300,18 +1303,7 @@ namespace SkyCoop
                                 if (CustomId == 0)
                                 {
                                     CloseLobbyUI();
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        if(MyMod.LobbyState == "SelectedNewSave")
-                                        {
-                                            SteamConnect.Main.CreateSaveForHosting();
-                                        }
-                                        else if(MyMod.LobbyState == "SelectedSave")
-                                        {
-                                            SteamConnect.Main.LoadSaveForHosting();
-                                        }
-                                        SetLobbyState("StartingGame");
-                                    }
+                                    Lobby.StartGame();
                                 }
                                 else if (CustomId == 1)
                                 {
@@ -1324,7 +1316,13 @@ namespace SkyCoop
                                 }
                                 else if (CustomId == 2)
                                 {
-                                    if (SteamConnect.CanUseSteam)
+                                    if (IpLobby.Active)
+                                    {
+                                        IpLobby.Leave();
+                                        CloseLobbyUI();
+                                        ChangeMenuItems("Multiplayer");
+                                    }
+                                    else if (SteamConnect.CanUseSteam)
                                     {
                                         SteamConnect.Main.MakeFriendListUI();
                                     }
@@ -1366,7 +1364,7 @@ namespace SkyCoop
                                 {
                                     MyMod.SelectedSaveName = "";
                                     MyMod.SelectedSaveSeed = 0;
-                                    SteamConnect.Main.SetSaveSlotSeed(0);
+                                    Lobby.SetSaveSeed(0);
                                     SetLobbyState("Vote");
                                     ChangeMenuItems("Lobby");
                                 }
