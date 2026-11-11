@@ -31,12 +31,7 @@ namespace SkyCoop
             private static int Had = 0;
             public static bool Prefix(GearItem __instance, int numUnits)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_GearName == "GEAR_SCHeatPack" || __instance.m_GearName == "GEAR_SCHeatPackC" || __instance.m_GearName == "GEAR_SCEmergencyRation" || __instance.m_GearName == "GEAR_SCLiquidLead")
                 {
                     GameAudioManager.PlayGUIError();
@@ -66,12 +61,7 @@ namespace SkyCoop
             }
             public static void Postfix(GearItem __instance, int numUnits, GearItem __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_GearName == "GEAR_SCHeatPack" || __instance.m_GearName == "GEAR_SCHeatPackC" || __instance.m_GearName == "GEAR_SCEmergencyRation" || __instance.m_GearName == "GEAR_SCLiquidLead")
                 {
                     return;
@@ -123,12 +113,7 @@ namespace SkyCoop
         {
             internal static void Prefix(Panel_GearSelect __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 GearItem selectedItem = __instance.GetSelectedItem();
                 if (selectedItem != null)
                 {
@@ -142,12 +127,7 @@ namespace SkyCoop
         {
             internal static void Prefix(CookingPotItem __instance, GearItem gearItemToCook)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (gearItemToCook != null)
                 {
                     MelonLogger.Msg("Going to cook " + gearItemToCook.m_GearName + " IgnoreDropOverride");
@@ -161,12 +141,7 @@ namespace SkyCoop
             private static GameObject saveObj;
             internal static void Prefix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     MelonLogger.Msg("Going to cancle placement");
@@ -181,12 +156,7 @@ namespace SkyCoop
             }
             internal static void Postfix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     if (saveObj != null)
@@ -230,12 +200,7 @@ namespace SkyCoop
             private static GameObject saveObj;
             internal static void Prefix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     if (__instance.m_ObjectToPlace != null)
@@ -247,12 +212,7 @@ namespace SkyCoop
             }
             internal static void Postfix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     if (saveObj != null)
@@ -354,12 +314,7 @@ namespace SkyCoop
         {
             internal static void Prefix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (__instance.m_InteractiveObjectUnderCrosshair)
                 {
@@ -422,12 +377,7 @@ namespace SkyCoop
         {
             internal static void Postfix(Panel_Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.MyCycleSkip = __instance.m_SleepHours;
             }
         }
@@ -436,12 +386,7 @@ namespace SkyCoop
         {
             internal static void Postfix(Panel_Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("Sleeping menu close.");
                 if (MyMod.SleepingButtons != null)
                 {
@@ -462,12 +407,7 @@ namespace SkyCoop
         {
             internal static bool Prefix(Panel_Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_Bed != null && __instance.m_Bed.gameObject != null && __instance.m_Bed.gameObject.GetComponent< Comps.FakeBedDummy >() != null)
                 {
                     if (__instance.m_Bed.gameObject.GetComponent<Comps.FakeBedDummy >().m_LinkedFakeObject != null)
@@ -483,12 +423,7 @@ namespace SkyCoop
             }
             internal static void Postfix(Panel_Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("Sleeping menu close.");
             }
         }
@@ -498,22 +433,12 @@ namespace SkyCoop
             public static Bed saveObj;
             internal static void Prefix(Panel_Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 saveObj = __instance.m_Bed;
             }
             internal static void Postfix(Panel_Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("Sleeping menu close.");
             }
         }
@@ -523,24 +448,14 @@ namespace SkyCoop
             public static Bed saveObj;
             internal static void Prefix(PassTime __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 saveObj = __instance.m_Bed;
             }
             internal static void Postfix(PassTime __instance)
             {
                 if (saveObj != null && saveObj.gameObject.GetComponent<Comps.FakeBedDummy>() != null)
                 {
-                    if (MyMod.CrazyPatchesLogger == true)
-                    {
-                        StackTrace st = new StackTrace(new StackFrame(true));
-                        MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                        MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                    }
+                    MyMod.TracePatch();
                     UnityEngine.Object.Destroy(saveObj.gameObject);
                     MelonLogger.Msg("Dummy bed removed");
                 }
@@ -580,12 +495,7 @@ namespace SkyCoop
         {
             internal static void Postfix(Panel_Confirmation __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "YOU ARE DOWN")
                 {
                     MyMod.GiveUp();
@@ -807,12 +717,7 @@ namespace SkyCoop
         {
             public static void Prefix(FirstPersonLightSource __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.MyLightSource = true;
             }
         }
@@ -821,12 +726,7 @@ namespace SkyCoop
         {
             public static void Prefix(FirstPersonLightSource __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.MyLightSource = false;
             }
         }
@@ -836,12 +736,7 @@ namespace SkyCoop
         {
             public static void Postfix(ObjectAnim __instance, string name)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 //MelonLogger.Msg("ObjectAnim last played anim " + name);
                 if (__instance.gameObject != null && __instance.gameObject.GetComponent<Comps.ContainersSync>() != null)
                 {
@@ -858,12 +753,7 @@ namespace SkyCoop
         {
             public static void Prefix(BowItem __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (!(bool)(UnityEngine.Object)__instance.m_GearArrow)
                     return;
 
@@ -902,12 +792,7 @@ namespace SkyCoop
         {
             public static void Postfix(ArrowItem __instance, GameObject collider, Vector3 collisionPoint, Vector3 collisionNormal)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 bool SendDropSync = true;
 
                 if(__instance.m_EmbeddedInAi != null)
@@ -967,12 +852,7 @@ namespace SkyCoop
         {
             public static bool Prefix(vp_Bullet __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null && __instance.gameObject != null)
                 {
                     GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(MyMod.GetGearItemObject("GEAR_Arrow"), new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0));
@@ -1210,12 +1090,7 @@ namespace SkyCoop
         {
             public static void Postfix(vp_FPSShooter __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.CaptureBulletPrefab(__instance);
             }
         }
@@ -1225,12 +1100,7 @@ namespace SkyCoop
         {
             public static void Prefix(vp_FPSShooter __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if ((UnityEngine.Object)__instance.m_Weapon == (UnityEngine.Object)null || (double)Time.time < (double)__instance.m_NextAllowedFireTime || (__instance.m_Weapon.ReloadInProgress() || !GameManager.GetPlayerAnimationComponent().IsAllowedToFire(__instance.m_Weapon.m_GunItem.m_AllowHipFire, __instance.m_Weapon.m_GunItem.m_GunType)) || GameManager.GetPlayerAnimationComponent().IsReloading())
                 {
                     //MelonLogger.Msg("[vp_FPSShooter] Can't shoot now!");
@@ -1327,12 +1197,7 @@ namespace SkyCoop
         {
             internal static void Postfix(GearItem __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.name == "GEAR_MedicalSupplies_hangar")
                 {
                     __instance.m_WeightKG = 0.5f;
@@ -1616,12 +1481,7 @@ namespace SkyCoop
         {
             internal static void Postfix(ResearchItem __instance, float timeOfDayHours)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.gameObject.GetComponent<GearItem>() != null)
                 {
                     GearItem gi = __instance.gameObject.GetComponent<GearItem>();
@@ -1647,12 +1507,7 @@ namespace SkyCoop
         {
             internal static void Postfix(ClothingSlot __instance, GearItem gi)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (gi && gi.m_ClothingItem && !string.IsNullOrEmpty(gi.m_ClothingItem.m_PaperDollTextureName)  && gi.m_GearName == "GEAR_CookingPot")
                     {
@@ -1722,56 +1577,49 @@ namespace SkyCoop
                 return false;
             }
         }
+        // Shared by the pickup patches: marks a world item as taken and reports it, so it disappears for the other
+        // players. reprocess hands a swapped knife back to the same pickup path.
+        static void ReportPickup(GearItem pickupItem, System.Action<GearItem> reprocess)
+        {
+            if (pickupItem == null || pickupItem.m_BeenInPlayerInventory)
+            {
+                return;
+            }
+            MelonLogger.Msg("Pickedup " + pickupItem.m_GearName);
+            pickupItem.m_BeenInPlayerInventory = true;
+            Vector3 V3 = MyMod.GetSpawnPosition(pickupItem);
+            int ISNTID = pickupItem.m_InstanceID;
+            string GearName = pickupItem.m_GearName;
+            NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
+
+            if (GearName == "GEAR_Knife" && Supporters.ConfiguratedBenefits.m_Knife)
+            {
+                string Copy = pickupItem.SerializeToString();
+                UnityEngine.Object.Destroy(pickupItem.gameObject);
+                GameObject reference = MyMod.GetGearItemObject("GEAR_JeremiahKnife");
+                GameObject newGear = UnityEngine.Object.Instantiate<GameObject>(reference, V3, pickupItem.gameObject.transform.rotation);
+                GearItem newItem = newGear.GetComponent<GearItem>();
+                newItem.Deserialize(Copy);
+                newItem.m_BeenInPlayerInventory = true;
+                Narrative = newGear.GetComponent<NarrativeCollectibleItem>();
+                reprocess(newItem);
+            }
+
+            if (DuppableGearItem(GearName) || Narrative != null || SceneItemsSync.OnPickup(pickupItem.gameObject))
+            {
+                return;
+            }
+            Shared.AddPickedGear(V3, MyMod.levelid, GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent, ClientUser.myId, ISNTID, GearName, true);
+        }
+
         [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "ProcessPickupItemInteraction")] // Once
         private static class Inventory_Pickup
         {
             // 2.55: ProcessInspectablePickupItem merged into ProcessPickupItemInteraction(GearItem item, ...).
             internal static void Prefix(PlayerManager __instance, GearItem item)
             {
-                Impl(__instance, item);
-            }
-            static void Impl(PlayerManager __instance, GearItem pickupItem)
-            {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
-                if (pickupItem.m_BeenInPlayerInventory == false)
-                {
-                    MelonLogger.Msg("Pickedup " + pickupItem.m_GearName);
-                    pickupItem.m_BeenInPlayerInventory = true;
-                    Vector3 V3 = MyMod.GetSpawnPosition(pickupItem);
-                    int ISNTID = pickupItem.m_InstanceID;
-                    string GearName = pickupItem.m_GearName;
-                    NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
-
-                    if (GearName == "GEAR_Knife")
-                    {
-                        if (Supporters.ConfiguratedBenefits.m_Knife)
-                        {
-                            string Copy = pickupItem.SerializeToString();
-                            UnityEngine.Object.Destroy(pickupItem.gameObject);
-                            GameObject reference = MyMod.GetGearItemObject("GEAR_JeremiahKnife");
-                            GameObject newGear = UnityEngine.Object.Instantiate<GameObject>(reference, V3, pickupItem.gameObject.transform.rotation);
-                            newGear.GetComponent<GearItem>().Deserialize(Copy);
-                            newGear.GetComponent<GearItem>().m_BeenInPlayerInventory = true;
-                            Narrative = newGear.GetComponent<NarrativeCollectibleItem>();
-                            __instance.ProcessInspectablePickupItem(newGear.GetComponent<GearItem>());
-                        }
-                    }
-
-                    if (DuppableGearItem(GearName) || Narrative != null)
-                    {
-                        return;
-                    }
-                    if (SceneItemsSync.OnPickup(pickupItem.gameObject))
-                    {
-                        return;
-                    }
-                    Shared.AddPickedGear(V3, MyMod.levelid, GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent, ClientUser.myId, ISNTID, GearName, true);
-                }
+                MyMod.TracePatch();
+                ReportPickup(item, gi => __instance.ProcessInspectablePickupItem(gi));
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "ProcessPickupWithNoInspectScreen")] // Once
@@ -1779,46 +1627,8 @@ namespace SkyCoop
         {
             internal static void Prefix(PlayerManager __instance, GearItem pickupItem)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
-                if (pickupItem.m_BeenInPlayerInventory == false)
-                {
-                    MelonLogger.Msg("Pickedup " + pickupItem.m_GearName);
-                    pickupItem.m_BeenInPlayerInventory = true;
-                    Vector3 V3 = MyMod.GetSpawnPosition(pickupItem);
-                    int ISNTID = pickupItem.m_InstanceID;
-                    string GearName = pickupItem.m_GearName;
-                    NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
-
-                    if (GearName == "GEAR_Knife")
-                    {
-                        if (Supporters.ConfiguratedBenefits.m_Knife)
-                        {
-                            string Copy = pickupItem.SerializeToString();
-                            UnityEngine.Object.Destroy(pickupItem.gameObject);
-                            GameObject reference = MyMod.GetGearItemObject("GEAR_JeremiahKnife");
-                            GameObject newGear = UnityEngine.Object.Instantiate<GameObject>(reference, V3, pickupItem.gameObject.transform.rotation);
-                            newGear.GetComponent<GearItem>().Deserialize(Copy);
-                            newGear.GetComponent<GearItem>().m_BeenInPlayerInventory = true;
-                            Narrative = newGear.GetComponent<NarrativeCollectibleItem>();
-                            __instance.ProcessPickupWithNoInspectScreen(newGear.GetComponent<GearItem>(), true);
-                        }
-                    }
-
-                    if (DuppableGearItem(GearName) || Narrative != null)
-                    {
-                        return;
-                    }
-                    if (SceneItemsSync.OnPickup(pickupItem.gameObject))
-                    {
-                        return;
-                    }
-                    Shared.AddPickedGear(V3, MyMod.levelid, GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent, ClientUser.myId, ISNTID, GearName, true);
-                }
+                MyMod.TracePatch();
+                ReportPickup(pickupItem, gi => __instance.ProcessPickupWithNoInspectScreen(gi, true));
             }
         }
         // Safety net: 2.55 can move a world item into the inventory without going through the three pickup methods above
@@ -1848,50 +1658,8 @@ namespace SkyCoop
         {
             public static void Prefix(PlayerManager __instance, GameObject go)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
-                if (go != null && go.GetComponent<GearItem>() != null)
-                {
-                    GearItem pickupItem = go.GetComponent<GearItem>();
-                    if (pickupItem.m_BeenInPlayerInventory == false)
-                    {
-                        MelonLogger.Msg("Pickedup " + pickupItem.m_GearName);
-                        pickupItem.m_BeenInPlayerInventory = true;
-                        Vector3 V3 = MyMod.GetSpawnPosition(pickupItem);
-                        int ISNTID = pickupItem.m_InstanceID;
-                        string GearName = pickupItem.m_GearName;
-                        NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
-
-                        if (GearName == "GEAR_Knife")
-                        {
-                            if (Supporters.ConfiguratedBenefits.m_Knife)
-                            {
-                                string Copy = pickupItem.SerializeToString();
-                                UnityEngine.Object.Destroy(pickupItem.gameObject);
-                                GameObject reference = MyMod.GetGearItemObject("GEAR_JeremiahKnife");
-                                GameObject newGear = UnityEngine.Object.Instantiate<GameObject>(reference, V3, pickupItem.gameObject.transform.rotation);
-                                newGear.GetComponent<GearItem>().Deserialize(Copy);
-                                newGear.GetComponent<GearItem>().m_BeenInPlayerInventory = true;
-                                Narrative = newGear.GetComponent<NarrativeCollectibleItem>();
-                                __instance.InitializeObjectToPlace(newGear);
-                            }
-                        }
-
-                        if (DuppableGearItem(GearName) || Narrative != null)
-                        {
-                            return;
-                        }
-                        if (SceneItemsSync.OnPickup(pickupItem.gameObject))
-                        {
-                            return;
-                        }
-                        Shared.AddPickedGear(V3, MyMod.levelid, GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent, ClientUser.myId, ISNTID, GearName, true);
-                    }
-                }
+                MyMod.TracePatch();
+                ReportPickup(go != null ? go.GetComponent<GearItem>() : null, gi => __instance.InitializeObjectToPlace(gi.gameObject));
             }
         }
 
@@ -1900,12 +1668,7 @@ namespace SkyCoop
         {
             internal static void Prefix(Container __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (__instance.gameObject.GetComponent<ContainersSync>() == null)
                 {
@@ -1918,12 +1681,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null)
                 {
                     MyMod.SelectGenderForConnection();
@@ -1938,12 +1696,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null)
                 {
                     GameAudioManager.PlayGuiConfirm();
@@ -1976,12 +1729,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null && MyMod.ShouldCreateSaveForHost)
                 {
                     string inputFieldText = InterfaceManager.GetPanel<Panel_Confirmation>().GetInputFieldText();
@@ -1999,12 +1747,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_SelectRegion_Map __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null || MenuChange.MenuMode == "Vote" || MenuChange.MenuMode == "NewGameSelect")
                 {
                     return false;
@@ -2013,12 +1756,7 @@ namespace SkyCoop
             }
             public static void Postfix(Panel_SelectRegion_Map __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null)
                 {
                     GameManager.m_StartRegion = __instance.m_SelectedItem.Region;
@@ -2051,12 +1789,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_SelectRegion_Map __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null || MenuChange.MenuMode == "Vote" || MenuChange.MenuMode == "NewGameSelect")
                 {
                     if(MenuChange.MenuMode == "Vote")
@@ -2076,12 +1809,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_SelectRegion_Map __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null || MenuChange.MenuMode == "Vote")
                 {
                     return false;
@@ -2095,12 +1823,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_SelectSurvivor __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null)
                 {
                     PlayerManager.m_VoicePersona = VoicePersona.Male;
@@ -2118,12 +1841,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_SelectSurvivor __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.PendingSave != null)
                 {
                     PlayerManager.m_VoicePersona = VoicePersona.Female;
@@ -2141,12 +1859,7 @@ namespace SkyCoop
         {
             internal static void Postfix(BaseAi __instance, int id)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null && __instance.gameObject != null && __instance.gameObject.GetComponent<ObjectGuid>() != null && __instance.gameObject.activeSelf == true)
                 {
                     Comps.AnimalUpdates au = __instance.gameObject.GetComponent<Comps.AnimalUpdates>();
@@ -2186,12 +1899,7 @@ namespace SkyCoop
         {
             internal static void Postfix(BaseAi __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (__instance != null && __instance.gameObject != null)
                 {
@@ -2212,12 +1920,7 @@ namespace SkyCoop
         {
             internal static bool Prefix(BaseAi __instance, float hours)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 return false;
             }
         }
@@ -2227,12 +1930,7 @@ namespace SkyCoop
         {
             internal static bool Prefix(BaseAi __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null && __instance.gameObject != null && __instance.gameObject.GetComponent<ObjectGuid>() != null && __instance.gameObject.activeSelf == true)
                 {
                     Comps.AnimalUpdates au = __instance.gameObject.GetComponent<Comps.AnimalUpdates>();
@@ -2312,12 +2010,7 @@ namespace SkyCoop
         {
             internal static bool Prefix(BaseAi __instance, Vector3 feederPos)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null && __instance.gameObject != null && __instance.gameObject.GetComponent<ObjectGuid>() != null && __instance.gameObject.activeSelf == true)
                 {
                     Comps.AnimalUpdates au = __instance.gameObject.GetComponent<Comps.AnimalUpdates>();
@@ -2431,12 +2124,7 @@ namespace SkyCoop
             }
             static bool Impl(BodyHarvest bh, bool playBookEndAnim)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 GameObject shokal = bh.gameObject;
 
                 if (shokal.GetComponent<ObjectGuid>() != null)
@@ -2470,12 +2158,7 @@ namespace SkyCoop
         {
             internal static void Prefix(Panel_BodyHarvest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null && __instance.m_BodyHarvest != null && __instance.m_BodyHarvest.gameObject != null && __instance.m_BodyHarvest.gameObject.GetComponent<ObjectGuid>() != null)
                 {
                     MelonLogger.Msg("Harvested meat " + __instance.m_MenuItem_Meat.m_HarvestAmount);
@@ -2514,12 +2197,7 @@ namespace SkyCoop
         {
             internal static bool Prefix(BaseAi __instance, float damage)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 Comps.AnimalUpdates au = __instance.gameObject.GetComponent<Comps.AnimalUpdates>();
                 bool NeedApplyDamage = false;
                 if (MyMod.AnimalsController == true || au.m_MyControlled)
@@ -2536,22 +2214,12 @@ namespace SkyCoop
         {            
             internal static bool Prefix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 return false;
             }
             internal static void Postfix(ArrowItem __instance, GameObject victim, float damageScalar, bool stickIn, string collider, Vector3 collisionPoint, BaseAi __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 BaseAi baseAi = null;
                 if (victim.layer == 16)
                     baseAi = victim.GetComponent<BaseAi>();
@@ -2642,12 +2310,7 @@ namespace SkyCoop
         {
             public static void Prefix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_ThrownItem != null)
                 {
                     //MelonLogger.Msg("[PlayerManager][PreFix] ReleaseThrownObject " + __instance.m_ThrownItem.m_GearName);
@@ -2660,12 +2323,7 @@ namespace SkyCoop
             }
             public static void Postfix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.SaveThrowingItem != null)
                 {
                     MelonLogger.Msg("[PlayerManager][Postfix] ReleaseThrownObject SaveThrowingItem " + MyMod.SaveThrowingItem.name);
@@ -2736,12 +2394,7 @@ namespace SkyCoop
         {
             public static void Postfix(NoiseMakerItem __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 DataStr.ShootSync bomb = new DataStr.ShootSync();
                 bomb.m_position = GameManager.GetPlayerObject().transform.position;
                 bomb.m_rotation = GameManager.GetPlayerObject().transform.rotation;
@@ -2773,12 +2426,7 @@ namespace SkyCoop
         {
             public static void Postfix(UIButton __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.gameObject != null && __instance.gameObject.transform.parent != null && __instance.gameObject.transform.parent != null && __instance.hoverSprite == "genericButton_over 1")
                 {
                     if (__instance.gameObject.transform.parent.name == "WaitForEveryoneButton")
@@ -2854,12 +2502,7 @@ namespace SkyCoop
         {
             public static void Prefix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading other scene...");
                 AutoSaveAllTheCost = true;
             }
@@ -2869,12 +2512,7 @@ namespace SkyCoop
         {
             public static void Prefix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading other scene...");
             }
         }
@@ -2885,12 +2523,7 @@ namespace SkyCoop
             static bool s_LaunchArgsHandled = false;
             public static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "[SceneManager] OnSceneLoaded");
                 // 2.55 has no "Boot" scene anymore (the first scene is "Empty"), so run the launch-time setup once
                 // on the first scene load instead. Otherwise "+connect_lobby" from Steam's Join Game is never read.
@@ -2993,12 +2626,7 @@ namespace SkyCoop
         {
             internal static void Postfix(BreakDown __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 string breakGuid = "";
                 string breakParentGuid = "";
                 if (__instance.gameObject != null)
@@ -3210,12 +2838,7 @@ namespace SkyCoop
             }
             static void Impl(SaveSlotType gameMode, string name)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 SaveDeployedRopes(gameMode, name);
                 SaveSnowShelters(gameMode, name);
                 SaveGenVersion(gameMode, name);
@@ -3483,12 +3106,7 @@ namespace SkyCoop
         {
             public static void Postfix(string name)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "[Saving] Loading " + name + "...");
                 LoadDeployedRopes(name);
@@ -3512,12 +3130,7 @@ namespace SkyCoop
         {
             public static void Prefix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 //FlushAllSavable();
             }
         }
@@ -3527,12 +3140,7 @@ namespace SkyCoop
         {
             public static void Postfix(Panel_BreakDown __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_BreakDown != null)
                 {
                     GameObject gameObject = __instance.m_BreakDown.gameObject;
@@ -3585,12 +3193,7 @@ namespace SkyCoop
         {
             public static void Postfix(Panel_BreakDown __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.sendMyPosition == true)
                 {
                     using (Packet _packet = new Packet((int)ClientPackets.FURNBREAKINSTOP))
@@ -3613,12 +3216,7 @@ namespace SkyCoop
         {
             public static bool Prefix(BreakDown __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 GameObject gameObject = __instance.gameObject;
                 string breakGuid = "";
                 string breakParentGuid = "";
@@ -3714,12 +3312,7 @@ namespace SkyCoop
 
             static bool Impl(PlayerManager __instance, Container c)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 string user = UserOf(c);
                 if (user != null)
                 {
@@ -3741,12 +3334,7 @@ namespace SkyCoop
         {
             public static void Postfix(RopeAnchorPoint __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.IsDead == true || GameManager.GetPlayerStruggleComponent().InStruggle() == true)
                 {
                     return;
@@ -3762,12 +3350,7 @@ namespace SkyCoop
         {
             public static void Postfix(RopeAnchorPoint __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.IsDead == true || GameManager.GetPlayerStruggleComponent().InStruggle() == true)
                 {
                     return;
@@ -3781,12 +3364,7 @@ namespace SkyCoop
         {
             public static void Prefix(RopeAnchorPoint __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.IsDead == true || GameManager.GetPlayerStruggleComponent().InStruggle() == true)
                 {
                     return;
@@ -3822,12 +3400,7 @@ namespace SkyCoop
         {
             public static void Prefix(RopeAnchorPoint __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_RopeDeployed)
                 {
                     __instance.enabled = false;
@@ -3843,22 +3416,12 @@ namespace SkyCoop
         {
             public static bool Prefix(GameObject go, float spawnChance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 return false;
             }
             public static void Postfix(GameObject go, float spawnChance, ref bool __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 int _x = (int)go.transform.position.x;
                 int _y = (int)go.transform.position.y;
                 int _z = (int)go.transform.position.z;
@@ -3884,22 +3447,12 @@ namespace SkyCoop
         {
             public static bool Prefix(int seed)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 return false;
             }
             public static void Postfix(int seed, ref int __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 //MelonLogger.Msg("Getting random seed for "+ GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent);
                 //GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent
 
@@ -3962,22 +3515,12 @@ namespace SkyCoop
         {
             public static bool Prefix(RandomSpawnObject __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 return false;
             }
             public static void Postfix(RandomSpawnObject __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 //MelonLogger.Msg("[RandomSpawnObject] ActivateRandomObject started for "+__instance.gameObject.name+" Position X " + __instance.gameObject.transform.position.x + "Y " + __instance.gameObject.transform.position.y + " Z " + __instance.gameObject.transform.position.z);
                 List<GameObject> gameObjectList = new List<GameObject>((IEnumerable<GameObject>)__instance.m_ObjectList);
                 List<int> intList = new List<int>((IEnumerable<int>)__instance.m_Weights);
@@ -4051,22 +3594,12 @@ namespace SkyCoop
         {
             private static bool Prefix(PrefabSpawn __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 return false;
             }
             private static void Postfix(PrefabSpawn __instance, ref GameObject __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_PrefabList == null)
                 {
                     __result = (GameObject)null;
@@ -4211,12 +3744,7 @@ namespace SkyCoop
             internal static float restoreTimeToDrink; //Thank you, Remodor, now I know I can have varible right in patch class!
             internal static void Prefix(PlayerManager __instance, WaterSupply ws, ItemLiquidVolume volumeAvailable)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 restoreTimeToDrink = ws.m_TimeToDrinkSeconds;
                 if (MyMod.ServerConfig.m_FastConsumption == false)
                 {
@@ -4234,12 +3762,7 @@ namespace SkyCoop
             internal static float restoreTimeToEat;
             internal static void Prefix(PlayerManager __instance, GearItem gi)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 restoreTimeToEat = gi.m_FoodItem.m_TimeToEatSeconds;
                 if (MyMod.ServerConfig.m_FastConsumption == false)
                 {
@@ -4248,12 +3771,7 @@ namespace SkyCoop
             }
             internal static void Postfix(PlayerManager __instance, GearItem gi)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 gi.m_FoodItem.m_TimeToEatSeconds = restoreTimeToEat;
             }
         }
@@ -4406,12 +3924,7 @@ namespace SkyCoop
             }
             static void Impl(PlayerManager __instance, GameObject interactiveObject, ref string __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (interactiveObject != null)
                 {
                     if (interactiveObject.GetComponent<Comps.MultiplayerPlayer>() != null)
@@ -4587,12 +4100,7 @@ namespace SkyCoop
             }
             static void Impl(RaycastHit hit, ref GearItem gi, ref GameObject interactiveObj)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 // 2.55 gear prefabs often keep the collider on a child, so the dummy component sits on a parent of what we hit.
                 Comps.DroppedGearDummy hitDummy = hit.collider != null ? hit.collider.GetComponentInParent<Comps.DroppedGearDummy>() : null;
                 if (hitDummy == null && hit.transform != null) hitDummy = hit.transform.GetComponentInParent<Comps.DroppedGearDummy>();
@@ -4779,12 +4287,7 @@ namespace SkyCoop
             }
             internal static void Postfix(PlayerManager __instance, ref bool __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_InteractiveObjectUnderCrosshair != null)
                 {
                     GameObject obj = __instance.m_InteractiveObjectUnderCrosshair;
@@ -4892,12 +4395,7 @@ namespace SkyCoop
             }
             static void Impl(Container __instance, ref bool __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__result == true)
                 {
                     if (MyMod.MyContainer != null)
@@ -4936,12 +4434,7 @@ namespace SkyCoop
             }
             static void Impl(Container __instance, ref bool __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__result == true)
                 {
                     DataStr.ContainerOpenSync pendingContainer = new DataStr.ContainerOpenSync();
@@ -5009,12 +4502,7 @@ namespace SkyCoop
             }
             static void Impl(Container __instance, ref string __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 
                 if(__instance.m_Inspected && __instance.gameObject && __instance.gameObject.GetComponent<ContainersSync>() != null)
                 {
@@ -5076,12 +4564,7 @@ namespace SkyCoop
             }
             static void Impl(Harvestable __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 SendHarvestPlantState("Start", __instance);
             }
         }
@@ -5100,12 +4583,7 @@ namespace SkyCoop
             }
             static void Impl(Harvestable __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 SendHarvestPlantState("Cancel", __instance);
             }
         }
@@ -5114,12 +4592,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Harvestable __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 int seed = 0;
                 if (__instance.gameObject.GetComponent<ObjectGuid>())
                 {
@@ -5150,12 +4623,7 @@ namespace SkyCoop
             }
             static void Impl(Harvestable __instance, bool success)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (success == true)
                 {
                     SendHarvestPlantState("Done", __instance);
@@ -5177,12 +4645,7 @@ namespace SkyCoop
             }
             static bool Impl(Harvestable __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 string ObjGUID = "";
                 if (__instance.gameObject != null)
                 {
@@ -5223,12 +4686,7 @@ namespace SkyCoop
             }
             public static void Postfix(Panel_Boot __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (MyMod.KillOnUpdate)
                 {
@@ -5251,12 +4709,7 @@ namespace SkyCoop
         {
             public static void Postfix(Panel_Boot __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.KillOnUpdate)
                 {
                     UnityEngine.Object.Destroy(__instance.m_MainDisclaimerContinue.gameObject.GetComponent<UILocalize>());
@@ -5350,12 +4803,7 @@ namespace SkyCoop
         {
             private static void Postfix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 RemoveSinglePlayer(__instance);
             }
         }
@@ -5365,12 +4813,7 @@ namespace SkyCoop
         {
             private static void Postfix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 Transform Grid = MyMod.m_Panel_MainMenu.gameObject.transform.GetChild(0).GetChild(0).GetChild(0).Find("Left_Align/Grid"); // 2.55 inserted MainMenuBG/Upsell, find by name
                 RemoveSinglePlayer(__instance);
@@ -5392,12 +4835,7 @@ namespace SkyCoop
         {
             private static void Postfix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 RemoveSinglePlayer(__instance);
             }
         }
@@ -5407,12 +4845,7 @@ namespace SkyCoop
         {
             private static void Postfix(TextInputField __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_Input.characterLimit < 100)
                 {
                     __instance.m_MaxLength = 100;
@@ -5426,12 +4859,7 @@ namespace SkyCoop
         {
             private static bool Prefix(SnowShelter __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_StartHasBeenCalled)
                 {
                     return false;
@@ -5455,12 +4883,7 @@ namespace SkyCoop
         {
             public static void Prefix(Panel_SnowShelterBuild __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_SnowShelter != null)
                 {
                     MelonLogger.Msg("Shelter builded!");
@@ -5474,12 +4897,7 @@ namespace SkyCoop
         {
             public static void Postfix(SnowShelter __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("Shelter removed!");
                 GameObject shelter = __instance.gameObject;
                 Shared.ShelterRemoved(shelter.transform.position, MyMod.levelid, MyMod.level_guid, true);
@@ -5490,12 +4908,7 @@ namespace SkyCoop
         {
             public static void Postfix(Panel_SnowShelterInteract __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_SnowShelter != null)
                 {
                     MelonLogger.Msg("Entering shelter");
@@ -5525,12 +4938,7 @@ namespace SkyCoop
         {
             public static void Postfix(SnowShelterManager __instance, SnowShelter ss)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (ss != null)
                 {
                     MelonLogger.Msg("Entering shelter");
@@ -5560,12 +4968,7 @@ namespace SkyCoop
         {
             public static void Postfix(SnowShelterManager __instance, SnowShelter ss)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (ss != null)
                 {
                     MelonLogger.Msg("Exiting shelter");
@@ -5590,12 +4993,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Panel_SnowShelterInteract __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 DataStr.ShowShelterByOther FindData = new DataStr.ShowShelterByOther();
                 if (__instance.m_SnowShelter != null && __instance.m_SnowShelter.gameObject != null)
                 {
@@ -5646,12 +5044,7 @@ namespace SkyCoop
         {
             public static bool Prefix(CookingSlot __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_GearPlacePoint != null
                     && __instance.m_GearPlacePoint.m_FireToAttach != null
                     && __instance.m_GearPlacePoint.m_FireToAttach.IsBurning()
@@ -5668,12 +5061,7 @@ namespace SkyCoop
         {
             public static bool Prefix(CookingPotItem __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_FireBeingUsed != null
                     && __instance.m_FireBeingUsed.IsBurning()
                     && __instance.m_FireBeingUsed.m_StartedByPlayer == false)
@@ -5709,12 +5097,7 @@ namespace SkyCoop
         {
             public static bool Prefix(CookingPotItem __instance, Fire fire, GearPlacePoint gpp)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (fire != null
                     && fire.IsBurning()
                     && fire.m_StartedByPlayer == false)
@@ -5735,12 +5118,7 @@ namespace SkyCoop
                 {
                     return;
                 }
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_Fire != null
                     && __instance.m_Fire.IsBurning()
                     && __instance.m_Fire.m_StartedByPlayer == false)
@@ -5756,12 +5134,7 @@ namespace SkyCoop
         {
             public static void Postfix(Campfire __instance, ref string __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance.m_Fire != null
                     && __instance.m_Fire.IsBurning()
                     && __instance.m_Fire.m_StartedByPlayer == false)
@@ -5776,12 +5149,7 @@ namespace SkyCoop
         {
             public static void Prefix(InterfaceManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null)
                 {
                     MyMod.m_InterfaceManager = __instance;
@@ -5795,12 +5163,7 @@ namespace SkyCoop
         {
             public static void Prefix(Panel_SelectSurvivor __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null)
                 {
                     MyMod.m_Panel_SelectSurvivor = __instance;
@@ -5813,12 +5176,7 @@ namespace SkyCoop
         {
             public static void Prefix(Panel_Sandbox __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null)
                 {
                     MyMod.m_Panel_Sandbox = __instance;
@@ -5832,12 +5190,7 @@ namespace SkyCoop
         {
             public static void Prefix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null)
                 {
                     MyMod.m_Panel_MainMenu = __instance;
@@ -5850,12 +5203,7 @@ namespace SkyCoop
         {
             public static void Prefix(Panel_ChooseSandbox __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (__instance != null)
                 {
                     MyMod.m_Panel_ChooseSandbox = __instance;
@@ -5869,12 +5217,7 @@ namespace SkyCoop
         {
             public static bool Prefix(Condition __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[Condition] PlayerDeath");
                 if (MyMod.InOnline() == true)
                 {
@@ -5893,12 +5236,7 @@ namespace SkyCoop
         {
             internal static void Prefix(Panel_Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[Panel_Rest] DoRest");
                 if (__instance.m_Bed != null && __instance.m_Bed.gameObject != null && __instance.m_Bed.gameObject.GetComponent<Comps.FakeBedDummy>() != null)
                 {
@@ -5913,12 +5251,7 @@ namespace SkyCoop
         {
             public static void Postfix(Rest __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[Rest] EndSleeping");
                 if (MyMod.IsDead == true)
                 {
@@ -5938,12 +5271,7 @@ namespace SkyCoop
         {
             public static void Postfix(Rest __instance, Bed b, int durationHours, int maxHours)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.RememberSleepPlace();
                 SanityManager.StartSleeping();
             }
@@ -5953,12 +5281,7 @@ namespace SkyCoop
         {
             public static void Postfix(Rest __instance, Bed b, int durationHours, int maxHours, float fadeOutDuration, Rest.PassTimeOptions options, Il2CppSystem.Action onSleepEnd)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.RememberSleepPlace();
                 SanityManager.StartSleeping();
             }
@@ -6187,12 +5510,7 @@ namespace SkyCoop
         {
             private static void Postfix(Panel_Loading __instance, bool enable)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (enable == false)
                 {
                     MelonLogger.Msg(System.ConsoleColor.Yellow, "[Scene Load] Everything finished loading!");
@@ -6235,12 +5553,7 @@ namespace SkyCoop
         {
             public static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "[MissionServicesManager] SceneLoadCompleted!");
             }
         }
@@ -6250,12 +5563,7 @@ namespace SkyCoop
         {
             public static void Postfix(string name)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "[Scene Load] Saved data for scene is loaded!");
                 MyMod.UpdateEverything = 2;
             }
@@ -6265,12 +5573,7 @@ namespace SkyCoop
         {
             public static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg(System.ConsoleColor.Yellow, "[Cold Start] Scene loaded!");
                 MyMod.UpdateEverything = 2;
             }
@@ -6280,12 +5583,7 @@ namespace SkyCoop
         {
             public static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     GameManager.m_IsPaused = false;
@@ -6297,12 +5595,7 @@ namespace SkyCoop
         {
             public static void Postfix(Panel_Diagnosis __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("Stop diagnosis");
                 if (MyMod.DiagnosisDummy != null)
                 {
@@ -6381,12 +5674,7 @@ namespace SkyCoop
         {
             public static void Prefix(Panel_Diagnosis __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.DiagnosisDummy != null)
                 {
                     MelonLogger.Msg("Cured other player");
@@ -6434,12 +5722,7 @@ namespace SkyCoop
         {
             public static void Postfix(PlayerManager __instance, FirstAidItem firstAidItem, AfflictionType afflictionType, AfflictionBodyArea location, int afflictionId)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (afflictionType == AfflictionType.SprainedAnkle
                     || afflictionType == AfflictionType.SprainedWrist
                     || afflictionType == AfflictionType.SprainedWristMajor
@@ -6519,12 +5802,7 @@ namespace SkyCoop
         {
             public static void Postfix(Panel_Diagnosis __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 __instance.m_LabelCause.color = Color.gray;
                 if (__instance.m_SelectedAffButton != null)
                 {
@@ -6546,12 +5824,7 @@ namespace SkyCoop
         {
             public static bool Prefix(SpawnRegionManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[SpawnRegionManager] Deserialize");
                 return false;
             }
@@ -6561,12 +5834,7 @@ namespace SkyCoop
         {
             public static bool Prefix(BaseAiManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[BaseAiManager] Deserialize");
                 if (MyMod.AnimalsController == true)
                 {
@@ -6580,12 +5848,7 @@ namespace SkyCoop
         {
             public static bool Prefix(BaseAiManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[BaseAiManager] Serialize");
                 if (MyMod.AnimalsController == true)
                 {
@@ -6599,23 +5862,13 @@ namespace SkyCoop
         {
             public static bool Prefix(BodyHarvestManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[BodyHarvestManager] Prefix Serialize");
                 return false;
             }
             public static void Postfix(BodyHarvestManager __instance, ref string __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[BodyHarvestManager] Postfix Serialize");
                 BodyHarvestSaveList bodyHarvestSaveList = new BodyHarvestSaveList();
                 bodyHarvestSaveList.m_SerializedBodyHarvests.Clear();
@@ -6640,23 +5893,13 @@ namespace SkyCoop
         {
             public static bool Prefix(BodyHarvestManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[BodyHarvestManager] Prefix Deserialize");
                 return false;
             }
             public static void Postfix(BodyHarvestManager __instance, string text)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MelonLogger.Msg("[BodyHarvestManager] Postfix Deserialize");
                 if (string.IsNullOrEmpty(text))
                 {
@@ -6865,12 +6108,7 @@ namespace SkyCoop
         {
             private static void Prefix(BaseAi __instance, string audioEventName)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     if(__instance.gameObject && __instance.gameObject.GetComponent<ObjectGuid>())
@@ -6885,12 +6123,7 @@ namespace SkyCoop
         {
             private static void Prefix(BaseAi __instance, string audioEventName)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     if (__instance.gameObject && __instance.gameObject.GetComponent<ObjectGuid>())
@@ -6905,12 +6138,7 @@ namespace SkyCoop
         {
             private static void Prefix(BaseAi __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     if (__instance.m_CurrentTarget || !__instance.m_CurrentTarget.IsPlayer() || (__instance.m_AttackingLoopAudioID != 0U || __instance.m_TimeInModeSeconds <= 1.5))
@@ -6951,12 +6179,7 @@ namespace SkyCoop
         {
             private static bool Prefix(SpawnRegion __instance, WildlifeMode wildlifeMode)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == false)
                 {
                     return true;
@@ -6972,12 +6195,7 @@ namespace SkyCoop
         {
             private static bool Prefix(ConsoleManager __instance, string prefabName, float dist)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == false)
                 {
                     return true;
@@ -6993,12 +6211,7 @@ namespace SkyCoop
         {
             private static bool Prefix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == false)
                 {
                     return true;
@@ -7009,12 +6222,7 @@ namespace SkyCoop
             }
             private static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.iAmHost)
                 {
                     Shared.ForceNextWeather();
@@ -7026,12 +6234,7 @@ namespace SkyCoop
         {
             private static bool Prefix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == false)
                 {
                     return true;
@@ -7042,12 +6245,7 @@ namespace SkyCoop
             }
             private static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.iAmHost)
                 {
                     Shared.ForceNextWeatherSet();
@@ -7059,12 +6257,7 @@ namespace SkyCoop
         {
             private static bool Prefix(SpawnRegion __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline())
                 {
                     if (__instance.gameObject != null && __instance.gameObject.GetComponent<Comps.SpawnRegionSimple>() != null)
@@ -7080,12 +6273,7 @@ namespace SkyCoop
         {
             private static bool Prefix(Container __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true && __instance.GetComponent<ObjectGuid>() == null)
                 {
                     // Give the travois storage the travois gear's GUID so the host keeps it through pickup/drop.
@@ -7113,12 +6301,7 @@ namespace SkyCoop
         {
             private static bool Prefix(Panel_Container __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 Container box = __instance.m_Container;
                 if (MyMod.InOnline() == true && (box == null || box.GetComponent<ObjectGuid>() != null))
                 {
@@ -7146,12 +6329,7 @@ namespace SkyCoop
         {
             private static void Postfix(string gearItemName, int numUnits, GearItem __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     MyMod.SendDropItem(__result, 0, 0, false);
@@ -7163,12 +6341,7 @@ namespace SkyCoop
         {
             private static void Postfix(GearItem __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     if(__result != null && __result.m_GearName.Contains("GEAR_RevolverAmmoCasing"))
@@ -7186,12 +6359,7 @@ namespace SkyCoop
         {
             private static bool Prefix(Panel_PauseMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InOnline() == true)
                 {
                     //Application.Quit();
@@ -7215,12 +6383,7 @@ namespace SkyCoop
         {
             private static bool Prefix(bool focusStatus)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 return false;
             }
         }
@@ -7229,12 +6392,7 @@ namespace SkyCoop
         {
             private static void Postfix(OpenClose __instance, bool isImmediate, bool fromLink)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (isImmediate == true || MyMod.ApplyingRemoteOpenable)
                 {
                     return;
@@ -7263,12 +6421,7 @@ namespace SkyCoop
         {
             private static void Postfix(OpenClose __instance, bool isImmediate, bool fromLink)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (isImmediate == true || MyMod.ApplyingRemoteOpenable)
                 {
                     return;
@@ -7298,12 +6451,7 @@ namespace SkyCoop
         {
             private static void Prefix(ref string sceneName)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.InterloperHook == false && MyMod.OverridedSceneForSpawn == "")
                 {
                     return;
@@ -7329,12 +6477,7 @@ namespace SkyCoop
         {
             private static void Postfix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.OverridedPositionForSpawn != Vector3.zero)
                 {
                     __instance.TeleportPlayer(MyMod.OverridedPositionForSpawn, GameManager.GetPlayerTransform().rotation);
@@ -7354,12 +6497,7 @@ namespace SkyCoop
         {
             private static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.UpdateSceneGUID();
             }
         }
@@ -7368,12 +6506,7 @@ namespace SkyCoop
         {
             private static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.UpdateSceneGUID();
             }
         }
@@ -7679,12 +6812,7 @@ namespace SkyCoop
         {
             private static void Postfix(SpawnRegion __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if(MyMod.InOnline())
                 {
@@ -7703,12 +6831,7 @@ namespace SkyCoop
         {
             private static void Postfix(SpawnRegion __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (MyMod.InOnline())
                 {
@@ -7721,12 +6844,7 @@ namespace SkyCoop
         {
             private static void Postfix(Panel_MainMenu __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MenuChange.ChangeMenuItems("Original");
             }
         }
@@ -7735,12 +6853,7 @@ namespace SkyCoop
         {
             internal static bool Prefix(WildlifeItem __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (MyMod.InOnline())
                 {
@@ -7776,12 +6889,7 @@ namespace SkyCoop
         {
             private static bool Prefix(StoneItem __instance, Collision collisionInfo)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (MyMod.InOnline())
                 {
@@ -7819,12 +6927,7 @@ namespace SkyCoop
         {
             private static bool Prefix(PlayerManager __instance, GearItem gi, ref bool __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 FirstPersonItem fpi = gi.m_FirstPersonItem;
                 if(fpi == null || fpi.m_ItemData == null)
@@ -7860,12 +6963,7 @@ namespace SkyCoop
         {
             private static bool Prefix(PlayerManager __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (!MyMod.VanilaRadio && __instance.m_ItemInHands && __instance.m_ItemInHands.m_GearName == "GEAR_HandheldShortwave")
                 {
@@ -7931,12 +7029,7 @@ namespace SkyCoop
         {
             private static void Postfix(ItemDescriptionPage __instance, GearItem gi, ref string __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (gi != null)
                 {
@@ -7959,12 +7052,7 @@ namespace SkyCoop
         {
             private static void Postfix(ItemDescriptionPage __instance, GearItem gi, ref bool __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (gi != null)
                 {
@@ -8028,12 +7116,7 @@ namespace SkyCoop
         {
             private static void Postfix(ItemDescriptionPage __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.ProcessGivingItem(true);
 
                 GearItem gi = InterfaceManager.GetPanel<Panel_Inventory>().GetCurrentlySelectedItem()?.m_GearItem;
@@ -8055,12 +7138,7 @@ namespace SkyCoop
         {
             private static void Postfix(Panel_HUD __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 if (HaveReadFakeNote)
                 {
@@ -8080,12 +7158,7 @@ namespace SkyCoop
         {
             private static void Postfix(PlayerAnimation __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 MyMod.RetakeItem();
             }
         }
@@ -8094,12 +7167,7 @@ namespace SkyCoop
         {
             private static void Postfix(PlayerAnimation __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.ShouldPerformAttack)
                 {
                     MyMod.ShouldPerformAttack = false;
@@ -8112,12 +7180,7 @@ namespace SkyCoop
         {
             private static bool Prefix(PlayerAnimation __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 bool Pass = true;
 
@@ -8139,12 +7202,7 @@ namespace SkyCoop
         {
             private static void Postfix(Utils __instance, GearItem gi, ref Texture2D __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (!MyMod.VanilaRadio && gi.m_GearName == "GEAR_HandheldShortwave")
                 {
                     __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__HandheldShortwave");
@@ -8160,12 +7218,7 @@ namespace SkyCoop
         {
             private static void Postfix(Utils __instance, string name, ref Texture2D __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (!MyMod.VanilaRadio && name == "ico_GearItem__HandheldShortwave")
                 {
                     __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__HandheldShortwave");
@@ -8537,12 +7590,7 @@ namespace SkyCoop
         {
             private static void Postfix(string text)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.DedicatedServerAppMode)
                 {
                     MelonLogger.Msg(System.ConsoleColor.DarkGray,"[InGameConsole] " + text);
@@ -8555,12 +7603,7 @@ namespace SkyCoop
         {
             private static void Prefix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.DedicatedServerAppMode)
                 {
                     SaveGameSystem.AbortScreenshot();
@@ -8568,12 +7611,7 @@ namespace SkyCoop
             }
             private static void Postfix()
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (MyMod.DedicatedServerAppMode)
                 {
                     SaveGameSystem.AbortScreenshot();
@@ -8585,12 +7623,7 @@ namespace SkyCoop
         {
             private static bool Prefix(CharcoalItem __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
 
                 MyMod.ShowCharCoalPicker(__instance.gameObject, __instance);
 
@@ -8602,12 +7635,7 @@ namespace SkyCoop
         {
             private static void Postfix(Panel_Log __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 string text = __instance.m_NotesTextField.GetText();
                 if (!string.IsNullOrEmpty(text))
                 {
@@ -8640,12 +7668,7 @@ namespace SkyCoop
         {
             private static void Postfix(CabinFever __instance, ref bool __result)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 __result = true;
             }
         }
@@ -8654,12 +7677,7 @@ namespace SkyCoop
         {
             private static bool Prefix(IntestinalParasites __instance, bool nofx)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 if (GameManager.GetPlayerManagerComponent().PlayerIsDead() || InterfaceManager.IsPanelEnabled<Panel_ChallengeComplete>() || __instance.GetNumDosesRequired() == 0)
                 {
                     return false;
@@ -9042,12 +8060,7 @@ namespace SkyCoop
         {
             private static void Postfix(GearItem __instance)
             {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
+                MyMod.TracePatch();
                 bool IsHeatPack = __instance.m_GearName == "GEAR_SCHeatPack" || __instance.m_GearName == "GEAR_SCHeatPackC";
                 bool IsLiquidLead = __instance.m_GearName == "GEAR_SCLiquidLead";
                 if (IsHeatPack || IsLiquidLead)

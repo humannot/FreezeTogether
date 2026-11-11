@@ -269,6 +269,18 @@ namespace SkyCoop
         public static string AutoStartSlot = "";
         public static List<string> AutoCMDs = new List<string>();
         public static bool CrazyPatchesLogger = false;
+
+        // Debug menu option: logs the calling patch's frame.
+        public static void TracePatch()
+        {
+            if (!CrazyPatchesLogger)
+            {
+                return;
+            }
+            System.Diagnostics.StackTrace st = new System.Diagnostics.StackTrace(new System.Diagnostics.StackFrame(1, true));
+            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        }
         public static bool KillOnUpdate = false;
         public static bool KillEverySecond = false;
         public static bool KillEveryInGameMinute = false;
@@ -12489,11 +12501,7 @@ namespace SkyCoop
             if (m_Panel_Sandbox && m_Panel_Sandbox.isActiveAndEnabled)
             {
                 MenuChange.MenuMode = "Multiplayer";
-                Transform Align = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
-                Align.Find("Selected").gameObject.SetActive(true); //SelectIcon
-                Align.Find("Grid").gameObject.SetActive(true); //Grid
-                Align.Find("Description").gameObject.SetActive(true); //Description
-                Align.Find("Linebreak").gameObject.SetActive(true); //Linebreaker
+                MenuChange.SetMenuListVisible(true);
             }
         }
 
@@ -12541,11 +12549,7 @@ namespace SkyCoop
                 MaxPlayers = slotsMax;
 
                 Shared.InitAllPlayers();
-                Transform Align = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
-                Align.Find("Selected").gameObject.SetActive(true); //SelectIcon
-                Align.Find("Grid").gameObject.SetActive(true); //Grid
-                Align.Find("Description").gameObject.SetActive(true); //Description
-                Align.Find("Linebreak").gameObject.SetActive(true); //Linebreaker     
+                MenuChange.SetMenuListVisible(true);
 
                 if (ShouldUseSteam == false)
                 {

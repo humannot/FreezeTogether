@@ -798,7 +798,11 @@ namespace SkyCoop
             {
                 SaveData(GetKeyTemplate(SaveKeyTemplateType.SceneItems, item.Key), JSON.Dump(item.Value), SaveSeed);
             }
-            SceneItemsSync.Recent = new Dictionary<string, Dictionary<string, string>>();
+            if (!NoSaveAndLoad)
+            {
+                // reloaded from the files on demand; without files the store has to stay in memory
+                SceneItemsSync.Recent = new Dictionary<string, Dictionary<string, string>>();
+            }
             foreach (var item in RecentlyHarvastedPlants.ToList())
             {
                 SaveData(GetKeyTemplate(SaveKeyTemplateType.HarvestedPlants, item.Key), JSON.Dump(item.Value), SaveSeed);
@@ -841,7 +845,7 @@ namespace SkyCoop
             }
             string Result = "";
             string fullPath = GetPathForName(name, Seed);
-            if (!File.Exists(fullPath))
+            if (!IsAllowedPath(fullPath) || !File.Exists(fullPath))
             {
                 if (watch != null)
                 {
@@ -879,6 +883,28 @@ namespace SkyCoop
         public static string GetSeparator()
         {
             return @"/";
+        }
+
+        // File names are built from scene names and guids that clients send; a "..\" in them must not reach outside
+        // the mod's save folder or the game's Mods folder.
+        static bool IsAllowedPath(string path)
+        {
+            try
+            {
+                string full = Path.GetFullPath(path);
+                string saves = Path.GetFullPath(GetPathForName("")).TrimEnd('/', '\\') + Path.DirectorySeparatorChar;
+                string mods = Path.GetFullPath(GetBaseDirectory() + "Mods") + Path.DirectorySeparatorChar;
+                if (full.StartsWith(saves, StringComparison.OrdinalIgnoreCase) || full.StartsWith(mods, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                // malformed path: refused below
+            }
+            Error("Refused file access outside the mod folders: " + path);
+            return false;
         }
 
 #if (DEDICATED)
@@ -952,6 +978,10 @@ namespace SkyCoop
             {
                 pathAndFilename = GetPathForName("", Seed)+GetSeparator()+JustAdd;
             }
+            if (!IsAllowedPath(pathAndFilename))
+            {
+                return false;
+            }
             string tempFile = pathAndFilename + "_temp";
             if (File.Exists(tempFile))
                 File.Delete(tempFile);
@@ -988,7 +1018,7 @@ namespace SkyCoop
             try
             {
                 string fullPath = GetPathForName(name, Seed);
-                if (File.Exists(fullPath))
+                if (IsAllowedPath(fullPath) && File.Exists(fullPath))
                     File.Delete(fullPath);
                 //Log("File deleted!");
             }
@@ -2048,9 +2078,10 @@ namespace SkyCoop
             CreateFolderIfNotExist(PathMods + GetSeparator() + "ExpeditionTemplates");
             CreateFolderIfNotExist(PathMods + GetSeparator() + "ExpeditionTemplates" + GetSeparator() + "CachedPhotos");
 
-            if(File.Exists(PathMods + GetSeparator() + "ExpeditionTemplates" + GetSeparator() + "CachedPhotos" + GetSeparator() + GUID))
+            string CachedPhoto = PathMods + GetSeparator() + "ExpeditionTemplates" + GetSeparator() + "CachedPhotos" + GetSeparator() + GUID;
+            if (IsAllowedPath(CachedPhoto) && File.Exists(CachedPhoto))
             {
-                byte[] FileData = File.ReadAllBytes(PathMods + GetSeparator() + "ExpeditionTemplates" + GetSeparator() + "CachedPhotos" + GetSeparator() + GUID);
+                byte[] FileData = File.ReadAllBytes(CachedPhoto);
                 return UTF8Encoding.UTF8.GetString(FileData);
             }
 

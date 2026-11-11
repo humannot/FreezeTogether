@@ -117,6 +117,7 @@ namespace SkyCoop
         public static void OnSceneLoaded()
         {
             s_Known.Clear();
+            s_SpawnerByGuid.Clear();
             s_KnownFire.Clear();
             s_Removed.Clear();
             s_FloorIn.Clear();
@@ -168,6 +169,7 @@ namespace SkyCoop
         // Host: a client entered a scene.
         public static void SendSceneTo(int client, string scene)
         {
+            s_FloorFromClient.Remove(client); // parts of a record the client did not finish before changing scene
             foreach (var item in Load(scene).ToList())
             {
                 if (item.Key.StartsWith(FirePrefix))
@@ -200,7 +202,8 @@ namespace SkyCoop
             for (int i = 0; i < ClientUser.myId && i < MyMod.playersData.Count; i++)
             {
                 DataStr.MultiPlayerClientData p = MyMod.playersData[i];
-                if (p != null && p.m_Levelid == MyMod.levelid && p.m_LevelGuid == MyMod.level_guid)
+                // m_Used: still listed in the host's last player status, so a disconnected player does not keep the scene
+                if (p != null && p.m_Used && p.m_Levelid == MyMod.levelid && p.m_LevelGuid == MyMod.level_guid)
                 {
                     return false;
                 }
@@ -258,20 +261,30 @@ namespace SkyCoop
             return ObjectGuid.MaybeGetGuidFromGameObject(s.gameObject);
         }
 
+        // guid -> spawner of the current scene, built on first use: a scene entry applies one state per spawner.
+        static readonly Dictionary<string, RadialObjectSpawner> s_SpawnerByGuid = new Dictionary<string, RadialObjectSpawner>();
+
         static RadialObjectSpawner Find(string guid)
         {
+            RadialObjectSpawner s;
+            if (s_SpawnerByGuid.TryGetValue(guid, out s) && s != null)
+            {
+                return s;
+            }
             if (RadialSpawnManager.m_RadialSpawnObjects == null)
             {
                 return null;
             }
-            foreach (RadialObjectSpawner s in RadialSpawnManager.m_RadialSpawnObjects)
+            s_SpawnerByGuid.Clear();
+            foreach (RadialObjectSpawner sp in RadialSpawnManager.m_RadialSpawnObjects)
             {
-                if (s != null && GuidOf(s) == guid)
+                string g = sp != null ? GuidOf(sp) : null;
+                if (!string.IsNullOrEmpty(g))
                 {
-                    return s;
+                    s_SpawnerByGuid[g] = sp;
                 }
             }
-            return null;
+            return s_SpawnerByGuid.TryGetValue(guid, out s) ? s : null;
         }
 
         static RadialObjectSpawner SpawnerOf(GameObject go)
@@ -541,7 +554,9 @@ namespace SkyCoop
             {
                 if (!kept[i])
                 {
-                    // destroyed, not hidden: the record is applied once, and the game keeps only existing items in the save
+                    // destroyed, not hidden: the record is applied once, and the game keeps only existing items in the save;
+                    // deactivated first, as Destroy takes effect at the end of the frame and the pickup keys are rebuilt below
+                    local[i].gameObject.SetActive(false);
                     Object.Destroy(local[i].gameObject);
                     hidden++;
                 }
@@ -580,6 +595,8 @@ namespace SkyCoop
         }
 
         const float BurnOutTolerance = 0.05f; // game hours
+        // Host: campfires dismantled this session; a late report of one must not bring it back.
+        static readonly HashSet<string> s_DismantledFires = new HashSet<string>();
         static readonly Dictionary<string, FireSig> s_KnownFire = new Dictionary<string, FireSig>();
 
         static bool FireSyncOn()
@@ -871,6 +888,7 @@ namespace SkyCoop
                 else if (kind == KindFireRemove)
                 {
                     Load(scene).Remove(FirePrefix + key);
+                    s_DismantledFires.Add(key);
                 }
                 SendToScene(0, kind, scene, key, state, pos);
             }
@@ -988,6 +1006,10 @@ namespace SkyCoop
             }
             else if (kind == KindFire)
             {
+                if (s_DismantledFires.Contains(key))
+                {
+                    return; // sent by a player who had not yet heard the campfire was dismantled
+                }
                 // stored and relayed on the host's clock
                 state = Rebase(state, pos.x);
                 pos = Clock();
@@ -1003,6 +1025,7 @@ namespace SkyCoop
             else if (kind == KindFireRemove)
             {
                 Load(scene).Remove(FirePrefix + key);
+                s_DismantledFires.Add(key);
             }
             Receive(kind, scene, key, state, pos);
             SendToScene(from, kind, scene, key, state, pos);

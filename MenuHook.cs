@@ -472,11 +472,7 @@ namespace SkyCoop
                 }else if(MenuMode == "Browser")
                 {
                     MenuMode = "Join";
-                    Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
-                    Align.Find("Selected").gameObject.SetActive(true); //SelectIcon
-                    Align.Find("Grid").gameObject.SetActive(true); //Grid
-                    Align.Find("Description").gameObject.SetActive(true); //Description
-                    Align.Find("Linebreak").gameObject.SetActive(true); //Linebreaker
+                    MenuChange.SetMenuListVisible(true);
                     MyMod.ServerBrowser.SetActive(false);
                     return false;
                 }else if(MenuMode == "Customize")
@@ -485,11 +481,7 @@ namespace SkyCoop
                     {
                         MyMod.CustomizeUiPanel("Close");
                         ChangeMenuItems("Multiplayer");
-                        Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
-                        Align.Find("Selected").gameObject.SetActive(true); //SelectIcon
-                        Align.Find("Grid").gameObject.SetActive(true); //Grid
-                        Align.Find("Description").gameObject.SetActive(true); //Description
-                        Align.Find("Linebreak").gameObject.SetActive(true); //Linebreaker
+                        MenuChange.SetMenuListVisible(true);
                         MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(3).gameObject.SetActive(true);
                         SetDefaultCamera();
                     }else{
@@ -876,13 +868,19 @@ namespace SkyCoop
             Texts.GetChild(1).gameObject.GetComponent<UITexture>().mainTexture = LoadedAssets;
         }
 
-        public static void OpenFlairsMenu()
+        // Shows or hides the menu list (selection icon, buttons, description, line) while another screen covers it.
+        public static void SetMenuListVisible(bool visible)
         {
             Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
-            Align.Find("Selected").gameObject.SetActive(false); //SelectIcon
-            Align.Find("Grid").gameObject.SetActive(false); //Grid
-            Align.Find("Description").gameObject.SetActive(false); //Description
-            Align.Find("Linebreak").gameObject.SetActive(false); //Linebreaker
+            foreach (string part in new[] { "Selected", "Grid", "Description", "Linebreak" })
+            {
+                Align.Find(part).gameObject.SetActive(visible);
+            }
+        }
+
+        public static void OpenFlairsMenu()
+        {
+            MenuChange.SetMenuListVisible(false);
             MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(3).gameObject.SetActive(false);
             MenuMode = "Customize";
             MyMod.CustomizeUiPanel("Main");
@@ -1218,11 +1216,7 @@ namespace SkyCoop
                                 if (CustomId == 1)
                                 {
                                     MyMod.HostMenu(true);
-                                    Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
-                                    Align.Find("Selected").gameObject.SetActive(false); //SelectIcon
-                                    Align.Find("Grid").gameObject.SetActive(false); //Grid
-                                    Align.Find("Description").gameObject.SetActive(false); //Description
-                                    Align.Find("Linebreak").gameObject.SetActive(false); //Linebreaker
+                                    MenuChange.SetMenuListVisible(false);
                                     MenuMode = "Nothing";
                                 }
                                 else if (CustomId == 2)
@@ -1235,15 +1229,11 @@ namespace SkyCoop
                                 // Without Steam the menu holds only slots 1 (by IP) and 2 (nickname).
                                 if (!SteamConnect.CanUseSteam)
                                 {
-                                    CustomId = CustomId == 1 ? 2 : 4;
+                                    CustomId = CustomId == 1 ? 2 : CustomId == 2 ? 4 : -1;
                                 }
                                 if (CustomId == 1)
                                 {
-                                    Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).Find("Left_Align");
-                                    Align.Find("Selected").gameObject.SetActive(false); //SelectIcon
-                                    Align.Find("Grid").gameObject.SetActive(false); //Grid
-                                    Align.Find("Description").gameObject.SetActive(false); //Description
-                                    Align.Find("Linebreak").gameObject.SetActive(false); //Linebreaker                                    
+                                    MenuChange.SetMenuListVisible(false);
                                     MenuMode = "Browser";
                                     SteamConnect.Main.BrowseServers();
                                 }
