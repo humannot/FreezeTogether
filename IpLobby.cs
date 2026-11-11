@@ -531,6 +531,11 @@ namespace SkyCoop
             SendKeepAlive();
         }
 
+        public static void TickNow()
+        {
+            s_NextSecond = 0;
+        }
+
         static void SendKeepAlive()
         {
             if (IsClient)
@@ -788,6 +793,16 @@ namespace SkyCoop
                 return;
             }
             SteamConnect.Main.SetNewGameSettings(region, exp);
+        }
+
+        // The host ends the vote early: the countdown runs out on the next lobby second and the result is picked.
+        public static void EndVote()
+        {
+            MyMod.LobbyVoteLeft = 0;
+            if (IpLobby.IsHost)
+            {
+                IpLobby.TickNow();
+            }
         }
 
         public static void VoteForRegion(int region)

@@ -131,6 +131,7 @@ namespace SkyCoop
             { "START SERVER", "ЗАПУСТИТЬ СЕРВЕР" },
             { "SELECT SAVE", "ВЫБРАТЬ СОХРАНЕНИЕ" },
             { "VOTE", "ГОЛОСОВАТЬ" },
+            { "END VOTE", "ЗАВЕРШИТЬ ГОЛОСОВАНИЕ" },
             { "INVITE FRIEND", "ПРИГЛАСИТЬ ДРУГА" },
             { "COPY INVITE LINK", "КОПИРОВАТЬ ПРИГЛАШЕНИЕ" },
             { "NEW GAME", "НОВАЯ ИГРА" },

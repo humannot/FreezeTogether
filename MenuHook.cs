@@ -457,9 +457,7 @@ namespace SkyCoop
                     return false;
                 }else if(MenuMode == "Lobby")
                 {
-                    MyMod.LobbyUI.SetActive(false);
-                    MyMod.LobbyRegion.SetActive(false);
-                    MyMod.LobbyExperience.SetActive(false);
+                    CloseLobbyUI();
                 }else if(MenuMode == "LobbySettings")
                 {
                     if (!MyMod.StartServerAfterSelectSave)
@@ -961,6 +959,10 @@ namespace SkyCoop
                         }
                     }
                 }else{
+                    if (Lobby.IsHost)
+                    {
+                        OverrideMenuButton(Grid, 0, "END VOTE");
+                    }
                     OverrideMenuButton(Grid, 1, "VOTE");
                 }
 
@@ -1194,6 +1196,9 @@ namespace SkyCoop
             MyMod.LobbyUI.SetActive(false);
             MyMod.LobbyRegion.SetActive(false);
             MyMod.LobbyExperience.SetActive(false);
+            // The save cards live on the sandbox panel and would stay on the multiplayer menu otherwise.
+            if (MyMod.LobbyDeitails) MyMod.LobbyDeitails.SetActive(false);
+            if (MyMod.LobbyNewGame) MyMod.LobbyNewGame.SetActive(false);
         }
 
         [HarmonyLib.HarmonyPatch(typeof(UIButton), "OnClick")]
@@ -1302,8 +1307,13 @@ namespace SkyCoop
                             {
                                 if (CustomId == 0)
                                 {
-                                    CloseLobbyUI();
-                                    Lobby.StartGame();
+                                    if (VoteInProcess())
+                                    {
+                                        Lobby.EndVote();
+                                    }else{
+                                        CloseLobbyUI();
+                                        Lobby.StartGame();
+                                    }
                                 }
                                 else if (CustomId == 1)
                                 {
