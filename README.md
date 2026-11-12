@@ -2,7 +2,7 @@
 
 **English** | [Русский](#русский)
 
-Unofficial port of [Filigrani's SkyCoop](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, this build reports 0.13.4) to **The Long Dark 2.60**. The original author did not release this build and does not support it.
+Unofficial port of [Filigrani's SkyCoop](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, this build reports 0.13.5) to **The Long Dark 2.60**. The original author did not release this build and does not support it.
 
 ## Requirements
 - The Long Dark **2.60**
@@ -105,7 +105,7 @@ Compared against upstream commit `c3e5d76`. The network protocol and game logic 
 <a name="русский"></a>
 # Русский
 
-Неофициальный порт [SkyCoop от Filigrani](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, эта сборка — 0.13.4) на **The Long Dark 2.60**. Оригинальный автор эту сборку не выпускал и не поддерживает.
+Неофициальный порт [SkyCoop от Filigrani](https://github.com/Filigrani/SkyCoop) (LTS 0.13.2, эта сборка — 0.13.5) на **The Long Dark 2.60**. Оригинальный автор эту сборку не выпускал и не поддерживает.
 
 ## Что нужно
 - The Long Dark **2.60**
