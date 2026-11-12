@@ -195,6 +195,7 @@ namespace SkyCoop
             { "Request failed!", "Запрос не выполнен!" },
             { "Request failed", "Запрос не выполнен" },
             { "DISCONNECTED", "ОТКЛЮЧЕНО" },
+            { "The host left the game.", "Хост вышел из игры." },
             { "DISCONNECTED FROM SERVER", "ОТКЛЮЧЕНО ОТ СЕРВЕРА" },
             { "DISCONNECT TIMEOUT", "ВРЕМЯ ОЖИДАНИЯ ИСТЕКЛО" },
             { "ERROR", "ОШИБКА" },

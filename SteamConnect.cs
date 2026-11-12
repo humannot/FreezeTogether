@@ -31,6 +31,8 @@ namespace SkyCoop
             }
             GameSteamApiPath = gameApi;
             System.Runtime.InteropServices.NativeLibrary.SetDllImportResolver(typeof(SteamAPI).Assembly, ResolveSteamApi);
+            // SteamCallbacks calls the same library directly.
+            System.Runtime.InteropServices.NativeLibrary.SetDllImportResolver(typeof(SteamConnect).Assembly, ResolveSteamApi);
         }
 
         private static string GameSteamApiPath;
@@ -99,7 +101,8 @@ namespace SkyCoop
             if (!CanUseSteam)
                 return;
             Main.ListenData();
-            SteamAPI.RunCallbacks();
+            SteamCallbacks.Pump();
+            Main.CheckHostInLobby();
         }
         public class Main
         {
@@ -437,6 +440,11 @@ namespace SkyCoop
                     }
                 }else{
                     MelonLogger.Msg("[SteamWorks.NET] Player disconnected from lobby " + request.m_ulSteamIDUserChanged);
+                    if (IsHost(request.m_ulSteamIDUserChanged))
+                    {
+                        HostLeft();
+                        return;
+                    }
                     if (SteamMatchmaking.GetLobbyOwner(new CSteamID(request.m_ulSteamIDLobby)) == SteamUser.GetSteamID())
                     {
                         SteamNetworking.CloseP2PSessionWithUser(new CSteamID(request.m_ulSteamIDUserChanged));
@@ -454,6 +462,50 @@ namespace SkyCoop
                 int LobbyLimit = SteamMatchmaking.GetLobbyMemberLimit(new CSteamID(request.m_ulSteamIDLobby));
                 SteamFriends.SetRichPresence("status", "Playing Online " + InLobby + "/" + LobbyLimit);
             }
+            // A client playing through a Steam lobby: the host's Steam id (the lobby's game server).
+            static bool IsHost(ulong steamId)
+            {
+                return !MyMod.iAmHost && MyMod.ConnectedSteamWorks && MyMod.SteamServerWorks != "" && steamId.ToString() == MyMod.SteamServerWorks;
+            }
+
+            static void HostLeft()
+            {
+                MelonLogger.Msg("[SteamWorks.NET] The host left the lobby, disconnecting");
+                MyMod.DoKickMessage(Loc.T("The host left the game."));
+            }
+
+            // Steam P2P has no disconnect of its own; the host leaving the lobby is the signal. Checked every few
+            // seconds as well, so a missed member-left event does not keep the client in a dead session.
+            static float s_NextHostCheck = 0f;
+            const float HostCheckSeconds = 5f;
+
+            public static void CheckHostInLobby()
+            {
+                if (Time.unscaledTime < s_NextHostCheck || MyMod.iAmHost || !MyMod.ConnectedSteamWorks || MyMod.SteamServerWorks == "" || MyMod.MyLobby == "")
+                {
+                    return;
+                }
+                s_NextHostCheck = Time.unscaledTime + HostCheckSeconds;
+                if (!ulong.TryParse(MyMod.MyLobby, out ulong lobbyId))
+                {
+                    return;
+                }
+                CSteamID lobby = new CSteamID(lobbyId);
+                int members = SteamMatchmaking.GetNumLobbyMembers(lobby);
+                if (members <= 0)
+                {
+                    return; // the member list is not known locally (yet); nothing to conclude
+                }
+                for (int i = 0; i < members; i++)
+                {
+                    if (SteamMatchmaking.GetLobbyMemberByIndex(lobby, i).m_SteamID.ToString() == MyMod.SteamServerWorks)
+                    {
+                        return;
+                    }
+                }
+                HostLeft();
+            }
+
             public static bool VoiceDebug = false;
             public static bool VoiceRadioDebug = false;
             public static void TestMyVoice(byte[] DestBuffer, uint BytesWritten, float RecordTime)
