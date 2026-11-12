@@ -466,6 +466,7 @@ namespace GameServer
                 { (int)ClientPackets.ANIMALBITECORPSE, ServerHandle.ANIMALBITECORPSE},
                 { (int)ClientPackets.FURNMOVED, ServerHandle.FURNMOVED},
             { (int)ClientPackets.SCENEITEMS, SkyCoop.SceneItemsSync.HandleFromClient},
+            { (int)ClientPackets.TILT, ServerHandle.TILT},
                 { (int)ClientPackets.RELIABLE, Reliable.ServerReceive},
                 { (int)ClientPackets.RELIABLEACK, (_fromClient, _packet) => Reliable.ForClient(_fromClient).Ack(_packet.ReadInt())},
             };

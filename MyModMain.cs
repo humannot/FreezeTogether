@@ -4536,6 +4536,7 @@ namespace SkyCoop
             {
                 return;
             }
+            PlayerModel.OnShoot(from, shoot.m_projectilename);
             if (shoot.m_projectilename == "GEAR_FlareGunAmmoSingle")
             {
                 FlareGunRoundItem.SpawnAndFire(GetGearItemObject("GEAR_FlareGunAmmoSingle"), shoot.m_position, shoot.m_rotation);
@@ -11401,6 +11402,53 @@ namespace SkyCoop
             }
         }
 
+        const float TransformSendRate = 30f;
+        static float NextTransformSend = 0f;
+
+        // Camera pitch, which bends the humanoid model's spine for other players.
+        static float LastSentTilt = float.NaN;
+        static float NextTiltSend = 0f;
+        static float NextTiltRefresh = 0f;
+        const float TiltSendRate = 10f;
+
+        static void SyncTilt()
+        {
+            if (Time.unscaledTime < NextTiltSend)
+            {
+                return;
+            }
+            vp_FPSCamera cam = GameManager.GetVpFPSCamera();
+            if (cam == null)
+            {
+                return;
+            }
+            float tilt = cam.transform.localEulerAngles.x;
+            if (tilt > 180f)
+            {
+                tilt -= 360f;
+            }
+            // Repeated now and then so players who joined later get it too.
+            if (!float.IsNaN(LastSentTilt) && Mathf.Abs(tilt - LastSentTilt) < 2f && Time.unscaledTime < NextTiltRefresh)
+            {
+                return;
+            }
+            LastSentTilt = tilt;
+            NextTiltSend = Time.unscaledTime + 1f / TiltSendRate;
+            NextTiltRefresh = Time.unscaledTime + 3f;
+            if (sendMyPosition == true) // CLIENT
+            {
+                using (Packet _packet = new Packet((int)ClientPackets.TILT))
+                {
+                    _packet.Write(tilt);
+                    SendUDPData(_packet);
+                }
+            }
+            if (iAmHost == true)
+            {
+                ServerSend.TILT(0, tilt, true);
+            }
+        }
+
         public void SendPlayerData()
         {
             if(GameManager.m_PlayerObject != null)
@@ -11412,19 +11460,34 @@ namespace SkyCoop
 
                 if (transf)
                 {
+                    // Position and rotation go out when they change, at most TransformSendRate times a second; at high
+                    // frame rates every frame was a packet per player. A change held back by the limit is sent on a
+                    // later frame, so the last position is never lost.
+                    bool canSend = Time.unscaledTime >= NextTransformSend;
+                    bool sent = false;
                     if (previoustickpos != transf.position) // If moving
                     {
                         MyEmote = null;
-                        previoustickpos = GameManager.GetPlayerTransform().position;
-                        SyncMovement(InFight, transf); // Send movement position and sets runing/walking animation.
+                        if (canSend)
+                        {
+                            previoustickpos = transf.position;
+                            SyncMovement(InFight, transf); // Send movement position and sets runing/walking animation.
+                            sent = true;
+                        }
                     }else{
                         SetCurrentAnimation(InFight); // Sets animations when not moving, actions and almost everything.
                     }
-                    if (previoustickrot != transf.rotation) // If rotating
+                    if (previoustickrot != transf.rotation && canSend) // If rotating
                     {
-                        previoustickrot = GameManager.GetPlayerTransform().rotation;
+                        previoustickrot = transf.rotation;
                         SyncRotation(transf); // Send rotation of player model.
+                        sent = true;
                     }
+                    if (sent)
+                    {
+                        NextTransformSend = Time.unscaledTime + 1f / TransformSendRate;
+                    }
+                    SyncTilt();
                 }
                 SendMyAnimation(); //Send current animation if changed.
                 SyncSleeping(); //Send sleeping hours and sleep position, if changed.
@@ -12270,11 +12333,7 @@ namespace SkyCoop
             } else {
                 MelonLogger.Msg("Sending spawn data as responce");
             }
-            DataStr.PlayerClothingData Cdata = new DataStr.PlayerClothingData();
-            Cdata.m_Hat = MyHat;
-            Cdata.m_Top = MyTop;
-            Cdata.m_Bottom = MyBottom;
-            Cdata.m_Boots = MyBoots;
+            DataStr.PlayerClothingData Cdata = MyClothing;
             int character = (int)PlayerManager.m_VoicePersona;
             if (sendMyPosition == true)
             {
@@ -12742,6 +12801,67 @@ namespace SkyCoop
         }
 
 
+        public static DataStr.PlayerClothingData MyClothing = new DataStr.PlayerClothingData();
+        static float NextClothingResend = 0;
+        const float ClothingResendInterval = 5f;
+
+        static readonly string[] ShortSleevedTops = { "GEAR_DownVest", "GEAR_InsulatedVest" };
+
+        // Vests leave the arms of the garment under them visible.
+        static string GarmentUnderShortSleeves(params string[] chestFromBase)
+        {
+            int top = -1;
+            for (int i = chestFromBase.Length - 1; i >= 0; i--)
+            {
+                if (chestFromBase[i] != "")
+                {
+                    top = i;
+                    break;
+                }
+            }
+            if (top < 0 || Array.IndexOf(ShortSleevedTops, chestFromBase[top]) < 0)
+            {
+                return "";
+            }
+            for (int i = top - 1; i >= 0; i--)
+            {
+                if (chestFromBase[i] != "" && Array.IndexOf(ShortSleevedTops, chestFromBase[i]) < 0)
+                {
+                    return chestFromBase[i];
+                }
+            }
+            return "";
+        }
+
+        static readonly ClothingRegion[] WornRegions = { ClothingRegion.Head, ClothingRegion.Chest, ClothingRegion.Legs, ClothingRegion.Feet, ClothingRegion.Hands, ClothingRegion.Accessory };
+        static readonly ClothingLayer[] WornLayers = { ClothingLayer.Base, ClothingLayer.Mid, ClothingLayer.Top, ClothingLayer.Top2 };
+
+        static float WornWear(string gear)
+        {
+            if (gear == "")
+            {
+                return 0;
+            }
+            PlayerManager pm = GameManager.GetPlayerManagerComponent();
+            foreach (ClothingRegion r in WornRegions)
+            {
+                foreach (ClothingLayer l in WornLayers)
+                {
+                    GearItem gi = null;
+                    try
+                    {
+                        gi = pm.GetClothingInSlot(r, l);
+                    }
+                    catch (Exception) { }
+                    if (gi != null && gi.m_GearName != null && gi.m_GearName.Replace("(Clone)", "") == gear)
+                    {
+                        return gi.GetDamageBlendValue();
+                    }
+                }
+            }
+            return 0;
+        }
+
         public static void UpdateMyClothing()
         {
             string m_Hat = "";
@@ -12750,9 +12870,6 @@ namespace SkyCoop
             string m_Boots = "";
             string m_Scarf = "";
             string m_Balaclava = "";
-            bool NeedUpdate = true;
-
-            //MelonLogger.Msg("UpdateMyClothing");
 
             if (GameManager.m_PlayerManager == null || GameManager.m_Inventory == null)
             {
@@ -12807,33 +12924,42 @@ namespace SkyCoop
 
             m_Boots = GetClothToDisplay(Socks1, Socks2, Boots, "");
 
-            //if((MyHat != m_Hat) || (MyTop != m_Top) || (MyBottom != m_Bottom) || (MyBoots != m_Boots) || (MyScarf != m_Scarf))
-            //{
-            //    NeedUpdate = true;
-            //}
+            MyHat = m_Hat;
+            MyTop = m_Top;
+            MyBottom = m_Bottom;
+            MyBoots = m_Boots;
+            MyScarf = m_Scarf;
+            MyBalaclava = m_Balaclava;
+            MyGloves = Hands;
 
-            if (NeedUpdate == true)
+            DataStr.PlayerClothingData Cdata = new DataStr.PlayerClothingData();
+            Cdata.m_Hat = MyHat;
+            Cdata.m_Top = MyTop;
+            Cdata.m_Bottom = MyBottom;
+            Cdata.m_Boots = MyBoots;
+            Cdata.m_Scarf = MyScarf;
+            Cdata.m_Balaclava = MyBalaclava;
+            Cdata.m_Gloves = MyGloves;
+            Cdata.m_Under = GarmentUnderShortSleeves(Shirt1, Shirt2, Top1, Top2);
+            Cdata.m_Accs1 = GetClothForSlot(ClothingRegion.Accessory, ClothingLayer.Base);
+            Cdata.m_Accs2 = GetClothForSlot(ClothingRegion.Accessory, ClothingLayer.Mid);
+            Cdata.m_TechPack = GameManager.GetInventoryComponent().HasNonRuinedItem("GEAR_TechnicalBackpack");
+            Cdata.m_Respirator = RespiratorManager.s_EquippedInstance != null;
+            Cdata.m_HatWear = WornWear(Cdata.m_Hat);
+            Cdata.m_TopWear = WornWear(Cdata.m_Top);
+            Cdata.m_UnderWear = WornWear(Cdata.m_Under);
+            Cdata.m_BottomWear = WornWear(Cdata.m_Bottom);
+            Cdata.m_BootsWear = WornWear(Cdata.m_Boots);
+            Cdata.m_GlovesWear = WornWear(Cdata.m_Gloves);
+            Cdata.m_ScarfWear = WornWear(Cdata.m_Scarf);
+            Cdata.m_BalaclavaWear = WornWear(Cdata.m_Balaclava);
+
+            // Sent when something changes, and again every few seconds: in IP mode packets are plain UDP and a lost
+            // one would leave other players seeing old clothes.
+            if (!Cdata.SameAs(MyClothing) || Time.time >= NextClothingResend)
             {
-                MyHat = m_Hat;
-                MyTop = m_Top;
-                MyBottom = m_Bottom;
-                MyBoots = m_Boots;
-                MyScarf = m_Scarf;
-                MyBalaclava = m_Balaclava;
-                MyGloves = Hands;
-                //MelonLogger.Msg("[MyClothing] Hat " + m_Hat);
-                //MelonLogger.Msg("[MyClothing] Torso " + m_Top);
-                //MelonLogger.Msg("[MyClothing] Legs " + m_Bottom);
-                //MelonLogger.Msg("[MyClothing] Feets " + m_Boots);
-
-                DataStr.PlayerClothingData Cdata = new DataStr.PlayerClothingData();
-                Cdata.m_Hat = MyHat;
-                Cdata.m_Top = MyTop;
-                Cdata.m_Bottom = MyBottom;
-                Cdata.m_Boots = MyBoots;
-                Cdata.m_Scarf = MyScarf;
-                Cdata.m_Balaclava = MyBalaclava;
-                Cdata.m_Gloves = MyGloves;
+                MyClothing = Cdata;
+                NextClothingResend = Time.time + ClothingResendInterval;
 
                 if (sendMyPosition == true) // CLIENT
                 {

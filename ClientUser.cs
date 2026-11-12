@@ -433,6 +433,7 @@ namespace GameServer
             { (int)ServerPackets.OPENEMPTYCONTAINER, ClientHandle.OPENEMPTYCONTAINER},
             { (int)ServerPackets.CONTAINERBUSY, ClientHandle.CONTAINERBUSY},
             { (int)ServerPackets.SCENEITEMS, SkyCoop.SceneItemsSync.HandleFromServer},
+            { (int)ServerPackets.TILT, ClientHandle.TILT},
             { (int)ServerPackets.MARKSEARCHEDCONTAINERS, ClientHandle.MARKSEARCHEDCONTAINERS},
             { (int)ServerPackets.READYSENDNEXTSLICE, ClientHandle.READYSENDNEXTSLICE},
             { (int)ServerPackets.CHANGEAIM, ClientHandle.CHANGEAIM},

@@ -202,6 +202,37 @@ namespace SkyCoop
             public string m_Scarf = "";
             public string m_Balaclava = "";
             public string m_Gloves = "";
+            // Garment seen under a short-sleeved top (vests), shown together with it on the humanoid model.
+            public string m_Under = "";
+            public string m_Accs1 = "";
+            public string m_Accs2 = "";
+            public bool m_TechPack = false;
+            public bool m_Respirator = false;
+            // Wear of each shown garment, the game's damage blend (0 new, 1 ruined).
+            public float m_HatWear = 0;
+            public float m_TopWear = 0;
+            public float m_UnderWear = 0;
+            public float m_BottomWear = 0;
+            public float m_BootsWear = 0;
+            public float m_GlovesWear = 0;
+            public float m_ScarfWear = 0;
+            public float m_BalaclavaWear = 0;
+
+            public bool SameAs(PlayerClothingData o)
+            {
+                return o != null && m_Hat == o.m_Hat && m_Top == o.m_Top && m_Bottom == o.m_Bottom && m_Boots == o.m_Boots
+                    && m_Scarf == o.m_Scarf && m_Balaclava == o.m_Balaclava && m_Gloves == o.m_Gloves && m_Under == o.m_Under
+                    && m_Accs1 == o.m_Accs1 && m_Accs2 == o.m_Accs2 && m_TechPack == o.m_TechPack && m_Respirator == o.m_Respirator
+                    && SameWear(m_HatWear, o.m_HatWear) && SameWear(m_TopWear, o.m_TopWear) && SameWear(m_UnderWear, o.m_UnderWear)
+                    && SameWear(m_BottomWear, o.m_BottomWear) && SameWear(m_BootsWear, o.m_BootsWear) && SameWear(m_GlovesWear, o.m_GlovesWear)
+                    && SameWear(m_ScarfWear, o.m_ScarfWear) && SameWear(m_BalaclavaWear, o.m_BalaclavaWear);
+            }
+
+            // Wear changes slowly and continuously; small steps are not worth a packet.
+            static bool SameWear(float a, float b)
+            {
+                return Math.Abs(a - b) < 0.05f;
+            }
         }
         public class MultiPlayerClientData
         {
@@ -232,6 +263,7 @@ namespace SkyCoop
             public ShowShelterByOther m_Shelter = null;
             public bool m_Aiming = false;
             public float m_RadioFrequency = 0;
+            public float m_Tilt = 0;
             public Supporters.SupporterBenefits m_SupporterBenefits = new Supporters.SupporterBenefits();
             public bool m_IsLoading = false;
             public int m_LastWeatherRegion = (int) Shared.GameRegion.RandomRegion;

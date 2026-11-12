@@ -81,10 +81,43 @@ namespace SkyCoop
             player.AddComponent<PlayerModel>().m_MP = mp;
         }
 
+        // Shots, throws and melee hits of another player play their one-shot animation on the model.
+        public static void OnShoot(int from, string projectile)
+        {
+            if (from < 0 || from >= MyMod.players.Count || MyMod.players[from] == null)
+            {
+                return;
+            }
+            PlayerModel pm = MyMod.players[from].GetComponent<PlayerModel>();
+            if (pm == null || pm.m_Anim == null)
+            {
+                return;
+            }
+            string trigger = projectile == "Melee" ? "Hit" : projectile == "GEAR_Stone" || projectile == "GEAR_NoiseMaker" ? "Throw" : "Shoot";
+            // the controller may not have every one-shot; a missing parameter only logs a warning per call
+            foreach (AnimatorControllerParameter p in pm.m_Anim.parameters)
+            {
+                if (p.name == trigger && p.type == AnimatorControllerParameterType.Trigger)
+                {
+                    pm.m_Anim.SetTrigger(trigger);
+                    return;
+                }
+            }
+        }
+
         public Comps.MultiplayerPlayer m_MP = null;
         GameObject m_Model = null;
         Animator m_Anim = null;
         int m_Layer = 0;
+
+        Transform m_Spine = null;
+        float m_Tilt = 0f;
+
+        // Lower lip, moved by the loudness of the player's voice.
+        Transform m_Lip = null;
+        readonly List<AudioSource> m_Voices = new List<AudioSource>();
+        Il2CppStructArray<float> m_VoiceSamples = null;
+        const float MouthOpenY = 0.03f, MouthClosedY = 0.053f, MouthGain = 50f;
 
         Vector3 m_LastPos = Vector3.zero;
         bool m_HasLastPos = false;
@@ -140,6 +173,23 @@ namespace SkyCoop
                 }
             }
             HideClassicMeshes();
+
+            m_Spine = Bone(HumanBodyBones.Spine);
+            Transform head = Bone(HumanBodyBones.Head);
+            m_Lip = head != null ? head.Find("Lip_Bottom") : null;
+            FindVoices();
+        }
+
+        void FindVoices()
+        {
+            m_Voices.Clear();
+            foreach (Comps.MultiplayerPlayerVoiceChatPlayer v in GetComponentsInChildren<Comps.MultiplayerPlayerVoiceChatPlayer>(true))
+            {
+                if (v.aSource != null)
+                {
+                    m_Voices.Add(v.aSource);
+                }
+            }
         }
 
         // The classic code keeps toggling its own meshes (held items, back items, clothing variants), so they are
@@ -169,6 +219,10 @@ namespace SkyCoop
             {
                 m_NextHideScan = Time.time + 0.5f;
                 HideClassicMeshes();
+                if (m_Voices.Count == 0)
+                {
+                    FindVoices();
+                }
             }
             DataStr.MultiPlayerClientData data = MyMod.playersData[m_MP.m_ID];
             string held = m_MP.m_HoldingItemRaw ?? "";
@@ -191,7 +245,9 @@ namespace SkyCoop
             Vector3 s = transform.lossyScale;
             m_Model.transform.localScale = new Vector3(1f / s.x, 1f / s.y, 1f / s.z);
             m_Model.transform.localPosition = new Vector3(0, data.m_Female ? 0.194f / s.y : 0f, 0);
-            DriveAnimator(data);
+            int action = DriveAnimator(data);
+            ApplyTilt(data, action);
+            AnimateMouth();
             // Lanterns hang upright from the hand by their handle.
             if (m_Hang && m_HeldGo != null && m_HeldGo.transform.parent != null)
             {
@@ -238,12 +294,13 @@ namespace SkyCoop
         }
 
         // The controller starts moving; feed it the speed and direction implied by how the player object moved.
+        // Returns the action the model is playing.
         [Il2CppInterop.Runtime.Attributes.HideFromIl2Cpp]
-        void DriveAnimator(DataStr.MultiPlayerClientData data)
+        int DriveAnimator(DataStr.MultiPlayerClientData data)
         {
             if (m_Anim == null)
             {
-                return;
+                return ActionNone;
             }
             Vector3 pos = transform.position;
             float dt = Time.deltaTime;
@@ -259,9 +316,60 @@ namespace SkyCoop
             m_Anim.SetBool("IsMoving", local.magnitude > MinimalSpeed);
             m_Anim.SetBool("Crouch", crouch);
             m_Anim.SetInteger("Gear", pose);
-            m_Anim.SetInteger("Action", ActionOf(state, data.m_Aiming, pose));
+            int action = ActionOf(state, data.m_Aiming, pose);
+            m_Anim.SetInteger("Action", action);
             m_Anim.SetFloat("DirectionX", Mathf.Lerp(m_Anim.GetFloat("DirectionX"), Mathf.Clamp(local.x, -1f, 1f), 0.1f));
             m_Anim.SetFloat("DirectionY", Mathf.Lerp(m_Anim.GetFloat("DirectionY"), Mathf.Clamp(local.z, -1f, 1f), 0.1f));
+            return action;
+        }
+
+        const float MaxTilt = 60f;       // degrees of camera pitch passed on to the body
+        const float TiltShare = 0.6f;    // the spine takes this part of the pitch, the head keeps facing forward
+        const float TiltSmoothing = 8f;
+
+        // Bends the spine by the player's camera pitch, after the animator posed it this frame. Lying, knocked down
+        // or sleeping bodies keep the animation's pose.
+        [Il2CppInterop.Runtime.Attributes.HideFromIl2Cpp]
+        void ApplyTilt(DataStr.MultiPlayerClientData data, int action)
+        {
+            float target = action == ActionSleep || action == ActionKnocked ? 0f : Mathf.Clamp(data.m_Tilt, -MaxTilt, MaxTilt);
+            m_Tilt = Mathf.Lerp(m_Tilt, target, Mathf.Clamp01(Time.deltaTime * TiltSmoothing));
+            if (m_Spine != null && Mathf.Abs(m_Tilt) > 0.01f)
+            {
+                // camera pitch is positive when looking down; turning around the body's right axis bends forward
+                m_Spine.rotation = Quaternion.AngleAxis(m_Tilt * TiltShare, transform.right) * m_Spine.rotation;
+            }
+        }
+
+        // Opens the lower lip by the loudness of what the player's voice source is playing right now.
+        void AnimateMouth()
+        {
+            if (m_Lip == null)
+            {
+                return;
+            }
+            if (m_VoiceSamples == null)
+            {
+                m_VoiceSamples = new Il2CppStructArray<float>(256);
+            }
+            float loud = 0f;
+            foreach (AudioSource src in m_Voices)
+            {
+                if (src == null || !src.isPlaying)
+                {
+                    continue;
+                }
+                src.GetOutputData(m_VoiceSamples, 0);
+                float sum = 0f;
+                for (int i = 0; i < m_VoiceSamples.Length; i++)
+                {
+                    sum += m_VoiceSamples[i] * m_VoiceSamples[i];
+                }
+                loud = Mathf.Max(loud, Mathf.Sqrt(sum / m_VoiceSamples.Length));
+            }
+            float open = Mathf.Clamp01(loud * MouthGain);
+            Vector3 p = m_Lip.localPosition;
+            m_Lip.localPosition = new Vector3(p.x, Mathf.Lerp(MouthClosedY, MouthOpenY, open), p.z);
         }
 
         // --- held item ---
@@ -327,6 +435,9 @@ namespace SkyCoop
         // --- clothing ---
 
         static readonly int BlendAmount = Shader.PropertyToID("_blend_amt");
+        // Worn items without a clothing slot of their own, shown when the model has a mesh named after them.
+        const string TechPack = "GEAR_TechnicalBackpack";
+        const string Respirator = "GEAR_Respirator";
         static readonly Dictionary<string, Material> s_GearMaterials = new Dictionary<string, Material>();
 
         // Gear worn as a separate object on the head bone (in its space), with the child of the prefab to show.
@@ -358,8 +469,30 @@ namespace SkyCoop
             {
                 return;
             }
-            string[] worn = { c.m_Hat ?? "", c.m_Top ?? "", c.m_Bottom ?? "", c.m_Boots ?? "", c.m_Scarf ?? "", c.m_Balaclava ?? "", c.m_Gloves ?? "" };
+            string[] worn = { c.m_Hat ?? "", c.m_Top ?? "", c.m_Bottom ?? "", c.m_Boots ?? "", c.m_Scarf ?? "", c.m_Balaclava ?? "", c.m_Gloves ?? "",
+                c.m_Under ?? "", c.m_Accs1 ?? "", c.m_Accs2 ?? "", c.m_TechPack ? TechPack : "", c.m_Respirator ? Respirator : "" };
+            // wear of each shown garment, by gear name; a garment worn twice keeps the higher wear
+            Dictionary<string, float> wear = new Dictionary<string, float>();
+            void Wear(string gear, float w)
+            {
+                if (!string.IsNullOrEmpty(gear))
+                {
+                    wear[gear] = wear.TryGetValue(gear, out float old) ? Math.Max(old, w) : w;
+                }
+            }
+            Wear(c.m_Hat, c.m_HatWear);
+            Wear(c.m_Top, c.m_TopWear);
+            Wear(c.m_Under, c.m_UnderWear);
+            Wear(c.m_Bottom, c.m_BottomWear);
+            Wear(c.m_Boots, c.m_BootsWear);
+            Wear(c.m_Gloves, c.m_GlovesWear);
+            Wear(c.m_Scarf, c.m_ScarfWear);
+            Wear(c.m_Balaclava, c.m_BalaclavaWear);
             string key = string.Join("|", worn);
+            foreach (var w in wear)
+            {
+                key += "|" + Mathf.RoundToInt(w.Value * 20); // steps of 0.05, the resolution the sender uses
+            }
             if (key == m_ClothingKey)
             {
                 return;
@@ -389,7 +522,7 @@ namespace SkyCoop
                 }
                 MaterialPropertyBlock block = new MaterialPropertyBlock();
                 rend.GetPropertyBlock(block);
-                block.SetFloat(BlendAmount, 0f);
+                block.SetFloat(BlendAmount, wear.TryGetValue(name, out float w) ? w : 0f);
                 rend.SetPropertyBlock(block);
             }
 

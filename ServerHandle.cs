@@ -172,15 +172,7 @@ namespace GameServer
                 Edata.m_HasRifle = MyMod.MyHasRifle;
                 Edata.m_Arrows = MyMod.MyArrows;
                 ServerSend.EQUIPMENT(0, Edata, false, _fromClient);
-                DataStr.PlayerClothingData Cdata = new DataStr.PlayerClothingData();
-                Cdata.m_Hat = MyMod.MyHat;
-                Cdata.m_Top = MyMod.MyTop;
-                Cdata.m_Bottom = MyMod.MyBottom;
-                Cdata.m_Boots = MyMod.MyBoots;
-                Cdata.m_Scarf = MyMod.MyScarf;
-                Cdata.m_Balaclava = MyMod.MyBalaclava;
-                Cdata.m_Gloves = MyMod.MyGloves;
-                ServerSend.CLOTH(0, Cdata, false, _fromClient);
+                ServerSend.CLOTH(0, MyMod.MyClothing, false, _fromClient);
             }
 #endif
 
@@ -394,6 +386,17 @@ namespace GameServer
             }
 
             ServerSend.ANIMSTATE(_fromClient, anim, false);
+        }
+        public static void TILT(int _fromClient, Packet _packet)
+        {
+            float tilt = _packet.ReadFloat();
+
+            if (MyMod.playersData[_fromClient] != null)
+            {
+                MyMod.playersData[_fromClient].m_Tilt = tilt;
+            }
+
+            ServerSend.TILT(_fromClient, tilt, false);
         }
         public static void REVIVE(int _fromClient, Packet _packet)
         {
@@ -1557,6 +1560,7 @@ namespace GameServer
             {
                 MyMod.players[_fromClient].GetComponent<Comps.MultiplayerPlayerAnimator>().MeleeAttack();
             }
+            SkyCoop.PlayerModel.OnShoot(_fromClient, "Melee");
 #endif
             ServerSend.MELEESTART(_fromClient);
         }
