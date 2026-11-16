@@ -2967,6 +2967,14 @@ namespace SkyCoop
                     }
                     GameObject plObj = players[i];
                     DataStr.MultiPlayerClientData plDat = playersData[i];
+                    if (plObj.transform.parent != null)
+                    {
+                        // SeamlessInteriors attaches objects standing in a building to its room when the local player
+                        // walks out; a player model under the room is then hidden with it and keeps the room's place
+                        // in the hierarchy, so it is put back at the root where it was created.
+                        plObj.transform.SetParent(null, true);
+                        UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(plObj, UnityEngine.SceneManagement.SceneManager.GetActiveScene());
+                    }
                     if (levelid == plDat.m_Levelid && level_guid == plDat.m_LevelGuid && !plDat.m_IsLoading) // Player locates on same scene with you.
                     {
                         plObj.SetActive(true);
