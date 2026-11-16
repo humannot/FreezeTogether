@@ -17,9 +17,13 @@ namespace SkyCoop
     // rules and timers and sends a spawner's saved state (RadialObjectSpawner.Serialize) whenever it changes; the
     // others load that state into their spawner. An item taken from a spawner is removed from it on every client.
     //
-    // Floor items (loose gear placed by the scene and its random spawns): on the first visit the owner records which
-    // items lie where; afterwards every player entering the scene hides the items that are not in that record and
-    // creates the ones it lacks. Taking them is synced by the per-position pickup list, as before.
+    // Floor items (loose gear placed by the scene and its random spawns) all follow one record per area: the region
+    // (key FloorKey) and, with SeamlessInteriors, every building (key FloorKey + ":" + building id), whose content is
+    // created inside the region scene only when a player comes near. The first player to have an area ready records
+    // which items lie where; the host keeps the first record it gets, sends it to everybody in the scene (the sender
+    // included, as its confirmation) and to everybody entering later. Every other player applies it once: hides the
+    // items that are not in it and creates the ones it lacks. Taking them is synced by the per-position pickup list.
+    // Notes and story items (NarrativeCollectibleItem) are in no record.
     public static class SceneItemsSync
     {
         const int KindState = 0;
@@ -44,10 +48,14 @@ namespace SkyCoop
         static readonly Dictionary<string, string> s_Known = new Dictionary<string, string>();
         // Items removed from a spawner here, so the pickup patches leave them out of the per-position pickup list.
         static readonly HashSet<int> s_Removed = new HashSet<int>();
-        static readonly StringBuilder s_FloorIn = new StringBuilder();
-        static readonly Dictionary<int, StringBuilder> s_FloorFromClient = new Dictionary<int, StringBuilder>();
+        // floor records being received, by building id ("" = the region)
+        static readonly Dictionary<string, StringBuilder> s_FloorIn = new Dictionary<string, StringBuilder>();
+        static readonly Dictionary<string, StringBuilder> s_FloorFromClient = new Dictionary<string, StringBuilder>();
+        // Client: building records received before this player entered the building, applied on entering it.
+        static readonly Dictionary<string, string> s_PendingFloor = new Dictionary<string, string>();
+        // Client: records this player sent and waits to get back from the host, by building id ("" = the region).
+        static readonly Dictionary<string, string> s_FloorSent = new Dictionary<string, string>();
         static bool s_Ready = false;     // stored states of this scene are loaded; until then the owner must not send
-        static bool s_FloorDone = false; // the floor record of this scene is applied or was made here
         static bool s_ApplyingRemote = false;
         static int s_Tick = 0;
 
@@ -75,10 +83,27 @@ namespace SkyCoop
             Load(scene)[key] = state;
         }
 
-        static string StoredFloor(string scene)
+        // interior: SeamlessInteriors building id, "" for the region's own record
+        static string FloorKeyOf(string interior)
+        {
+            return interior.Length == 0 ? FloorKey : FloorKey + ":" + interior;
+        }
+
+        static string StoredFloor(string scene, string interior)
         {
             string floor;
-            return Load(scene).TryGetValue(FloorKey, out floor) ? floor : null;
+            return Load(scene).TryGetValue(FloorKeyOf(interior), out floor) ? floor : null;
+        }
+
+        static StringBuilder Buffer(Dictionary<string, StringBuilder> dict, string key)
+        {
+            StringBuilder sb;
+            if (!dict.TryGetValue(key, out sb))
+            {
+                sb = new StringBuilder();
+                dict[key] = sb;
+            }
+            return sb;
         }
 
         // Scenes whose floor record this save already follows. The record is applied once per player and scene:
@@ -100,10 +125,20 @@ namespace SkyCoop
             return s_FloorApplied;
         }
 
-        static void MarkFloorDone(string scene)
+        // the region's record is listed under the scene name, a building's under the scene name and its record key
+        static string DoneKey(string scene, string interior)
         {
-            s_FloorDone = true;
-            if (FloorApplied().Add(scene))
+            return interior.Length == 0 ? scene : scene + FloorKeyOf(interior);
+        }
+
+        static bool FloorDone(string scene, string interior)
+        {
+            return FloorApplied().Contains(DoneKey(scene, interior));
+        }
+
+        static void MarkFloorDone(string scene, string interior)
+        {
+            if (FloorApplied().Add(DoneKey(scene, interior)))
             {
                 MPSaveManager.ValidateRootExits();
                 MPSaveManager.SaveData(FloorAppliedKey, TinyJSON.JSON.Dump(FloorApplied().ToList()), MPSaveManager.GetSeed());
@@ -121,13 +156,14 @@ namespace SkyCoop
             s_KnownFire.Clear();
             s_Removed.Clear();
             s_FloorIn.Clear();
+            s_PendingFloor.Clear();
+            s_FloorSent.Clear();
             s_Ready = false;
             if (!MyMod.InOnline())
             {
                 return;
             }
             string scene = MyMod.level_guid;
-            s_FloorDone = FloorApplied().Contains(scene);
             if (!MyMod.iAmHost)
             {
                 return;
@@ -138,57 +174,113 @@ namespace SkyCoop
                 {
                     OnFireState(item.Key.Substring(FirePrefix.Length), item.Value);
                 }
-                else if (item.Key != FloorKey)
+                else if (!item.Key.StartsWith(FloorKey))
                 {
                     Apply(item.Key, item.Value);
                 }
             }
-            string floor = StoredFloor(scene);
+            s_Ready = true;
+            CheckArea("");
+        }
+
+        // One area's record: the region ("") once the scene's stored data is in, a building once this player is in it
+        // and its content is ready. Polled rather than taken from the entered event: the player can be marked inside
+        // while the building is still being set up (a save loaded inside one), and an empty building must not become
+        // the record. The record is applied once; when there is none, this player's items become it.
+        static void CheckArea(string interior)
+        {
+            string scene = MyMod.level_guid;
+            if (FloorDone(scene, interior)
+                || (interior.Length > 0 && (SeamlessCompat.PlayerInterior() != interior || !SeamlessCompat.IsReady(interior))))
+            {
+                return;
+            }
+            string floor;
+            if (MyMod.iAmHost)
+            {
+                floor = StoredFloor(scene, interior);
+            }
+            else if (!s_PendingFloor.TryGetValue(interior, out floor))
+            {
+                floor = null;
+            }
             if (floor != null)
             {
-                if (!s_FloorDone)
+                s_PendingFloor.Remove(interior);
+                string sent;
+                // this player's own record came back: its items already match, and applying it would bring back the
+                // items picked up while waiting
+                if (!s_FloorSent.TryGetValue(interior, out sent) || sent != floor)
                 {
-                    ApplyFloor(floor);
+                    ApplyFloor(floor, interior);
                 }
+                s_FloorSent.Remove(interior);
+                MarkFloorDone(scene, interior);
+                return;
+            }
+            if (s_FloorSent.ContainsKey(interior))
+            {
+                return; // waiting for the host to confirm it or send the record that came first
+            }
+            floor = BuildFloor(interior);
+            if (MyMod.iAmHost)
+            {
+                Store(scene, FloorKeyOf(interior), floor);
+                MarkFloorDone(scene, interior);
             }
             else
             {
-                floor = BuildFloor();
-                Store(scene, FloorKey, floor);
-                // players already in the scene had nothing to apply yet
-                foreach (string part in FloorParts(floor))
-                {
-                    SendToScene(0, KindFloorPart, scene, "", part);
-                }
-                SendToScene(0, KindFloorEnd, scene, "", "");
+                s_FloorSent[interior] = floor;
             }
-            MarkFloorDone(scene);
-            s_Ready = true;
+            foreach (string part in FloorParts(floor))
+            {
+                Send(KindFloorPart, interior, part, Vector3.zero);
+            }
+            Send(KindFloorEnd, interior, "", Vector3.zero);
+        }
+
+        // Client: a complete record arrived; CheckArea applies it once this player is in that area.
+        static void OnFloorReceived(string scene, string interior, string floor)
+        {
+            if (scene != MyMod.level_guid || MyMod.iAmHost || FloorDone(scene, interior))
+            {
+                return;
+            }
+            s_PendingFloor[interior] = floor;
+            if (s_Ready)
+            {
+                CheckArea(interior);
+            }
         }
 
         // Host: a client entered a scene.
         public static void SendSceneTo(int client, string scene)
         {
-            s_FloorFromClient.Remove(client); // parts of a record the client did not finish before changing scene
+            // parts of a record the client did not finish before changing scene
+            foreach (string key in s_FloorFromClient.Keys.Where(k => k.StartsWith(client + "|")).ToList())
+            {
+                s_FloorFromClient.Remove(key);
+            }
             foreach (var item in Load(scene).ToList())
             {
                 if (item.Key.StartsWith(FirePrefix))
                 {
                     ServerSendTo(client, KindFire, scene, item.Key.Substring(FirePrefix.Length), item.Value, Clock());
                 }
-                else if (item.Key != FloorKey)
+                else if (item.Key.StartsWith(FloorKey))
+                {
+                    // the region's record (key FloorKey) and the buildings' (FloorKey + ":" + id)
+                    string interior = item.Key.Length > FloorKey.Length ? item.Key.Substring(FloorKey.Length + 1) : "";
+                    foreach (string part in FloorParts(item.Value))
+                    {
+                        ServerSendTo(client, KindFloorPart, scene, interior, part, Vector3.zero);
+                    }
+                    ServerSendTo(client, KindFloorEnd, scene, interior, "", Vector3.zero);
+                }
+                else
                 {
                     ServerSendTo(client, KindState, scene, item.Key, item.Value, Vector3.zero);
                 }
-            }
-            string floor = StoredFloor(scene);
-            if (floor != null)
-            {
-                foreach (string part in FloorParts(floor))
-                {
-                    ServerSendTo(client, KindFloorPart, scene, "", part, Vector3.zero);
-                }
-                ServerSendTo(client, KindFloorEnd, scene, "", "", Vector3.zero);
             }
             ServerSendTo(client, KindSceneSent, scene, "", "", Vector3.zero);
         }
@@ -213,6 +305,15 @@ namespace SkyCoop
 
         public static void EverySecond()
         {
+            if (s_Ready && MyMod.InOnline())
+            {
+                CheckArea("");
+                string interior = SeamlessCompat.PlayerInterior();
+                if (!string.IsNullOrEmpty(interior))
+                {
+                    CheckArea(interior);
+                }
+            }
             if (++s_Tick < TickSeconds)
             {
                 return;
@@ -439,7 +540,7 @@ namespace SkyCoop
 
         // ---------- floor items ----------
 
-        static bool IsFloorItem(GearItem gi)
+        static bool IsFloorItem(GearItem gi, string interior)
         {
             if (gi == null)
             {
@@ -448,16 +549,16 @@ namespace SkyCoop
             GameObject go = gi.gameObject;
             return go.activeInHierarchy && !gi.m_BeenInPlayerInventory && !gi.m_InPlayerInventory && !gi.m_InsideContainer
                 && gi.GetComponent<NarrativeCollectibleItem>() == null && !Pathes.DuppableGearItem(gi.m_GearName)
-                && SpawnerOf(go) == null;
+                && SpawnerOf(go) == null && (SeamlessCompat.InteriorOf(go) ?? "") == interior;
         }
 
-        static List<GearItem> FloorItems()
+        static List<GearItem> FloorItems(string interior)
         {
             List<GearItem> list = new List<GearItem>();
             for (int i = 0; i < GearManager.m_Gear.Count; i++)
             {
                 GearItem gi = GearManager.m_Gear[i];
-                if (IsFloorItem(gi))
+                if (IsFloorItem(gi, interior))
                 {
                     list.Add(gi);
                 }
@@ -476,10 +577,10 @@ namespace SkyCoop
         }
 
         // Record: "name|x|y|z|qx|qy|qz|qw|condition;" per item.
-        static string BuildFloor()
+        static string BuildFloor(string interior)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (GearItem gi in FloorItems())
+            foreach (GearItem gi in FloorItems(interior))
             {
                 Vector3 p = gi.transform.position;
                 Quaternion r = gi.transform.rotation;
@@ -488,7 +589,7 @@ namespace SkyCoop
                   .Append(F(r.x)).Append('|').Append(F(r.y)).Append('|').Append(F(r.z)).Append('|').Append(F(r.w)).Append('|')
                   .Append(F(gi.GetNormalizedCondition())).Append(';');
             }
-            MelonLogger.Msg("[SceneItems] Floor of " + MyMod.level_guid + " recorded");
+            MelonLogger.Msg("[SceneItems] Floor of " + MyMod.level_guid + FloorKeyOf(interior) + " recorded");
             return sb.ToString();
         }
 
@@ -501,9 +602,9 @@ namespace SkyCoop
             }
         }
 
-        public static void ApplyFloor(string floor)
+        public static void ApplyFloor(string floor, string interior)
         {
-            List<GearItem> local = FloorItems();
+            List<GearItem> local = FloorItems(interior);
             bool[] kept = new bool[local.Count];
             int created = 0, hidden = 0;
             foreach (string entry in floor.Split(new[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries))
@@ -542,6 +643,11 @@ namespace SkyCoop
                 }
                 GameObject obj = Object.Instantiate(prefab, pos, new Quaternion(P(f[4]), P(f[5]), P(f[6]), P(f[7])));
                 obj.name = name;
+                GameObject root = SeamlessCompat.InteriorRoot(interior);
+                if (root != null)
+                {
+                    obj.transform.SetParent(root.transform, true);
+                }
                 GearItem gi = obj.GetComponent<GearItem>();
                 if (gi != null)
                 {
@@ -574,7 +680,7 @@ namespace SkyCoop
                     }
                 }
             }
-            MelonLogger.Msg("[SceneItems] Floor of " + MyMod.level_guid + " applied: kept " + (local.Count - hidden) + ", created " + created + ", hidden " + hidden);
+            MelonLogger.Msg("[SceneItems] Floor of " + MyMod.level_guid + FloorKeyOf(interior) + " applied: kept " + (local.Count - hidden) + ", created " + created + ", hidden " + hidden);
         }
 
         // ---------- fires ----------
@@ -933,29 +1039,20 @@ namespace SkyCoop
                     RemoveFire(key);
                     break;
                 case KindFloorPart:
-                    s_FloorIn.Append(state);
+                    // key: building id of the record, "" for the region's
+                    Buffer(s_FloorIn, key).Append(state);
                     break;
                 case KindFloorEnd:
-                    if (!s_FloorDone)
                     {
-                        ApplyFloor(s_FloorIn.ToString());
-                        MarkFloorDone(scene);
+                        StringBuilder buf = Buffer(s_FloorIn, key);
+                        string floor = buf.ToString();
+                        buf.Clear();
+                        OnFloorReceived(scene, key, floor);
                     }
-                    s_FloorIn.Clear();
                     break;
                 case KindSceneSent:
                     s_Ready = true;
-                    if (!s_FloorDone && IsOwner())
-                    {
-                        // nobody recorded this scene yet: this player's floor becomes the record
-                        string floor = BuildFloor();
-                        foreach (string part in FloorParts(floor))
-                        {
-                            Send(KindFloorPart, "", part, Vector3.zero);
-                        }
-                        Send(KindFloorEnd, "", "", Vector3.zero);
-                        MarkFloorDone(scene);
-                    }
+                    CheckArea("");
                     break;
             }
         }
@@ -970,12 +1067,8 @@ namespace SkyCoop
             Vector3 pos = p.ReadVector3();
             if (kind == KindFloorPart || kind == KindFloorEnd)
             {
-                StringBuilder buf;
-                if (!s_FloorFromClient.TryGetValue(from, out buf))
-                {
-                    buf = new StringBuilder();
-                    s_FloorFromClient[from] = buf;
-                }
+                // key: building id of the record, "" for the region's
+                StringBuilder buf = Buffer(s_FloorFromClient, from + "|" + key);
                 if (kind == KindFloorPart)
                 {
                     buf.Append(state);
@@ -983,21 +1076,24 @@ namespace SkyCoop
                 }
                 string floor = buf.ToString();
                 buf.Clear();
-                if (StoredFloor(scene) != null)
+                string stored = StoredFloor(scene, key);
+                if (stored != null)
                 {
-                    return; // the first record of a scene stays
+                    // the first record of an area stays; the sender gets it in place of its own
+                    foreach (string part in FloorParts(stored))
+                    {
+                        ServerSendTo(from, KindFloorPart, scene, key, part, Vector3.zero);
+                    }
+                    ServerSendTo(from, KindFloorEnd, scene, key, "", Vector3.zero);
+                    return;
                 }
-                Store(scene, FloorKey, floor);
+                Store(scene, FloorKeyOf(key), floor);
+                // everybody in the scene, the sender included: it waits for its record to come back
                 foreach (string part in FloorParts(floor))
                 {
-                    SendToScene(from, KindFloorPart, scene, "", part);
+                    SendToScene(0, KindFloorPart, scene, key, part);
                 }
-                SendToScene(from, KindFloorEnd, scene, "", "");
-                if (scene == MyMod.level_guid && !s_FloorDone)
-                {
-                    ApplyFloor(floor);
-                    MarkFloorDone(scene);
-                }
+                SendToScene(0, KindFloorEnd, scene, key, "");
                 return;
             }
             if (kind == KindState)

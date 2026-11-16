@@ -147,6 +147,23 @@ internal static class Compat
 
     extension(GearItem)
     {
+        // The player manager keeps its active interaction for a while after the object behind it is destroyed (an item
+        // picked up or moved by another player); asking a destroyed interaction for its object throws.
+        static GameObject InteractiveObjectOf(Il2CppTLD.Interactions.IInteraction interaction)
+        {
+            if (interaction == null)
+            {
+                return null;
+            }
+            Component comp = interaction.TryCast<Component>();
+            // (object) null: not a component at all; Unity null: a component already destroyed
+            if ((object)comp != null && comp == null)
+            {
+                return null;
+            }
+            return interaction.GetInteractiveObject();
+        }
+
         // Removed in 2.58.
         public static string GetGearDisplayName(string name)
         {
@@ -186,7 +203,7 @@ internal static class Compat
     extension(PlayerManager pm)
     {
         // Interaction system became IInteraction based.
-        public GameObject m_InteractiveObjectUnderCrosshair => pm.ActiveInteraction?.GetInteractiveObject();
+        public GameObject m_InteractiveObjectUnderCrosshair => InteractiveObjectOf(pm.ActiveInteraction);
         public Container m_ContainerBeingSearched { get => pm.m_Container; set => pm.m_Container = value; }
         public Harvestable m_HarvestableInProgress { get => pm.m_Harvestable; set => pm.m_Harvestable = value; }
 

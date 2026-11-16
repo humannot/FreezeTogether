@@ -56,19 +56,8 @@ namespace SkyCoop
             Inited = true;
         }
 
-        public static bool GearFitOpen = false; // chat command !gearfit, open to everyone: only this panel, none of the debug tools
-
         public static void Render()
         {
-            if (GearFitOpen && MyMod.DebugGUI == false)
-            {
-                GearFit.DrawPanel();
-                if (GUI.Button(new Rect(160, 40, 80, 20), "Close"))
-                {
-                    GearFitOpen = false;
-                }
-                return;
-            }
             if (MyMod.DebugGUI == false)
             {
                 return;
@@ -328,10 +317,6 @@ namespace SkyCoop
                 {
                     MyMod.UIDebugType = "PlayerDebug";
                 }
-                if (GUI.Button(new Rect(160, 160, 80, 20), "Gear Fit"))
-                {
-                    MyMod.UIDebugType = "GearFit";
-                }
                 if (GUI.Button(new Rect(160, 70, 80, 20), "Teleport"))
                 {
                     InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "INPUT ID OF PLAYER TELEPORT TO", "", Panel_Confirmation.ButtonLayout.Button_2, "TELEPORT", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
@@ -435,15 +420,6 @@ namespace SkyCoop
                 if (GUI.Button(new Rect(160, 190, 80, 20), "Show"))
                 {
                     SafeZoneManager.DebugRenderZones();
-                }
-            }
-
-            if (MyMod.UIDebugType == "GearFit")
-            {
-                GearFit.DrawPanel();
-                if (GUI.Button(new Rect(160, 40, 80, 20), "Back"))
-                {
-                    MyMod.UIDebugType = "Open";
                 }
             }
 

@@ -34,7 +34,7 @@ namespace SkyCoop
             public const string Description = "Multiplayer mod";
             public const string Author = "Filigrani";
             public const string Company = null;
-            public const string Version = "0.13.5";
+            public const string Version = "0.13.6";
             public const string DownloadLink = null;
             public const int RandomGenVersion = 5;
         }
@@ -124,8 +124,6 @@ namespace SkyCoop
         public static string SteamServerWorks = "";
         public static string SteamLobbyToJoin = "";
         public static AssetBundle LoadedBundle = null;
-        public static AssetBundle GearBundle = null;
-        public static HashSet<string> GearBundleModels = new HashSet<string>();
         public static int MaxPlayers = 1;
         public static int GiveItemTo = -1;
         public static string MyHat = "";
@@ -981,6 +979,7 @@ namespace SkyCoop
             DedicatedServerAppMode = DedicatedServerWithRender || Application.isBatchMode;
 
             ModsValidation.GetModsHash(true);
+            SeamlessCompat.Init();
             //DumpInterloperBans();
             bool ForceNoSteam = Environment.GetCommandLineArgs().Contains("-nosteam");
             bool ForceNoEgs = Environment.GetCommandLineArgs().Contains("-noegs");
@@ -1027,16 +1026,6 @@ namespace SkyCoop
             } else {
                 MelonLogger.Msg("Models loaded.");
             }
-            // Held-item models for other players (incl. TFTFT), built by repack/Assets/Editor/GearModels.cs.
-            GearBundle = AssetBundle.LoadFromFile(Path.Combine(MelonLoader.Utils.MelonEnvironment.ModsDirectory, "mpgear.unity3d"));
-            if (GearBundle != null)
-            {
-                foreach (string n in GearBundle.GetAllAssetNames()) GearBundleModels.Add(Path.GetFileNameWithoutExtension(n).ToLowerInvariant());
-                MelonLogger.Msg("Gear models loaded: " + GearBundleModels.Count);
-            } else {
-                MelonLogger.Msg("mpgear.unity3d not found, held items without models will use game meshes.");
-            }
-
             if (DedicatedServerAppMode)
             {
                 MelonLogger.Msg(System.ConsoleColor.Magenta, "[Dedicated server] Please wait...");
@@ -4266,7 +4255,23 @@ namespace SkyCoop
             SetRevivedStats();
             GameManager.GetPlayerManagerComponent().SetControlMode(PlayerControlMode.Normal);
             RestoreAfterDeath();
+            ApplyReviveStim();
             HUDMessage.AddMessage("You have been revived");
+        }
+
+        // The teammate's emergency stim takes effect as if injected here: the game's own stim effects (pulse, screen
+        // effect, fatigue and stimulation) with the stim prefab's values; the revive then leaves the player at a
+        // quarter of their health.
+        static void ApplyReviveStim()
+        {
+            GameObject prefab = GetGearItemObject("GEAR_EmergencyStim");
+            EmergencyStimItem stim = prefab != null ? prefab.GetComponent<EmergencyStimItem>() : null;
+            if (stim != null)
+            {
+                GameManager.GetEmergencyStimComponent().ApplyEmergencyStim(stim);
+            }
+            Condition cond = GameManager.GetConditionComponent();
+            cond.m_CurrentHP = cond.m_MaxHP * 0.25f;
         }
 
         // Downed state: at 0 HP the player lies on the ground until a teammate revives them or they give up.
@@ -12076,7 +12081,7 @@ namespace SkyCoop
         {
             if (health == true)
             {
-                GameManager.GetConditionComponent().m_CurrentHP = 25;
+                GameManager.GetConditionComponent().m_CurrentHP = GameManager.GetConditionComponent().m_MaxHP * 0.25f;
             }
             IsDead = false;
             DeathDropDone = false;
@@ -12740,7 +12745,7 @@ namespace SkyCoop
                 safeZonesCheckbox.GetComponent<UnityEngine.UI.Toggle>().Set(ServerConfig.m_SafeZones);
                 foreach (UnityEngine.UI.Text t in safeZonesCheckbox.GetComponentsInChildren<UnityEngine.UI.Text>(true))
                 {
-                    if (t.transform.parent.name == "HintPanel") t.text = "Safe zone circles.\n\nOn - players cannot hurt each other inside the safe circles on the map (settlements, camps). Safe interiors always stay safe.\n\nOff - PvP works everywhere except in safe interiors.";
+                    if (t.transform.parent.name == "HintPanel") t.text = "Safe zone circles.\n\nOn - players cannot hurt each other inside the safe circles on the map (settlements, camps). Buildings outside these circles allow PvP.\n\nOff - PvP works everywhere, buildings included.";
                     else if (t.name.StartsWith("Label")) t.text = "Safe zone circles";
                 }
 

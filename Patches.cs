@@ -372,6 +372,68 @@ namespace SkyCoop
                 }
             }
         }
+
+        // Another player in front of the crosshair is the target even when a later patch (SeamlessInteriors prefers
+        // lamps and other props it marks as clean targets) picked an object further along the same ray.
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "GetInteractiveObjectUnderCrosshairs")]
+        [HarmonyLib.HarmonyPriority(HarmonyLib.Priority.Last)]
+        private static class PlayerManager_GetInteractiveObjectUnderCrosshairs_Player
+        {
+            internal static void Postfix(float __0, ref GameObject __result)
+            {
+                if (__result == null || !MyMod.InOnline() || __result.GetComponent<Comps.MultiplayerPlayer>() != null)
+                {
+                    return;
+                }
+                Camera cam = GameManager.GetMainCamera();
+                if (cam == null)
+                {
+                    return;
+                }
+                float playerDist = float.MaxValue, resultDist = float.MaxValue;
+                GameObject player = null;
+                foreach (RaycastHit hit in Physics.RaycastAll(cam.transform.position, cam.transform.forward, __0, -1, QueryTriggerInteraction.Collide))
+                {
+                    Transform t = hit.collider.transform;
+                    if (t.IsChildOf(__result.transform))
+                    {
+                        resultDist = Mathf.Min(resultDist, hit.distance);
+                        continue;
+                    }
+                    Comps.MultiplayerPlayer mp = t.GetComponentInParent<Comps.MultiplayerPlayer>();
+                    if (mp != null && hit.distance < playerDist)
+                    {
+                        playerDist = hit.distance;
+                        player = mp.gameObject;
+                    }
+                }
+                if (player != null && playerDist < resultDist)
+                {
+                    __result = player;
+                }
+            }
+        }
+
+        // Items dropped or moved by other players are stand-ins (DroppedGearDummy), not game gear, so the game never
+        // offers its right-click move for them and does not call InteractiveObjectsProcessAltFire. Right click on one
+        // takes it from the host's drop list and starts the game's own placement, as moving a real item does.
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InteractiveObjectsProcess")]
+        private static class PlayerManager_InteractiveObjectsProcess_MoveDropped
+        {
+            internal static bool Prefix(PlayerManager __instance)
+            {
+                GameObject obj = __instance.m_InteractiveObjectUnderCrosshair;
+                if (obj == null || !MyMod.InOnline() || __instance.IsInPlacementMode()
+                    || obj.GetComponent<Comps.DroppedGearDummy>() == null || obj.GetComponent<Comps.FakeBed>() != null
+                    || !InputManager.GetAltFirePressed(InputManager.m_CurrentContext))
+                {
+                    return true;
+                }
+                MelonLogger.Msg("Moving an item dropped by another player");
+                MyMod.PlaceDroppedGear(obj);
+                return false;
+            }
+        }
         [HarmonyLib.HarmonyPatch(typeof(Panel_Rest), "Update")] // When open
         private static class Panel_Rest_Update
         {

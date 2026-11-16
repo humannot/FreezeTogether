@@ -664,7 +664,7 @@ namespace GameServer
             
             if(_From == 0)
             {
-                if (GameManager.m_PlayerObject && (SafeZoneManager.SceneIsSafe(MyMod.level_guid) || SafeZoneManager.InsideSafeZone(MyMod.level_guid, GameManager.GetPlayerTransform().position)))
+                if (GameManager.m_PlayerObject && SafeZoneManager.InsideSafeZone(MyMod.level_guid, GameManager.GetPlayerTransform().position))
                 {
                     HUDMessage.AddMessage("You cannot attack when you in the safe zone!");
                     return;

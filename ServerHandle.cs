@@ -535,7 +535,7 @@ namespace GameServer
 #if (!DEDICATED)
             if (_for == 0)
             {
-                if(GameManager.m_PlayerObject && (SafeZoneManager.SceneIsSafe(MyMod.level_guid) || SafeZoneManager.InsideSafeZone(MyMod.level_guid, GameManager.GetPlayerTransform().position)))
+                if(GameManager.m_PlayerObject && SafeZoneManager.InsideSafeZone(MyMod.level_guid, GameManager.GetPlayerTransform().position))
                 {
                     ServerSend.DOORLOCKEDMSG(_fromClient, "You cannot attack players in the safe zone!");
                     return;

@@ -8,8 +8,8 @@ using UnityEngine.AddressableAssets;
 namespace SkyCoop
 {
     // Humanoid character for other players. The body is a rigged model whose clothes are child meshes named after
-    // their gear (GEAR_*), dressed with the game's own material for that gear. Held items and head/neck accessories
-    // are mesh-only copies of the game's gear prefabs placed on the skeleton, so every gear the game has can be shown
+    // their gear (GEAR_*), dressed with the game's own material for that gear. Held items and accessories (head, neck,
+    // the satchel on the back) are mesh-only copies of the game's gear prefabs placed on the skeleton, so every gear the game has can be shown
     // without a model of its own. The model sits on the classic player object, which keeps its colliders, voice,
     // lights and logic; only that object's meshes are hidden.
     public class PlayerModel : MonoBehaviour
@@ -247,6 +247,10 @@ namespace SkyCoop
             m_Model.transform.localPosition = new Vector3(0, data.m_Female ? 0.194f / s.y : 0f, 0);
             int action = DriveAnimator(data);
             ApplyTilt(data, action);
+            if (m_RifleLowered)
+            {
+                LowerArms();
+            }
             AnimateMouth();
             // Lanterns hang upright from the hand by their handle.
             if (m_Hang && m_HeldGo != null && m_HeldGo.transform.parent != null)
@@ -317,10 +321,35 @@ namespace SkyCoop
             m_Anim.SetBool("Crouch", crouch);
             m_Anim.SetInteger("Gear", pose);
             int action = ActionOf(state, data.m_Aiming, pose);
+            // A rifle not aimed: the aiming pose holds it in both hands, LowerArms then brings it down to the waist.
+            m_RifleLowered = action == ActionNone && pose == PoseRifle;
+            if (m_RifleLowered)
+            {
+                action = ActionRifleAim;
+            }
             m_Anim.SetInteger("Action", action);
             m_Anim.SetFloat("DirectionX", Mathf.Lerp(m_Anim.GetFloat("DirectionX"), Mathf.Clamp(local.x, -1f, 1f), 0.1f));
             m_Anim.SetFloat("DirectionY", Mathf.Lerp(m_Anim.GetFloat("DirectionY"), Mathf.Clamp(local.z, -1f, 1f), 0.1f));
             return action;
+        }
+
+        bool m_RifleLowered = false;
+        const float RifleLowerAngle = 45f; // degrees the arms of the aiming pose are turned down
+
+        // Turns both arms down around the line through the shoulder joints, after the animator posed them. Both
+        // turn the same way around the same line, so the hands keep their grip on the rifle.
+        void LowerArms()
+        {
+            Transform left = Bone(HumanBodyBones.LeftUpperArm);
+            Transform right = Bone(HumanBodyBones.RightUpperArm);
+            if (left == null || right == null)
+            {
+                return;
+            }
+            Vector3 pivot = left.position;
+            Vector3 axis = (right.position - left.position).normalized; // the body's right: a positive turn points the rifle down
+            left.RotateAround(pivot, axis, RifleLowerAngle);
+            right.RotateAround(pivot, axis, RifleLowerAngle);
         }
 
         const float MaxTilt = 60f;       // degrees of camera pitch passed on to the body
@@ -389,6 +418,14 @@ namespace SkyCoop
             { "GEAR_Hammer", new[] { new Vector3(0.09f, 0.11f, -0.1f), new Vector3(80, 0, 0) } },
             { "GEAR_Prybar", new[] { new Vector3(0.09f, 0.1f, -0.02f), new Vector3(350, 0, 0) } },
             { "GEAR_Camera", new[] { new Vector3(0, 0.09f, -0.03f), new Vector3(0, 0, 270) } },
+            // held with the prefab's own origin on the hand bone
+            { "GEAR_Bow", new[] { Vector3.zero, Vector3.zero } },
+            { "GEAR_Torch", new[] { Vector3.zero, Vector3.zero } },
+            { "GEAR_FlareA", new[] { Vector3.zero, Vector3.zero } },
+            { "GEAR_BlueFlare", new[] { Vector3.zero, Vector3.zero } },
+            { "GEAR_WoodMatches", new[] { Vector3.zero, Vector3.zero } },
+            { "GEAR_PackMatches", new[] { Vector3.zero, Vector3.zero } },
+            { "GEAR_SprayPaintCanGlyphA", new[] { Vector3.zero, Vector3.zero } },
         };
         static readonly Vector3[] DefaultGrip = { new Vector3(0.09f, 0.11f, -0.061f), new Vector3(75, 0, 0) };
 
@@ -398,6 +435,7 @@ namespace SkyCoop
             // Rifle and revolver variants are held like the base weapon.
             if (gear.StartsWith("GEAR_Rifle", StringComparison.Ordinal)) return "GEAR_Rifle";
             if (gear.StartsWith("GEAR_Revolver", StringComparison.Ordinal)) return "GEAR_Revolver";
+            if (gear.StartsWith("GEAR_Bow_", StringComparison.Ordinal)) return "GEAR_Bow";
             return gear;
         }
 
@@ -440,11 +478,13 @@ namespace SkyCoop
         const string Respirator = "GEAR_Respirator";
         static readonly Dictionary<string, Material> s_GearMaterials = new Dictionary<string, Material>();
 
-        // Gear worn as a separate object on the head bone (in its space), with the child of the prefab to show.
+        // Gear worn as a separate object on a bone (in its space, the head unless given), with the child of the prefab
+        // to show.
         sealed class Accessory
         {
             public Vector3 Pos, Rot, Scale;
             public int Child = -1;
+            public HumanBodyBones Bone = HumanBodyBones.LeftEye;
         }
         static readonly Dictionary<string, Accessory> Accessories = new Dictionary<string, Accessory>
         {
@@ -457,6 +497,8 @@ namespace SkyCoop
             { "GEAR_CougarWrap", new Accessory { Pos = new Vector3(0, -0.07f, -0.03f), Rot = Vector3.zero, Scale = Vector3.one, Child = 1 } },
             { "GEAR_WolfSkinHat", new Accessory { Pos = new Vector3(0, 0.06f, 0), Rot = Vector3.zero, Scale = Vector3.one, Child = 1 } },
             { "GEAR_DeerSkinHat", new Accessory { Pos = new Vector3(0, 0.1f, 0), Rot = Vector3.zero, Scale = new Vector3(0.4f, 0.4f, 0.4f), Child = 1 } },
+            // worn in an accessory slot, hangs on the back from the left shoulder
+            { "GEAR_MooseHideBag", new Accessory { Pos = new Vector3(0.23f, 0.23f, -0.42f), Rot = new Vector3(90, 0, -50), Scale = Vector3.one, Bone = HumanBodyBones.LeftShoulder } },
         };
 
         static readonly string[] FaceCovers = { "GEAR_Balaclava", "GEAR_HatGatorBalaclavaA", "GEAR_WoolWrapCap", "GEAR_WoolWrap", "GEAR_CottonScarf", "GEAR_BasicWoolScarf" };
@@ -531,28 +573,25 @@ namespace SkyCoop
                 UnityEngine.Object.Destroy(a);
             }
             m_Accessories.Clear();
-            Transform head = Bone(HumanBodyBones.LeftEye) ?? Bone(HumanBodyBones.Head);
-            if (head != null)
+            foreach (string gear in set)
             {
-                foreach (string gear in set)
+                if (!Accessories.TryGetValue(gear, out Accessory acc) || HasPart(gear))
                 {
-                    if (!Accessories.TryGetValue(gear, out Accessory acc) || HasPart(gear))
-                    {
-                        continue;
-                    }
-                    GameObject prefab = LoadGearPrefab(gear);
-                    if (prefab == null)
-                    {
-                        continue;
-                    }
-                    Transform source = acc.Child >= 0 && prefab.transform.childCount > acc.Child ? prefab.transform.GetChild(acc.Child) : null;
-                    GameObject copy = MeshCopy(prefab, "Worn_" + gear, source);
-                    copy.transform.SetParent(head, false);
-                    copy.transform.localPosition = acc.Pos;
-                    copy.transform.localRotation = EulerXYZ(acc.Rot);
-                    copy.transform.localScale = acc.Scale;
-                    m_Accessories.Add(copy);
+                    continue;
                 }
+                Transform bone = Bone(acc.Bone) ?? (acc.Bone == HumanBodyBones.LeftEye ? Bone(HumanBodyBones.Head) : null);
+                GameObject prefab = bone != null ? LoadGearPrefab(gear) : null;
+                if (prefab == null)
+                {
+                    continue;
+                }
+                Transform source = acc.Child >= 0 && prefab.transform.childCount > acc.Child ? prefab.transform.GetChild(acc.Child) : null;
+                GameObject copy = MeshCopy(prefab, "Worn_" + gear, source);
+                copy.transform.SetParent(bone, false);
+                copy.transform.localPosition = acc.Pos;
+                copy.transform.localRotation = EulerXYZ(acc.Rot);
+                copy.transform.localScale = acc.Scale;
+                m_Accessories.Add(copy);
             }
 
             string hat = c.m_Hat ?? "";

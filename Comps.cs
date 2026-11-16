@@ -1434,48 +1434,6 @@ namespace SkyCoop
             GameObject m_HeldClone = null;
             public string m_HoldingItemRaw = "";
 
-            // Model from mpgear.unity3d, already fitted to the hand bone. Meshes the game keeps GPU-only are stored as "@<mesh name>" parts and taken from the game's prefab.
-            bool ShowGearBundleModel(string gearName)
-            {
-                if (MyMod.GearBundle == null || !MyMod.GearBundleModels.Contains(gearName.ToLowerInvariant())) return false;
-                GameObject prefab = MyMod.GearBundle.LoadAsset<GameObject>(gearName);
-                if (prefab == null) return false;
-                GameObject hand = gearName.StartsWith("GEAR_Bow") ? hand_l : hand_r;
-                m_HeldClone = UnityEngine.Object.Instantiate(prefab, hand.transform, false);
-                Dictionary<string, Mesh> gameMeshes = null;
-                foreach (MeshFilter mf in m_HeldClone.GetComponentsInChildren<MeshFilter>(true))
-                {
-                    mf.gameObject.layer = hand.layer;
-                    if (mf.sharedMesh != null || !mf.name.StartsWith("@")) continue;
-                    if (gameMeshes == null)
-                    {
-                        gameMeshes = new Dictionary<string, Mesh>();
-                        GameObject gamePrefab = MyMod.GetGearItemObject(gearName);
-                        if (gamePrefab != null)
-                        {
-                            foreach (MeshFilter g in gamePrefab.GetComponentsInChildren<MeshFilter>(true)) if (g.sharedMesh != null) gameMeshes[g.sharedMesh.name] = g.sharedMesh;
-                            foreach (SkinnedMeshRenderer g in gamePrefab.GetComponentsInChildren<SkinnedMeshRenderer>(true)) if (g.sharedMesh != null) gameMeshes[g.sharedMesh.name] = g.sharedMesh;
-                        }
-                    }
-                    if (gameMeshes.TryGetValue(mf.name.Substring(1), out Mesh mesh)) mf.sharedMesh = mesh;
-                }
-                Transform light = m_HeldClone.transform.Find("Light");
-                if (light != null) light.gameObject.SetActive(m_LightSourceOn);
-                GearFit.ApplyModel(m_HeldClone.transform.Find("Model"), gearName, hand.transform);
-                return true;
-            }
-
-            int m_OffsetsSeen = -1;
-
-            // Hand bone tuning (GearFit) on top of whatever the animator just did.
-            void LateUpdate()
-            {
-                if (hand_r == null || m_HoldingItemRaw == "") return;
-                GearFit.ApplyHand(hand_r.transform, "HANDR_" + m_HoldingItemRaw);
-                GearFit.ApplyHand(hand_l.transform, "HANDL_" + m_HoldingItemRaw);
-            }
-
-
             // For items without a bundled model (knives, hatchets, prybar, flashlight, DLC tools...) copy only the game prefab's meshes, so no live GearItem is spawned.
             void ShowHeldClone(string gearName)
             {
@@ -1720,11 +1678,7 @@ namespace SkyCoop
 
                 string m_AnimState = MyMod.playersData[m_ID].m_AnimState;
 
-                if (m_HoldingFood == "" && m_AnimState != "Igniting" && ShowGearBundleModel(m_HoldingItemRaw))
-                {
-                    // Own model shown; the generic one for its type stays hidden.
-                }
-                else if (m_HoldingFood == "" && m_AnimState != "Igniting")
+                if (m_HoldingFood == "" && m_AnimState != "Igniting")
                 {
                     if (m_HoldingItem.StartsWith("GEAR_Flare") != m_HoldingItem.Contains("Gun")) // By some reason, it called GEAR_FlareA, i not know exist FlareB but better check it.
                     {
@@ -1977,10 +1931,7 @@ namespace SkyCoop
                     }
 
                     DataStr.PlayerEquipmentData Edata = pD.m_PlayerEquipmentData;
-                    GearFit.Poll();
-                    bool offsetsEdited = m_OffsetsSeen != GearFit.Version;
-                    m_OffsetsSeen = GearFit.Version;
-                    if (offsetsEdited || (Edata.m_HoldingItem != m_HoldingItemRaw) || (Edata.m_LightSourceOn != m_LightSourceOn))
+                    if ((Edata.m_HoldingItem != m_HoldingItemRaw) || (Edata.m_LightSourceOn != m_LightSourceOn))
                     {
                         m_HoldingItemRaw = Edata.m_HoldingItem;
                         m_HoldingItem = HeldModelName(Edata.m_HoldingItem);
