@@ -5824,8 +5824,20 @@ namespace SkyCoop
 
                     SaveGameSystem.SetCurrentSaveInfo(SaveToLoad.m_Episode, SaveToLoad.m_GameMode, SaveToLoad.m_GameId, SaveToLoad.m_SaveSlotName);
                     MelonLogger.Msg("Selecting slot " + SaveGameSystem.GetCurrentSaveName());
-                    GameManager.LoadSaveGameSlot(SaveToLoad);
                     PendingSaveSlotInfo = null;
+                    try
+                    {
+                        GameManager.LoadSaveGameSlot(SaveToLoad);
+                    }
+                    catch (Exception e)
+                    {
+                        // another mod's patch on the save loading can throw (a broken file of its own); the game then
+                        // never loads and the player would wait in the menu with no word
+                        MelonLogger.Error("Loading save slot " + SaveToLoad.m_SaveSlotName + " failed: " + e);
+                        MyMod.RemoveWaitForConnect();
+                        MyMod.RemovePleaseWait();
+                        DoOKMessage("Can't load the save", "Save " + SaveToLoad.m_SaveSlotName + " failed to load: " + e.Message + "\nSee MelonLoader\\Latest.log for the mod that failed.");
+                    }
                 }
             }else{
 

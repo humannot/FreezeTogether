@@ -143,7 +143,14 @@ namespace GameServer
             myId = 0;
             SubNetworkClientGUID = MPSaveManager.GetSubNetworkGUID();
 
+            // A socket left from an earlier attempt still holds the local port. It is replaced first, so its receive
+            // callback sees it is no longer the connection and does not disconnect the new one.
+            UDP old = udp;
             udp = new UDP();
+            if (old != null && old.socket != null)
+            {
+                old.socket.Close();
+            }
 
             if (ip != "")
             {
@@ -303,9 +310,12 @@ namespace GameServer
                 catch
                 {
                     endPoint = null;
-                    socket.Close();
-                    MyMod.Disconnect();
-                    MelonLogger.Msg("Connection failed");
+                    socket?.Close();
+                    if (udp == this)
+                    {
+                        MyMod.Disconnect();
+                        MelonLogger.Msg("Connection failed");
+                    }
                 }
             }
 
@@ -332,15 +342,6 @@ namespace GameServer
                         packetHandlers[_packetId](_packet); // Call appropriate method to handle the packet
                     }
                 });
-            }
-
-            /// <summary>Disconnects from the server and cleans up the UDP connection.</summary>
-            private void Disconnect()
-            {
-                Disconnect();
-
-                endPoint = null;
-                socket = null;
             }
         }
         public static void InitializeClientData()

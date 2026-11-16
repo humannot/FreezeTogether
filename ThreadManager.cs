@@ -52,7 +52,15 @@ namespace GameServer
 
                 for (int i = 0; i < executeCopiedOnMainThread.Count; i++)
                 {
-                    executeCopiedOnMainThread[i]();
+                    // the batch is already taken off the queue: an action that throws must not lose the ones after it
+                    try
+                    {
+                        executeCopiedOnMainThread[i]();
+                    }
+                    catch (System.Exception e)
+                    {
+                        MelonLoader.MelonLogger.Error(e);
+                    }
                 }
             }
         }
