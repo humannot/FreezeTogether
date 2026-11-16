@@ -2955,6 +2955,46 @@ namespace SkyCoop
 
         }
 
+        static readonly Dictionary<int, List<KeyValuePair<GameObject, int>>> s_WindowViewLayers = new Dictionary<int, List<KeyValuePair<GameObject, int>>>();
+
+        // A player in a SeamlessInteriors room seen from outside is drawn by the building's window cameras only when
+        // the model is on the layer the room is drawn from; it goes back to its own layers otherwise.
+        static void SetWindowViewLayer(int id, GameObject plObj)
+        {
+            int layer = -1;
+            if (SeamlessCompat.Loaded)
+            {
+                string room = SeamlessCompat.InteriorAt(plObj.transform.position);
+                if (room != null && room != SeamlessCompat.PlayerInterior())
+                {
+                    layer = SeamlessCompat.WindowViewLayer(room);
+                }
+            }
+            s_WindowViewLayers.TryGetValue(id, out List<KeyValuePair<GameObject, int>> saved);
+            if (saved != null)
+            {
+                foreach (KeyValuePair<GameObject, int> s in saved)
+                {
+                    if (s.Key != null)
+                    {
+                        s.Key.layer = s.Value;
+                    }
+                }
+                s_WindowViewLayers.Remove(id);
+            }
+            if (layer < 0)
+            {
+                return;
+            }
+            saved = new List<KeyValuePair<GameObject, int>>();
+            foreach (Renderer r in plObj.GetComponentsInChildren<Renderer>(true))
+            {
+                saved.Add(new KeyValuePair<GameObject, int>(r.gameObject, r.gameObject.layer));
+                r.gameObject.layer = layer;
+            }
+            s_WindowViewLayers[id] = saved;
+        }
+
         public static void PlayersUpdateManager()
         {
             if (playersData.Count > 0)
@@ -2963,18 +3003,15 @@ namespace SkyCoop
                 {
                     if(playersData[i] == null || players[i] == null)
                     {
+                        if (players[i] != null)
+                        {
+                            players[i].SetActive(false);
+                        }
                         continue;
                     }
                     GameObject plObj = players[i];
                     DataStr.MultiPlayerClientData plDat = playersData[i];
-                    if (plObj.transform.parent != null)
-                    {
-                        // SeamlessInteriors attaches objects standing in a building to its room when the local player
-                        // walks out; a player model under the room is then hidden with it and keeps the room's place
-                        // in the hierarchy, so it is put back at the root where it was created.
-                        plObj.transform.SetParent(null, true);
-                        UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(plObj, UnityEngine.SceneManagement.SceneManager.GetActiveScene());
-                    }
+                    SetWindowViewLayer(i, plObj);
                     if (levelid == plDat.m_Levelid && level_guid == plDat.m_LevelGuid && !plDat.m_IsLoading) // Player locates on same scene with you.
                     {
                         plObj.SetActive(true);

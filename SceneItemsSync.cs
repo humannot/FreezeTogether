@@ -158,6 +158,7 @@ namespace SkyCoop
             s_FloorIn.Clear();
             s_PendingFloor.Clear();
             s_FloorSent.Clear();
+            s_OpenRooms.Clear();
             s_Ready = false;
             if (!MyMod.InOnline())
             {
@@ -303,10 +304,74 @@ namespace SkyCoop
             return true;
         }
 
+        // ---------- pickups in SeamlessInteriors rooms ----------
+        //
+        // A room's content is built from SeamlessInteriors' own save of this player each time the room opens, and a
+        // pickup that arrived while it was closed found nothing to hide. Each time a room opens, the scene's pickups
+        // lying in it are applied again: the host's stored list, or on a client every pickup it was sent for the scene.
+
+        static readonly HashSet<string> s_OpenRooms = new HashSet<string>();
+        static readonly Dictionary<string, Dictionary<long, DataStr.PickedGearSync>> s_PickedSent = new Dictionary<string, Dictionary<long, DataStr.PickedGearSync>>();
+
+        public static void OnPickupReceived(DataStr.PickedGearSync picked)
+        {
+            if (MyMod.iAmHost || picked == null || string.IsNullOrEmpty(picked.m_LevelGUID))
+            {
+                return;
+            }
+            if (!s_PickedSent.TryGetValue(picked.m_LevelGUID, out Dictionary<long, DataStr.PickedGearSync> scene))
+            {
+                scene = new Dictionary<long, DataStr.PickedGearSync>();
+                s_PickedSent[picked.m_LevelGUID] = scene;
+            }
+            scene[MPSaveManager.GetPickedGearKey(picked)] = picked;
+        }
+
+        static void ApplyPickupsInOpenedRooms()
+        {
+            if (!SeamlessCompat.Loaded)
+            {
+                return;
+            }
+            foreach (string room in SeamlessCompat.InteriorIds())
+            {
+                if (!SeamlessCompat.IsReady(room))
+                {
+                    s_OpenRooms.Remove(room);
+                    continue;
+                }
+                if (!s_OpenRooms.Add(room))
+                {
+                    continue;
+                }
+                Dictionary<long, DataStr.PickedGearSync> picked = null;
+                if (MyMod.iAmHost)
+                {
+                    picked = MPSaveManager.LoadPickedGearsData(MyMod.level_guid);
+                }
+                else
+                {
+                    s_PickedSent.TryGetValue(MyMod.level_guid, out picked);
+                }
+                if (picked == null)
+                {
+                    continue;
+                }
+                foreach (DataStr.PickedGearSync p in picked.Values.ToList())
+                {
+                    if (SeamlessCompat.InteriorAt(p.m_Spawn) == room)
+                    {
+                        MyMod.RemovePickedGear(p);
+                    }
+                }
+            }
+        }
+
         public static void EverySecond()
         {
             if (s_Ready && MyMod.InOnline())
             {
+                ApplyPickupsInOpenedRooms();
                 CheckArea("");
                 string interior = SeamlessCompat.PlayerInterior();
                 if (!string.IsNullOrEmpty(interior))

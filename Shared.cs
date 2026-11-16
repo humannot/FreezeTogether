@@ -2429,6 +2429,10 @@ namespace SkyCoop
                     {
                         GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("multiplayerPlayer");
                         GameObject m_Player = GameObject.Instantiate(LoadedAssets);
+                        // SeamlessInteriors leaves objects kept across scenes alone. In a scene, a model standing in a
+                        // building when the local player walks out is attached to the room and moved to the room's
+                        // hidden layer, and stays unseen after it leaves. PlayersUpdateManager hides models on other scenes.
+                        GameObject.DontDestroyOnLoad(m_Player);
                         m_Player.AddComponent<Comps.MultiplayerPlayerAnimator>().m_Animer = m_Player.GetComponent<Animator>();
                         m_Player.AddComponent<Comps.MultiplayerPlayerClothingManager>().m_Player = m_Player;
 

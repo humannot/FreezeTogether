@@ -612,6 +612,7 @@ namespace SkyCoop
                 }
             }
 
+            SceneItemsSync.OnPickupReceived(gear);
             if (MyMod.DelayedGearsPickup)
             {
                 MyMod.PickedGearsBackup.Add(gear);
