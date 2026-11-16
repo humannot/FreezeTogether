@@ -61,32 +61,49 @@ namespace SkyCoop
             }
         }
 
+        static bool s_CallFailed = false;
+
+        // These are polled every second next to the fire and spawner sync; a throwing API answers null instead of
+        // stopping those, and is reported once.
+        static object Call(MethodInfo m, params object[] args)
+        {
+            try
+            {
+                return m.Invoke(null, args);
+            }
+            catch (Exception e)
+            {
+                if (!s_CallFailed)
+                {
+                    s_CallFailed = true;
+                    MelonLogger.Warning("[SeamlessInteriors] " + m.Name + " failed: " + (e.InnerException ?? e).Message);
+                }
+                return null;
+            }
+        }
+
         // Id of the SeamlessInteriors building the object belongs to, null outside buildings or without the mod.
         public static string InteriorOf(GameObject go)
         {
-            if (s_InteriorOf == null || go == null)
-            {
-                return null;
-            }
-            return (string)s_InteriorOf.Invoke(null, new object[] { go });
+            return s_InteriorOf != null && go != null ? Call(s_InteriorOf, go) as string : null;
         }
 
         // Root object of a building's content; SeamlessInteriors saves the gear under it with the building.
         public static GameObject InteriorRoot(string interior)
         {
-            return s_InteriorRoot != null && !string.IsNullOrEmpty(interior) ? (GameObject)s_InteriorRoot.Invoke(null, new object[] { interior }) : null;
+            return s_InteriorRoot != null && !string.IsNullOrEmpty(interior) ? Call(s_InteriorRoot, interior) as GameObject : null;
         }
 
         // The building's content is built and shown, and no building is being set up: its items can be read.
         public static bool IsReady(string interior)
         {
-            return s_InteriorOpen != null && (bool)s_InteriorsReady.GetValue(null) && (bool)s_InteriorOpen.Invoke(null, new object[] { interior });
+            return s_InteriorOpen != null && s_InteriorsReady.GetValue(null) is bool all && all && Call(s_InteriorOpen, interior) is bool open && open;
         }
 
         // Id of the building the player is in, null outdoors or without the mod.
         public static string PlayerInterior()
         {
-            return s_PlayerInterior != null ? (string)s_PlayerInterior.Invoke(null, null) : null;
+            return s_PlayerInterior != null ? Call(s_PlayerInterior) as string : null;
         }
     }
 }

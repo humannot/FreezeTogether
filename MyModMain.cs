@@ -4260,8 +4260,7 @@ namespace SkyCoop
         }
 
         // The teammate's emergency stim takes effect as if injected here: the game's own stim effects (pulse, screen
-        // effect, fatigue and stimulation) with the stim prefab's values; the revive then leaves the player at a
-        // quarter of their health.
+        // effect, fatigue and stimulation) with the stim prefab's values.
         static void ApplyReviveStim()
         {
             GameObject prefab = GetGearItemObject("GEAR_EmergencyStim");
@@ -4270,8 +4269,6 @@ namespace SkyCoop
             {
                 GameManager.GetEmergencyStimComponent().ApplyEmergencyStim(stim);
             }
-            Condition cond = GameManager.GetConditionComponent();
-            cond.m_CurrentHP = cond.m_MaxHP * 0.25f;
         }
 
         // Downed state: at 0 HP the player lies on the ground until a teammate revives them or they give up.
@@ -12077,12 +12074,11 @@ namespace SkyCoop
             DeBugMenu.Render();
         }
 
-        public static void SetRevivedStats(bool health = true)
+        // a revived player is left at a quarter of their health
+        public static void SetRevivedStats()
         {
-            if (health == true)
-            {
-                GameManager.GetConditionComponent().m_CurrentHP = GameManager.GetConditionComponent().m_MaxHP * 0.25f;
-            }
+            Condition cond = GameManager.GetConditionComponent();
+            cond.m_CurrentHP = cond.m_MaxHP * 0.25f;
             IsDead = false;
             DeathDropDone = false;
             GameManager.GetPlayerManagerComponent().m_Ghost = false;
