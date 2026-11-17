@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -268,6 +268,11 @@ namespace TinyJSON
 
 			// If there's a type hint, use it to create the instance.
 			var typeHint = proxyObject.TypeHint;
+			// Data written before the project was renamed names its types under the earlier namespace and assembly.
+			if (typeHint != null)
+			{
+				typeHint = typeHint.Replace( "SkyCoop.MyMod", "FreezeTogether.DataStr" ).Replace( "SkyCoop.", "FreezeTogether." ).Replace( ", SkyCoop,", ", FreezeTogether," );
+			}
 			if (typeHint != null && typeHint != type.FullName)
 			{
 				var makeType = FindType( typeHint );

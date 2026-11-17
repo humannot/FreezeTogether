@@ -9,7 +9,7 @@ using GameServer;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class MenuChange
     {
@@ -1133,11 +1133,7 @@ namespace SkyCoop
             {
                 IL2CPP.List<BasicMenu.BasicMenuItemModel> list = __instance.m_ItemModelList;
 
-                if (list[index].m_LabelText == "Donaters")
-                {
-                    Application.OpenURL("https://filigrani.github.io/SkyCoop/");
-                }
-                else if (list[index].m_LabelText == "MULTIPLAYER")
+                if (list[index].m_LabelText == "MULTIPLAYER")
                 {
                     
                     MyMod.m_Panel_Sandbox = InterfaceManager.LoadPanel<Panel_Sandbox>();
@@ -1402,7 +1398,7 @@ namespace SkyCoop
         public static int GetRNGGen(string name)
         {
             int GenVersion = 0;
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_genversion");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_genversion");
             if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();
@@ -1415,7 +1411,7 @@ namespace SkyCoop
         {
             int GenVersion = 0;
             string textToShow;
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_genversion");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_genversion");
             if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();

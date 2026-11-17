@@ -8,14 +8,14 @@ using MelonLoader;
 using TinyJSON;
 using System.Diagnostics;
 using GameServer;
-using static SkyCoop.DataStr;
-using static SkyCoop.Comps;
+using static FreezeTogether.DataStr;
+using static FreezeTogether.Comps;
 using static Il2Cpp.Utils;
-using static SkyCoop.MyMod;
+using static FreezeTogether.MyMod;
 using Il2CppAK;
 using UnityEngine.SceneManagement;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class Pathes
     {
@@ -2030,7 +2030,7 @@ namespace SkyCoop
                                 __instance.ReturnToDefaultBehavior();
                             else if ((double)Utils.XZDistance(GameManager.GetPlayerTransform().position, __instance.m_CachedTransform.position) < (double)__instance.m_MaxPlayerApproachDistanceToInvestigateFood)
                                 __instance.ReturnToDefaultBehavior();
-                            else if (Gi.m_InPlayerInventory) // Not gonna happend in Sky Co-op
+                            else if (Gi.m_InPlayerInventory) // Cannot happen online
                             {
                                 __instance.ReturnToDefaultBehavior(); 
                             } else
@@ -2765,7 +2765,7 @@ namespace SkyCoop
             //MelonLogger.Msg("[Saving][SaveDeathCreates] Saving...");
             DataStr.DeathContainerData[] saveProxy = MyMod.DeathCreates.ToArray();
             string data = JSON.Dump(saveProxy);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_DeathCreates", data);
+            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_DeathCreates", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][SaveDeathCreates] Successfully!");
@@ -2784,7 +2784,7 @@ namespace SkyCoop
             //MelonLogger.Msg("[Saving][ClimbingRopeSync] Saving...");
             DataStr.ClimbingRopeSync[] saveProxy = MyMod.DeployedRopes.ToArray();
             string data = JSON.Dump(saveProxy);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_ropes", data);
+            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_ropes", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][ClimbingRopeSync] Successfully!");
@@ -2804,7 +2804,7 @@ namespace SkyCoop
                 return;
             }
             string data = JSON.Dump(MyMod.ServerConfig);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_cfg", data);
+            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_cfg", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][ServerConfig] Successfully!");
@@ -2820,7 +2820,7 @@ namespace SkyCoop
             //MelonLogger.Msg("[Saving][SnowShelters] Saving...");
             DataStr.ShowShelterByOther[] saveProxy = MyMod.ShowSheltersBuilded.ToArray();
             string data = JSON.Dump(saveProxy);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_shelters", data);
+            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_shelters", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][SnowShelters] Successfully!");
@@ -2838,7 +2838,7 @@ namespace SkyCoop
 
             if (MyMod.CantBeUsedForMP == false)
             {
-                bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_genversion", data);
+                bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_genversion", data);
                 if (ok == true)
                 {
                     MyMod.LastLoadedGenVersion = MyMod.BuildInfo.RandomGenVersion;
@@ -2850,7 +2850,7 @@ namespace SkyCoop
             float[] saveProxy = { MyMod.RadioFrequency };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_FQ", data);
+            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_FQ", data);
         }
 
         public static void SaveRealtimeTime(SaveSlotType gameMode, string name)
@@ -2858,14 +2858,14 @@ namespace SkyCoop
             int[] saveProxy = { MyMod.MinutesFromStartServer };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_rtt", data);
+            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_rtt", data);
         }
         public static void SaveFixedSpawn(SaveSlotType gameMode, string name)
         {
             string[] saveProxy = { MyMod.SavedSceneForSpawn };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_fixedS", data);
+            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_fixedS", data);
         }
         public static void SaveSanity(SaveSlotType gameMode, string name)
         {
@@ -2875,21 +2875,21 @@ namespace SkyCoop
             bool[] saveProxy2 = { SanityManager.m_CanSeeSanity };
             string data2 = JSON.Dump(saveProxy2);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_sanity", data);
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_sanitybookV2", data2);
+            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_sanity", data);
+            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_sanitybookV2", data2);
         }
         public static void SaveFixedSpawnPosition(SaveSlotType gameMode, string name)
         {
             Vector3[] saveProxy = { MyMod.SavedPositionForSpawn };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_fixedP", data);
+            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_fixedP", data);
         }
         public static void SaveBookReaded(SaveSlotType gameMode, string name)
         {
             //MelonLogger.Msg("[Saving][BooksResearched] Saving...");
             string data = JSON.Dump(MyMod.BooksResearched);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_books", data);
+            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_books", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][BooksResearched] Successfully!");
@@ -2902,7 +2902,7 @@ namespace SkyCoop
         public static void SaveCustomSkills(SaveSlotType gameMode, string name)
         {
             string data = JSON.Dump(MyMod.SaveCustomSkills());
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_customskills", data);
+            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "ft_customskills", data);
         }
 
 
@@ -2942,7 +2942,7 @@ namespace SkyCoop
         public static void LoadDeathCreates(string name)
         {
             //MelonLogger.Msg("[Saving][DeathCreates] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_DeathCreates");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_DeathCreates");
             if (data != null)
             {
                 DataStr.DeathContainerData[] saveProxy = JSON.Load(data).Make<DataStr.DeathContainerData[]>();
@@ -2972,7 +2972,7 @@ namespace SkyCoop
         public static void LoadDeployedRopes(string name)
         {
             //MelonLogger.Msg("[Saving][ClimbingRopeSync] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_ropes");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_ropes");
             if (data != null)
             {
                 DataStr.ClimbingRopeSync[] saveProxy = JSON.Load(data).Make<DataStr.ClimbingRopeSync[]>();
@@ -2998,7 +2998,7 @@ namespace SkyCoop
         public static void LoadSnowShelters(string name)
         {
             //MelonLogger.Msg("[Saving][SnowShelters] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_shelters");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_shelters");
             if (data != null)
             {
                 DataStr.ShowShelterByOther[] saveProxy = JSON.Load(data).Make<DataStr.ShowShelterByOther[]>();
@@ -3031,7 +3031,7 @@ namespace SkyCoop
                 return;
             }
 
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_cfg");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_cfg");
             if (data != null)
             {
                 DataStr.ServerConfigData saveProxy = JSON.Load(data).Make<DataStr.ServerConfigData>();
@@ -3047,7 +3047,7 @@ namespace SkyCoop
         public static void LoadGenVersion(string name)
         {
             //MelonLogger.Msg("[Saving][MultiplayerDeath] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_genversion");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_genversion");
             if (SaveGameSystem.m_CurrentGameMode == SaveSlotType.STORY)
             {
                 // Story world is hand-made, nothing is generated from the seed, so any story save is fine.
@@ -3073,7 +3073,7 @@ namespace SkyCoop
         }
         public static float LoadRadioFQ(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_FQ");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_FQ");
             if (data != null)
             {
                 float[] saveProxy = JSON.Load(data).Make<float[]>();
@@ -3085,7 +3085,7 @@ namespace SkyCoop
 
         public static void LoadRealtimeTime(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_rtt");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_rtt");
             if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();
@@ -3095,7 +3095,7 @@ namespace SkyCoop
 
         public static void LoadFixedSpawn(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_fixedS");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_fixedS");
             if (data != null)
             {
                 string[] saveProxy = JSON.Load(data).Make<string[]>();
@@ -3105,7 +3105,7 @@ namespace SkyCoop
         }
         public static void LoadFixedSpawnPosition(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_fixedP");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_fixedP");
             if (data != null)
             {
                 Vector3[] saveProxy = JSON.Load(data).Make<Vector3[]>();
@@ -3115,7 +3115,7 @@ namespace SkyCoop
         }
         public static void LoadReadedBooks(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_books");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_books");
             if (data != null)
             {
                 Dictionary<string, float> loadedData = JSON.Load(data).Make<Dictionary<string, float>>();
@@ -3139,7 +3139,7 @@ namespace SkyCoop
 
         public static void LoadCustomSkills(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_customskills");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_customskills");
             if (data != null)
             {
                 MyMod.LoadCustomSkills(JSON.Load(data).Make<List<int>>());
@@ -3148,13 +3148,13 @@ namespace SkyCoop
 
         public static void LoadSanity(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_sanity");
+            string data = SaveGameSlots.LoadDataFromSlot(name, "ft_sanity");
             if (data != null)
             {
                 float[] saveProxy = JSON.Load(data).Make<float[]>();
                 SanityManager.m_CurrentSanity = saveProxy[0];
             }
-            string data2 = SaveGameSlots.LoadDataFromSlot(name, "skycoop_sanitybookV2");
+            string data2 = SaveGameSlots.LoadDataFromSlot(name, "ft_sanitybookV2");
             if (data2 != null)
             {
                 bool[] saveProxy = JSON.Load(data2).Make<bool[]>();

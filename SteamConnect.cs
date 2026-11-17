@@ -9,7 +9,7 @@ using GameServer;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     class SteamConnect
     {

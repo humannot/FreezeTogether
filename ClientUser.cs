@@ -1,5 +1,5 @@
 ﻿using MelonLoader;
-using SkyCoop;
+using FreezeTogether;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +40,7 @@ namespace GameServer
             PingData Dat = new PingData();
             // Request of server status should be done via UDP.
             // Use same port as game server use.
-            // Default port of Sky Co-op Server is 26950 (if not listed otherwise).
+            // Default port of a Freeze Together server is 26950 (if not listed otherwise).
             // Example: Game server with address 11.111.111.111:26950
             // Will respond with status data by same 26950 port,
             // aswell as servers that listed as 11.111.111.111
@@ -433,7 +433,7 @@ namespace GameServer
             { (int)ServerPackets.GOTCONTAINERSLICE, ClientHandle.GOTCONTAINERSLICE},
             { (int)ServerPackets.OPENEMPTYCONTAINER, ClientHandle.OPENEMPTYCONTAINER},
             { (int)ServerPackets.CONTAINERBUSY, ClientHandle.CONTAINERBUSY},
-            { (int)ServerPackets.SCENEITEMS, SkyCoop.SceneItemsSync.HandleFromServer},
+            { (int)ServerPackets.SCENEITEMS, FreezeTogether.SceneItemsSync.HandleFromServer},
             { (int)ServerPackets.TILT, ClientHandle.TILT},
             { (int)ServerPackets.MARKSEARCHEDCONTAINERS, ClientHandle.MARKSEARCHEDCONTAINERS},
             { (int)ServerPackets.READYSENDNEXTSLICE, ClientHandle.READYSENDNEXTSLICE},

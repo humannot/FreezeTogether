@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static SkyCoop.MPSaveManager;
+using static FreezeTogether.MPSaveManager;
 #if (DEDICATED)
 using System.Numerics;
 using TinyJSON;
@@ -14,7 +14,7 @@ using MelonLoader;
 using UnityEngine;
 #endif
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class MPStats
     {

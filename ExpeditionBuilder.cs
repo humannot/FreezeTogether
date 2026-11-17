@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static SkyCoop.ExpeditionManager;
+using static FreezeTogether.ExpeditionManager;
 using System.Security.Policy;
 #if (DEDICATED)
 using System.Numerics;
@@ -15,7 +15,7 @@ using MelonLoader;
 using UnityEngine;
 #endif
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class ExpeditionBuilder
     {

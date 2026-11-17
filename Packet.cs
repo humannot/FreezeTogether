@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using SkyCoop;
-using static SkyCoop.DataStr;
-using static SkyCoop.ExpeditionManager;
+using FreezeTogether;
+using static FreezeTogether.DataStr;
+using static FreezeTogether.ExpeditionManager;
 #if (DEDICATED)
 using System.Numerics;
 #else
@@ -831,7 +831,6 @@ namespace GameServer
             Write(obj.m_CheckModsValidation);
             Write(obj.m_SaveScamProtection);
             Write(obj.m_PVP);
-            Write(obj.m_SafeZones);
         }
         public void Write(DataStr.HarvestableSyncData obj)
         {
@@ -1472,7 +1471,6 @@ namespace GameServer
             obj.m_CheckModsValidation = ReadBool();
             obj.m_SaveScamProtection = ReadBool();
             obj.m_PVP = ReadBool();
-            obj.m_SafeZones = ReadBool();
 
             return obj;
         }

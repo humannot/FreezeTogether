@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using GameServer;
 using System.Text.RegularExpressions;
-using static SkyCoop.DataStr;
+using static FreezeTogether.DataStr;
 using System.Net.NetworkInformation;
-using static SkyCoop.ExpeditionBuilder;
+using static FreezeTogether.ExpeditionBuilder;
 using System.Security.Cryptography;
 #if (!DEDICATED)
 using UnityEngine;
@@ -20,7 +20,7 @@ using System.Numerics;
 using TinyJSON;
 #endif
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class Shared
     {
@@ -449,7 +449,6 @@ namespace SkyCoop
                 MyMod.UpdatePlayerStatusMenu(PlayersListDat);
 #endif
                 WeatherUpdateSecond();
-                SafeZoneManager.UpdatePlayersSafeZoneStatus();
                 for (int n = 0; n < MyMod.RecentlyPickedGears.Count; n++)
                 {
                     DataStr.PickedGearSync currGear = MyMod.RecentlyPickedGears[n];

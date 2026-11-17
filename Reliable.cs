@@ -115,7 +115,7 @@ namespace GameServer
         {
             double now = Now;
 #if (!DEDICATED)
-            if (SkyCoop.MyMod.sendMyPosition && !(SkyCoop.SteamConnect.CanUseSteam && SkyCoop.MyMod.ConnectedSteamWorks) && ClientUser.udp != null)
+            if (FreezeTogether.MyMod.sendMyPosition && !(FreezeTogether.SteamConnect.CanUseSteam && FreezeTogether.MyMod.ConnectedSteamWorks) && ClientUser.udp != null)
             {
                 List<KeyValuePair<int, byte[]>> dueToServer = ToServer.DueForResend(now, out int givenUp);
                 foreach (KeyValuePair<int, byte[]> due in dueToServer)
@@ -131,7 +131,7 @@ namespace GameServer
                 }
             }
 #endif
-            if (SkyCoop.MyMod.iAmHost && !Server.UsingSteamWorks && Server.clients != null)
+            if (FreezeTogether.MyMod.iAmHost && !Server.UsingSteamWorks && Server.clients != null)
             {
                 for (int i = 1; i <= Server.MaxPlayers; i++)
                 {

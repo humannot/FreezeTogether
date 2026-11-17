@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 using TinyJSON;
 using MelonLoader.Lemons.Cryptography;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class ModsValidation
     {

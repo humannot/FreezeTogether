@@ -6,7 +6,7 @@ using HarmonyLib;
 using MelonLoader;
 using UnityEngine;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     // Mod UI language. Texts are written in English in code, Loc.T() swaps them for Russian when it is selected.
     // "Auto" follows the game language.
@@ -22,7 +22,7 @@ namespace SkyCoop
             {
                 if (LanguageEntry == null)
                 {
-                    MelonPreferences_Category Cat = MelonPreferences.CreateCategory("SkyCoop", "Sky Co-op");
+                    MelonPreferences_Category Cat = MelonPreferences.CreateCategory("FreezeTogether", "Freeze Together");
                     LanguageEntry = Cat.CreateEntry("Language", "Auto", "Mod language (Auto, English, Russian)");
                 }
                 return Array.IndexOf(Modes, LanguageEntry.Value) >= 0 ? LanguageEntry.Value : "Auto";
@@ -287,10 +287,6 @@ namespace SkyCoop
             { "You don't have any keys to lock this door!", "У вас нет ключей, чтобы запереть эту дверь!" },
             { "You already have technical backpack!", "У вас уже есть технический рюкзак!" },
             { "You and player on different scenes!", "Вы с игроком на разных локациях!" },
-            { "You are entering safe zone!", "Вы входите в безопасную зону!" },
-            { "You are leaving safe zone!", "Вы покидаете безопасную зону!" },
-            { "You cannot attack players in the safe zone!", "Нельзя атаковать игроков в безопасной зоне!" },
-            { "You cannot attack when you in the safe zone!", "Нельзя атаковать, находясь в безопасной зоне!" },
             { "You need hacksaw!", "Нужна ножовка!" },
             { "You need liquid lead!", "Нужен расплавленный свинец!" },
             { "You need whetstone!", "Нужен точильный камень!" },

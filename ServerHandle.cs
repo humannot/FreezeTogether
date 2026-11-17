@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using SkyCoop;
-using static SkyCoop.Shared;
-using static SkyCoop.DataStr;
+using FreezeTogether;
+using static FreezeTogether.Shared;
+using static FreezeTogether.DataStr;
 using System.Linq;
 #if (!DEDICATED)
 using MelonLoader;
@@ -515,11 +515,6 @@ namespace GameServer
                 ServerSend.DOORLOCKEDMSG(_fromClient, "You cannot attack players on this server.");
                 return;
             }
-            if (MyMod.playersData[_fromClient] != null && MyMod.playersData[_fromClient].m_IsSafe)
-            {
-                ServerSend.DOORLOCKEDMSG(_fromClient, "You cannot attack when you in the safe zone!");
-                return;
-            }
 
             
             float damage = _packet.ReadFloat();
@@ -535,26 +530,11 @@ namespace GameServer
 #if (!DEDICATED)
             if (_for == 0)
             {
-                if(GameManager.m_PlayerObject && SafeZoneManager.InsideSafeZone(MyMod.level_guid, GameManager.GetPlayerTransform().position))
-                {
-                    ServerSend.DOORLOCKEDMSG(_fromClient, "You cannot attack players in the safe zone!");
-                    return;
-                }
                 MyMod.DamageByBullet(damage, _fromClient, BodyPart, Melee, MeleeWeapon);
             }else{
-                if (MyMod.playersData[_for] != null && MyMod.playersData[_for].m_IsSafe)
-                {
-                    ServerSend.DOORLOCKEDMSG(_fromClient, "You cannot attack players in the safe zone!");
-                    return;
-                }
                 ServerSend.BULLETDAMAGE(_for, damage, BodyPart, _fromClient, Melee, MeleeWeapon);
             }
 #else
-            if (MyMod.playersData[_for] != null && MyMod.playersData[_for].m_IsSafe)
-            {
-                ServerSend.DOORLOCKEDMSG(_fromClient, "You cannot attack players in the safe zone!");
-                return;
-            }
             ServerSend.BULLETDAMAGE(_for, damage, BodyPart, _fromClient, Melee, MeleeWeapon);
 #endif
         }
@@ -1237,7 +1217,7 @@ namespace GameServer
                     ServerSend.FURNMOVED(0, item.Value, false, _fromClient);
                 }
             }
-            SkyCoop.SceneItemsSync.SendSceneTo(_fromClient, Scene);
+            FreezeTogether.SceneItemsSync.SendSceneTo(_fromClient, Scene);
 
             Dictionary<long, PickedGearSync> PickedGears = MPSaveManager.LoadPickedGearsData(Scene);
             if (PickedGears != null)
@@ -1560,7 +1540,7 @@ namespace GameServer
             {
                 MyMod.players[_fromClient].GetComponent<Comps.MultiplayerPlayerAnimator>().MeleeAttack();
             }
-            SkyCoop.PlayerModel.OnShoot(_fromClient, "Melee");
+            FreezeTogether.PlayerModel.OnShoot(_fromClient, "Melee");
 #endif
             ServerSend.MELEESTART(_fromClient);
         }

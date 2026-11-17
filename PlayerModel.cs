@@ -5,7 +5,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     // Humanoid character for other players. The body is a rigged model whose clothes are child meshes named after
     // their gear (GEAR_*), dressed with the game's own material for that gear. Held items and accessories (head, neck,
@@ -16,7 +16,7 @@ namespace SkyCoop
     {
         public PlayerModel(IntPtr ptr) : base(ptr) { }
 
-        public const string BundleFile = "skycoopplayer.unity3d";
+        public const string BundleFile = "freezetogetherplayer.unity3d";
 
         static GameObject s_Prefab = null;
         static bool s_Tried = false;
@@ -61,7 +61,7 @@ namespace SkyCoop
                     }
                     else
                     {
-                        MelonLogger.Msg(ConsoleColor.Red, "[PlayerModel] " + BundleFile + " has no SkyCoopPlayer prefab.");
+                        MelonLogger.Msg(ConsoleColor.Red, "[PlayerModel] " + BundleFile + " has no player prefab.");
                     }
                 }
                 catch (Exception e)

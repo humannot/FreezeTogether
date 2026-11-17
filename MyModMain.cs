@@ -17,24 +17,24 @@ using HarmonyLib;
 using GameServer;
 using TinyJSON;
 using IL2CPP = Il2CppSystem.Collections.Generic;
-using static SkyCoop.Comps;
-using static SkyCoop.DataStr;
+using static FreezeTogether.Comps;
+using static FreezeTogether.DataStr;
 using UnityEngine.SceneManagement;
 using static Il2Cpp.Utils;
-using static SkyCoop.ExpeditionManager;
+using static FreezeTogether.ExpeditionManager;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class MyMod : MelonMod
     {
 
         public static class BuildInfo
         {
-            public const string Name = "Sky Co-op LTS";
-            public const string Description = "Multiplayer mod";
-            public const string Author = "Filigrani";
+            public const string Name = "Freeze Together";
+            public const string Description = "Co-op multiplayer for The Long Dark";
+            public const string Author = "humannot";
             public const string Company = null;
-            public const string Version = "0.13.6";
+            public const string Version = "0.14.0";
             public const string DownloadLink = null;
             public const int RandomGenVersion = 5;
         }
@@ -49,7 +49,6 @@ namespace SkyCoop
         public static string LobbyState = "Idle";
         public static bool StartServerAfterSelectSave = false;
         public static int PortsToHostOn = 26950;
-        public static bool LastSafeStatus = false;
         public static bool OnExpedition = false;
         public static string ExpeditionLastTaskText = "";
         public static string ExpeditionLastName = "";
@@ -551,7 +550,6 @@ namespace SkyCoop
             MelonLogger.Msg(System.ConsoleColor.Blue, "m_CheckModsValidation: " + ServerConfig.m_CheckModsValidation);
             MelonLogger.Msg(System.ConsoleColor.Blue, "m_SaveScamProtection: " + ServerConfig.m_SaveScamProtection);
             MelonLogger.Msg(System.ConsoleColor.Blue, "m_PVP: " + ServerConfig.m_PVP);
-            MelonLogger.Msg(System.ConsoleColor.Blue, "m_SafeZones: " + ServerConfig.m_SafeZones);
         }
 
         //STRUCTS
@@ -1015,7 +1013,7 @@ namespace SkyCoop
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
             if (!MelonMod.RegisteredMelons.Any(m => m.Info.Name == "ModComponent"))
             {
-                MelonLogger.Warning("[SkyCoop] ModComponent is not loaded: SkyCoop items (GEAR_SC*) will be missing. Put ModComponent.dll into Mods.");
+                MelonLogger.Warning("[Freeze Together] ModComponent is not loaded: mod items (GEAR_SC*) will be missing. Put ModComponent.dll into Mods.");
             }
 
 
@@ -6110,7 +6108,7 @@ namespace SkyCoop
             InterfaceManager.TrySetPanelEnabled<Panel_MissionsStory>(false);
             GameManager.GetExperienceModeManagerComponent().SetExperienceModeType((ExperienceModeType)Data.m_ExperienceMode);
             SaveGameSystem.SetCurrentSaveInfo((Episode)Data.m_Episode, SaveSlotType.STORY, SaveGameSlots.GetUnusedGameId(), null);
-            SaveGameSlots.SetSlotDisplayName(SaveGameSystem.GetCurrentSaveName(), "SkyCoop story " + DateTime.Now.ToString("yyyy-MM-dd HH-mm"));
+            SaveGameSlots.SetSlotDisplayName(SaveGameSystem.GetCurrentSaveName(), "Freeze Together story " + DateTime.Now.ToString("yyyy-MM-dd HH-mm"));
             InterloperHook = true;
             PendingSave = null;
             ShouldCreateSaveForHost = false;
@@ -8912,13 +8910,13 @@ namespace SkyCoop
         {
             if (iAmHost == true)
             {
-                API.m_ClientState = API.SkyCoopClientState.HOST;
+                API.m_ClientState = API.ClientState.HOST;
             }
             else if (sendMyPosition == true)
             {
-                API.m_ClientState = API.SkyCoopClientState.CLIENT;
+                API.m_ClientState = API.ClientState.CLIENT;
             } else {
-                API.m_ClientState = API.SkyCoopClientState.NONE;
+                API.m_ClientState = API.ClientState.NONE;
             }
             API.m_MyClientID = ClientUser.myId;
 
@@ -12822,8 +12820,6 @@ namespace SkyCoop
                 ServerConfig.m_FireSync = FireSyncMode;
                 ServerConfig.m_CheatsMode = CheatsMode;
                 ServerConfig.m_PVP = true;
-                Transform safeZonesToggle = UIHostMenu.transform.Find("SafeZones");
-                if (safeZonesToggle != null) ServerConfig.m_SafeZones = safeZonesToggle.GetComponent<UnityEngine.UI.Toggle>().isOn;
                 MaxPlayers = slotsMax;
 
                 Shared.InitAllPlayers();
@@ -12956,17 +12952,6 @@ namespace SkyCoop
                 }
                 SpawnStyleList.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_PlayersSpawnType);
 
-                // Extra option made from a copy of the "Items duplication" row, placed in the free space under the last row.
-                GameObject safeZonesCheckbox = UnityEngine.Object.Instantiate(dupesCheckbox, UIHostMenu.transform, false);
-                safeZonesCheckbox.name = "SafeZones";
-                safeZonesCheckbox.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, -150f);
-                safeZonesCheckbox.GetComponent<UnityEngine.UI.Toggle>().Set(ServerConfig.m_SafeZones);
-                foreach (UnityEngine.UI.Text t in safeZonesCheckbox.GetComponentsInChildren<UnityEngine.UI.Text>(true))
-                {
-                    if (t.transform.parent.name == "HintPanel") t.text = "Safe zone circles.\n\nOn - players cannot hurt each other inside the safe circles on the map (settlements, camps). Buildings outside these circles allow PvP.\n\nOff - PvP works everywhere, buildings included.";
-                    else if (t.name.StartsWith("Label")) t.text = "Safe zone circles";
-                }
-
                 GameObject IsSteamHost = UIHostMenu.transform.GetChild(4).gameObject;
                 GameObject PortsObject = UIHostMenu.transform.GetChild(8).gameObject;
                 GameObject FireSyncObj = UIHostMenu.transform.GetChild(9).gameObject;
@@ -13003,7 +12988,6 @@ namespace SkyCoop
 
                 AddHintScript(dupesCheckbox);
                 AddHintScript(dupesBoxesCheckbox);
-                AddHintScript(safeZonesCheckbox);
                 AddHintScript(SpawnStyleList);
                 AddHintScript(FireSyncObj);
                 AddHintScript(IsSteamHost);

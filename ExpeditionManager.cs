@@ -6,10 +6,10 @@ using System.IO;
 using System.Threading.Tasks;
 using GameServer;
 using System.Security.Policy;
-using static SkyCoop.DataStr;
-using static SkyCoop.ExpeditionBuilder;
+using static FreezeTogether.DataStr;
+using static FreezeTogether.ExpeditionBuilder;
 using System.Net.Sockets;
-using static SkyCoop.ExpeditionManager;
+using static FreezeTogether.ExpeditionManager;
 #if (DEDICATED)
 using System.Numerics;
 using TinyJSON;
@@ -18,7 +18,7 @@ using TinyJSON;
 using MelonLoader;
 using UnityEngine;
 #endif
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class ExpeditionManager
     {

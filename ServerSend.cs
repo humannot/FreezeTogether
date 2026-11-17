@@ -7,7 +7,7 @@ using UnityEngine;
 #else
 using System.Numerics;
 #endif
-using SkyCoop;
+using FreezeTogether;
 using System.Net;
 
 namespace GameServer
@@ -660,22 +660,6 @@ namespace GameServer
         }
         public static void BULLETDAMAGE(int _toClient, float _msg,int bodypart, int _From, bool Melee = false, string MeleeWeapon = "")
         {
-#if (!DEDICATED)
-            
-            if(_From == 0)
-            {
-                if (GameManager.m_PlayerObject && SafeZoneManager.InsideSafeZone(MyMod.level_guid, GameManager.GetPlayerTransform().position))
-                {
-                    HUDMessage.AddMessage("You cannot attack when you in the safe zone!");
-                    return;
-                }
-                if (MyMod.playersData[_toClient] != null && MyMod.playersData[_toClient].m_IsSafe)
-                {
-                    HUDMessage.AddMessage("You cannot attack players in the safe zone!");
-                    return;
-                }
-            }
-#endif
 
             using (Packet _packet = new Packet((int)ServerPackets.BULLETDAMAGE))
             {

@@ -4,10 +4,10 @@ using System.Reflection;
 using MelonLoader;
 using UnityEngine;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     // Optional support for SeamlessInteriors, through its public SeamlessInteriorsApi plus one internal list for window
-    // views (all looked up by reflection, so SkyCoop has no dependency on it). With it, buildings are part of the region scene: the scene key of a player
+    // views (all looked up by reflection, so this mod has no dependency on it). With it, buildings are part of the region scene: the scene key of a player
     // inside one stays the region, and the building's content is created when the player comes near. Items lying in a
     // building are therefore shared per building (SceneItemsSync) and not with the region's own floor record.
     public static class SeamlessCompat

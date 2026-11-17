@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 // using UnhollowerRuntimeLib; (see GlobalUsings.cs)
 using UnityEngine;
-using static SkyCoop.DataStr;
-using static SkyCoop.MyMod;
+using static FreezeTogether.DataStr;
+using static FreezeTogether.MyMod;
 using IL2CPP = Il2CppSystem.Collections.Generic;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class Comps
     {

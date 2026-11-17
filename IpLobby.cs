@@ -9,7 +9,7 @@ using GameServer;
 using MelonLoader;
 using UnityEngine;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     // Pre-game lobby for IP mode, the counterpart of the Steam lobby: players join from the main menu, are
     // listed at the bottom of the screen, vote for the region and experience mode, and the host starts the

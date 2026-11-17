@@ -7,7 +7,7 @@ using GameServer;
 using MelonLoader;
 using UnityEngine;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     // Items lying in a scene are the same for every player. One player per scene owns them: the host when it is in
     // the scene, otherwise the player with the lowest id in it. The host keeps the owner's version per scene and sends

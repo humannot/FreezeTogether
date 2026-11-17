@@ -5,17 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using GameServer;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class API
     {
-        public enum SkyCoopClientState
+        public enum ClientState
         {
             NONE = -1,
             CLIENT,
             HOST,
         }
-        public static SkyCoopClientState m_ClientState = SkyCoopClientState.NONE; // -1 Not playing online, 0 Client, 1 Host.
+        public static ClientState m_ClientState = ClientState.NONE; // -1 Not playing online, 0 Client, 1 Host.
         public static bool m_AllowMods = true; // Using mods allowed.
         public static int m_MyClientID = 0; // ID of player on server, (this related to slot what player use).
         public static bool m_Debug = false;
@@ -26,14 +26,14 @@ namespace SkyCoop
         { 
             if (m_Debug)
             {
-                MelonLoader.MelonLogger.Msg(System.ConsoleColor.Blue, "[SkyCoop API] ");
+                MelonLoader.MelonLogger.Msg(System.ConsoleColor.Blue, "[Freeze Together API] ");
             }
         }
 
         //HOST
         public static void SendDataToEveryone(Packet _pak, int from, bool ignoreSender)
         {
-            if(m_ClientState == SkyCoopClientState.HOST)
+            if(m_ClientState == ClientState.HOST)
             {
                 _pak.Write(from);
 
@@ -45,35 +45,35 @@ namespace SkyCoop
                 }
             }
             else{
-                if(m_ClientState == SkyCoopClientState.CLIENT)
+                if(m_ClientState == ClientState.CLIENT)
                 {
-                    MelonLoader.MelonLogger.Msg(System.ConsoleColor.Red, "[SkyCoop API] Client trying call SendDataToEveryone, but this host only method.");
+                    MelonLoader.MelonLogger.Msg(System.ConsoleColor.Red, "[Freeze Together API] Client trying call SendDataToEveryone, but this host only method.");
                 }
             }
         }
         public static void SendDataToClient(Packet _pak, int from, int to)
         {
-            if (m_ClientState == SkyCoopClientState.HOST)
+            if (m_ClientState == ClientState.HOST)
             {
                 _pak.Write(from);
                 ServerSend.SendUDPData(to, _pak);
             }else{
-                if (m_ClientState == SkyCoopClientState.CLIENT)
+                if (m_ClientState == ClientState.CLIENT)
                 {
-                    MelonLoader.MelonLogger.Msg(System.ConsoleColor.Red, "[SkyCoop API] Client trying call SendDataToClient, but this host only method.");
+                    MelonLoader.MelonLogger.Msg(System.ConsoleColor.Red, "[Freeze Together API] Client trying call SendDataToClient, but this host only method.");
                 }
             }
         }
         //Client
         public static void SendToHost(Packet _pak)
         {
-            if (m_ClientState == SkyCoopClientState.CLIENT)
+            if (m_ClientState == ClientState.CLIENT)
             {
                 MyMod.SendUDPData(_pak);
             }else{
-                if (m_ClientState == SkyCoopClientState.HOST)
+                if (m_ClientState == ClientState.HOST)
                 {
-                    MelonLoader.MelonLogger.Msg(System.ConsoleColor.Red, "[SkyCoop API] Host trying call SendToHost, but this client only method.");
+                    MelonLoader.MelonLogger.Msg(System.ConsoleColor.Red, "[Freeze Together API] Host trying call SendToHost, but this client only method.");
                 }
             }
         }
@@ -86,10 +86,10 @@ namespace SkyCoop
                 
                 if(m_AllowMods)
                 {
-                    if(m_ClientState == SkyCoopClientState.HOST)
+                    if(m_ClientState == ClientState.HOST)
                     {
                         SendDataToEveryone(_packet, m_MyClientID, true); //Send data to everyone.
-                    }else if(m_ClientState == SkyCoopClientState.CLIENT)
+                    }else if(m_ClientState == ClientState.CLIENT)
                     {
                         SendToHost(_packet);
                     }

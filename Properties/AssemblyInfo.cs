@@ -2,17 +2,17 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using MelonLoader;
-using SkyCoop;
+using FreezeTogether;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SkyCoop")]
+[assembly: AssemblyTitle("Freeze Together")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SkyCoop")]
-[assembly: AssemblyCopyright("Copyright ©  2021")]
+[assembly: AssemblyProduct("Freeze Together")]
+[assembly: AssemblyCopyright("Copyright © 2026 humannot")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: MelonInfo(typeof(MyMod), MyMod.BuildInfo.Name, MyMod.BuildInfo.Version, MyMod.BuildInfo.Author)]

@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class SanityManager
     {

@@ -6,7 +6,7 @@ using MelonLoader;
 using Steamworks;
 using UnityEngine;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     // The game and the mod each carry a Steamworks.NET, and both read Steam's callback queue (manual dispatch).
     // A callback goes to whichever reads it first, so the mod lost about half of its lobby events (lobby created,

@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Ported from .NET Framework 4.7.2 / MelonLoader 0.5 to net6 / MelonLoader 0.7.2 for TLD 2.55 (Unity 6). -->
+  <!-- net6 / MelonLoader 0.7 mod for The Long Dark 2.60 (Unity 6). -->
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
-    <RootNamespace>SkyCoop</RootNamespace>
-    <AssemblyName>SkyCoop</AssemblyName>
+    <RootNamespace>FreezeTogether</RootNamespace>
+    <AssemblyName>FreezeTogether</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <DebugType>embedded</DebugType>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

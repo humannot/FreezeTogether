@@ -7,7 +7,7 @@ using MelonLoader;
 using UnityEngine;
 #endif
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class DataStr
     {
@@ -22,7 +22,6 @@ namespace SkyCoop
             public bool m_CheckModsValidation = false;
             public bool m_SaveScamProtection = false;
             public bool m_PVP = true;
-            public bool m_SafeZones = true; // map circles in regions; interiors have no safe zone
         }
         public class ServerSettingsData
         {
@@ -269,7 +268,6 @@ namespace SkyCoop
             public int m_LastWeatherRegion = (int) Shared.GameRegion.RandomRegion;
             public int m_LastRegion = (int)Shared.GameRegion.RandomRegion;
 
-            public bool m_IsSafe = false;
             public string m_SteamOrEGSID = "";
             public bool m_FirstBoot = true;
         }

@@ -16,11 +16,11 @@ using HarmonyLib;
 using GameServer;
 using Il2CppSystem.Reflection;
 using System.Diagnostics;
-using static SkyCoop.Shared;
+using static FreezeTogether.Shared;
 using static Il2Cpp.Utils;
-using static SkyCoop.DataStr;
+using static FreezeTogether.DataStr;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class ClientHandle
     {

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
 using GameServer;
-using static SkyCoop.DataStr;
+using static FreezeTogether.DataStr;
 #if (DEDICATED)
 using TinyJSON;
 using System.Numerics;
@@ -15,7 +15,7 @@ using TinyJSON;
 using UnityEngine;
 #endif
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class ResourceIndependent
     {

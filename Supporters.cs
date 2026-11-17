@@ -9,9 +9,8 @@ using TinyJSON;
 #else
 using TinyJSON;
 #endif
-using System.Net;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class Supporters
     {
@@ -26,7 +25,6 @@ namespace SkyCoop
         public static SupporterBenefits AvailableBenefits = new SupporterBenefits();
         public static SupporterBenefits ConfiguratedBenefits = new SupporterBenefits();
         public static int FlairSpots = 4;
-        public static WebClient web;
 
         public static void FlairsIDsInit()
         {
@@ -339,72 +337,12 @@ namespace SkyCoop
             }
         }
 
-        public static void GotJsonCallback(object sender, DownloadStringCompletedEventArgs e)
-        {
-            if (e.Error != null)
-            {
-                return;
-            }
-            if (e.Result != "")
-            {
-                Log("Json data has been successfully received!");
-                LoadedJSON = e.Result;
-                DebugLog(LoadedJSON);
-                JsonStruct LoadedData = JSON.Load(LoadedJSON).Make<JsonStruct>();
-                SupportersData = new Dictionary<string, List<string>>();
-                EveryOneAvailableFlairs = new List<string>();
-                if (LoadedData != null)
-                {
-                    foreach (Supporter item in LoadedData.Supps)
-                    {
-                        if (!string.IsNullOrEmpty(item.S))
-                        {
-                            if (!SupportersData.ContainsKey(item.S))
-                            {
-                                SupportersData.Add(item.S, item.P);
-                            }
-                        }
-                        if (!string.IsNullOrEmpty(item.E))
-                        {
-                            if (!SupportersData.ContainsKey(item.E))
-                            {
-                                SupportersData.Add(item.E, item.P);
-                            }
-                        }
-                    }
-                    EveryOneAvailableFlairs = LoadedData.Every;
-                }
-                Log("Parsing to dictionary complete!");
-                if (DeBug)
-                {
-                    PrintAll();
-                }
-            }
-            web.Dispose();
-            web = null;
-        }
-
+        // No supporter list is downloaded: benefits and flairs stay unavailable until a list is loaded.
         public static void GetSupportersList(bool Force = false)
         {
             if (!FlairsIDsReady)
             {
                 FlairsIDsInit();
-            }
-            if (!Force && !IsLoaded())
-            {
-                Log("Trying to get supporters list...");
-
-                if(web != null)
-                {
-                    web.Dispose();
-                    web = null;
-                }
-
-                web = new WebClient();
-                string url = "https://raw.githubusercontent.com/Filigrani/SkyCoop/main/Supporters.json";
-                Uri uri = new Uri(url);
-                web.DownloadStringCompleted += new DownloadStringCompletedEventHandler(GotJsonCallback);
-                web.DownloadStringAsync(uri);
             }
         }
 

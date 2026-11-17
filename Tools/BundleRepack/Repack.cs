@@ -7,7 +7,7 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
 
-// Rebuilds the Unity 2018 "auto-mapped/scitems.unity3d" of SkyCoop.modcomponent as an Addressables
+// Rebuilds the Unity 2018 "auto-mapped/scitems.unity3d" of FreezeTogether.modcomponent as an Addressables
 // bundle + JSON catalog, the only format ModComponent 7 accepts. Addresses = original asset names.
 // usage: -executeMethod Repack.Run -bundle <scitems.unity3d> -report <txt>
 public static class Repack
@@ -128,8 +128,8 @@ public static class Repack
         AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
         settings.EnableJsonCatalog = true;
         EditorUtility.SetDirty(settings);
-        AddressableAssetGroup group = settings.FindGroup("SkyCoop")
-            ?? settings.CreateGroup("SkyCoop", false, false, true, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
+        AddressableAssetGroup group = settings.FindGroup("FreezeTogether")
+            ?? settings.CreateGroup("FreezeTogether", false, false, true, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
         var schema = group.GetSchema<BundledAssetGroupSchema>();
         schema.BundleMode = BundledAssetGroupSchema.BundlePackingMode.PackTogether;
         schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.LZ4;

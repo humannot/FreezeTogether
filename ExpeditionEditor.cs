@@ -5,18 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static SkyCoop.DataStr;
-using static SkyCoop.ExpeditionBuilder;
-using static SkyCoop.ExpeditionManager;
+using static FreezeTogether.DataStr;
+using static FreezeTogether.ExpeditionBuilder;
+using static FreezeTogether.ExpeditionManager;
 using TinyJSON;
 using MelonLoader;
 using System.Security.Policy;
-using static SkyCoop.Comps;
+using static FreezeTogether.Comps;
 // using UnhollowerBaseLib; (see GlobalUsings.cs)
 using UnityEngine.SceneManagement;
 using System.Globalization;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class ExpeditionEditor
     {

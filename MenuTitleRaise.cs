@@ -4,7 +4,7 @@ using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     // In the multiplayer menus the title ("MULTIPLAYER") is drawn over the game logo ("THE LONG DARK").
     // Move it above the logo while a mod menu is shown; vanilla titles stay where they are.

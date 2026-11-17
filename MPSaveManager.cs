@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using GameServer;
-using static SkyCoop.DataStr;
+using static FreezeTogether.DataStr;
 using System.Globalization;
 using System.Security.Policy;
 #if (DEDICATED)
@@ -18,7 +18,7 @@ using UnityEngine;
 #endif
 
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class MPSaveManager
     {
@@ -1879,10 +1879,6 @@ namespace SkyCoop
             string Data = LoadData("ServerSettingsData");
             if (Data != "")
             {
-                if (Data.Contains("SkyCoop.MyMod+ServerSettingsData")) // 10.4 ServerSettings file.
-                {
-                    return null;
-                }
                 return JSON.Load(Data).Make<DataStr.ServerSettingsData>();
             }else{
                 return null;
@@ -1967,7 +1963,6 @@ namespace SkyCoop
             {
                 Json = Shared.DecompressString(Json);
             }
-            Json = Json.Replace("SkyCoop.MyMod", "SkyCoop.DataStr");
             if (Decompress)
             {
                 Json = Shared.CompressString(Json);

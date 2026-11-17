@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Il2CppTLD.PDID;
 using Il2CppTLD.Gameplay;
@@ -26,7 +26,7 @@ internal static class Compat
         si.m_DefaultHoverText = new LocalizedString { m_LocalizationID = "" };
         si.HoverText = "";
         si.m_CanInteract = true;
-        var dummy = go.GetComponent<SkyCoop.Comps.DroppedGearDummy>();
+        var dummy = go.GetComponent<FreezeTogether.Comps.DroppedGearDummy>();
         if (dummy != null) SetInteractionText(go, dummy.m_LocalizedDisplayName);
     }
 
@@ -96,7 +96,7 @@ internal static class Compat
         }
         if (prefab == null)
         {
-            MelonLoader.MelonLogger.Warning("[SkyCoop] Container prefab '" + name + "' not found");
+            MelonLoader.MelonLogger.Warning("[Freeze Together] Container prefab '" + name + "' not found");
         }
         else
         {
@@ -134,7 +134,7 @@ internal static class Compat
     }
 
     static void WarnMissingGear(string gearName)
-        => MelonLoader.MelonLogger.Warning($"[SkyCoop] Gear '{gearName}' not found. GEAR_SC* items need ModComponent + SkyCoop.modcomponent in Mods.");
+        => MelonLoader.MelonLogger.Warning($"[Freeze Together] Gear '{gearName}' not found. GEAR_SC* items need ModComponent + FreezeTogether.modcomponent in Mods.");
 
     extension(GearItem gi)
     {
@@ -208,7 +208,7 @@ internal static class Compat
         public Harvestable m_HarvestableInProgress { get => pm.m_Harvestable; set => pm.m_Harvestable = value; }
 
         public GearItem InstantiateItemInPlayerInventory(string gearName) => pm.InstantiateItemInPlayerInventory(gearName, 1);
-        // A missing prefab (e.g. SkyCoop.modcomponent not loaded because ModComponent is absent) must not throw:
+        // A missing prefab (e.g. FreezeTogether.modcomponent not loaded because ModComponent is absent) must not throw:
         // these run inside game start (StartGear) and an exception there aborts loading the region.
         public GearItem InstantiateItemInPlayerInventory(string gearName, int units)
         {
@@ -381,7 +381,7 @@ internal static class Compat
                 fallback ??= mode;
             }
             if (fallback != null) emm.SetGameModeConfig(fallback);
-            else MelonLoader.MelonLogger.Warning($"[SkyCoop] No game mode config for {type}");
+            else MelonLoader.MelonLogger.Warning($"[Freeze Together] No game mode config for {type}");
         }
     }
 
@@ -408,11 +408,39 @@ internal static class Compat
     }
 
     // The mod used to put its own keys into the game's save slot. 2.55 rewrote slot storage, so mod keys
-    // now live in sidecar files next to the saves: <PersistentDataPath>/SkyCoop/<slot>/<key>.
+    // now live in sidecar files next to the saves: <PersistentDataPath>/FreezeTogether/<slot>/<key>.
+    static bool s_StorageMigrated = false;
+
+    // Data written under the project's earlier folder and key prefix is moved to the current names once.
+    static void MigrateLegacyStorage(string root)
+    {
+        s_StorageMigrated = true;
+        try
+        {
+            string legacy = Path.Combine(PersistentDataPath.m_Path, "SkyCoop");
+            if (!Directory.Exists(root) && Directory.Exists(legacy))
+            {
+                Directory.Move(legacy, root);
+            }
+            if (!Directory.Exists(root)) return;
+            foreach (string file in Directory.GetFiles(root, "skycoop_*", SearchOption.AllDirectories))
+            {
+                string target = Path.Combine(Path.GetDirectoryName(file), "ft_" + Path.GetFileName(file).Substring("skycoop_".Length));
+                if (!File.Exists(target)) File.Move(file, target);
+            }
+        }
+        catch (System.Exception e)
+        {
+            MelonLoader.MelonLogger.Error($"[Freeze Together] Could not move earlier mod data: {e}");
+        }
+    }
+
     static string SidecarPath(string slotName, string key)
     {
         if (string.IsNullOrEmpty(PersistentDataPath.m_Path)) PersistentDataPath.Init();
-        return Path.Combine(PersistentDataPath.m_Path, "SkyCoop", slotName, key);
+        string root = Path.Combine(PersistentDataPath.m_Path, "FreezeTogether");
+        if (!s_StorageMigrated) MigrateLegacyStorage(root);
+        return Path.Combine(root, slotName, key);
     }
 
     extension(SaveGameSlots)
@@ -428,7 +456,7 @@ internal static class Compat
             }
             catch (System.Exception e)
             {
-                MelonLoader.MelonLogger.Error($"[SkyCoop] Failed to save {key} for {slotName}: {e}");
+                MelonLoader.MelonLogger.Error($"[Freeze Together] Failed to save {key} for {slotName}: {e}");
                 return false;
             }
         }

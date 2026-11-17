@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 using GameServer;
 
-namespace SkyCoop
+namespace FreezeTogether
 {
     public class DeBugMenu
     {
@@ -416,10 +416,6 @@ namespace SkyCoop
                     {
                         ExpeditionManager.StartCrashSite();
                     }
-                }
-                if (GUI.Button(new Rect(160, 190, 80, 20), "Show"))
-                {
-                    SafeZoneManager.DebugRenderZones();
                 }
             }
 

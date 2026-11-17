@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net;
 using System.Net.Sockets;
-using SkyCoop;
+using FreezeTogether;
 #if (!DEDICATED)
 using MelonLoader;
 #endif
@@ -110,10 +110,10 @@ namespace GameServer
                     int _clientId = _packet.ReadInt();
                     string SubNetworkGUID = "";
 
-                    if (_clientId == SkyCoop.IpLobby.Magic)
+                    if (_clientId == FreezeTogether.IpLobby.Magic)
                     {
                         // A player looking for the lobby, but the host is already in the game: tell them to connect.
-                        byte[] reply = SkyCoop.IpLobby.GameRunningReply();
+                        byte[] reply = FreezeTogether.IpLobby.GameRunningReply();
                         udpListener.BeginSend(reply, reply.Length, _clientEndPoint, null, null);
                         return;
                     }
@@ -465,7 +465,7 @@ namespace GameServer
                 { (int)ClientPackets.ANIMALDESTORYGEAR, ServerHandle.ANIMALDESTORYGEAR},
                 { (int)ClientPackets.ANIMALBITECORPSE, ServerHandle.ANIMALBITECORPSE},
                 { (int)ClientPackets.FURNMOVED, ServerHandle.FURNMOVED},
-            { (int)ClientPackets.SCENEITEMS, SkyCoop.SceneItemsSync.HandleFromClient},
+            { (int)ClientPackets.SCENEITEMS, FreezeTogether.SceneItemsSync.HandleFromClient},
             { (int)ClientPackets.TILT, ServerHandle.TILT},
                 { (int)ClientPackets.RELIABLE, Reliable.ServerReceive},
                 { (int)ClientPackets.RELIABLEACK, (_fromClient, _packet) => Reliable.ForClient(_fromClient).Ack(_packet.ReadInt())},
