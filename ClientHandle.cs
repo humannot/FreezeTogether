@@ -337,7 +337,8 @@ namespace SkyCoop
                     MyMod.playersData[client.m_ID].m_Dead = client.m_Dead;
                 }
             }
-            Shared.ProcessSleep(Sleepers, howmany, Deads, 0);
+            int Skip = _packet.UnreadLength() >= 4 ? _packet.ReadInt() : 0;
+            Shared.ProcessSleep(Sleepers, howmany, Deads, Skip);
             MyMod.UpdatePlayerStatusMenu(MPStatus);
         }
         public static void ANIMALTEST(Packet _packet)

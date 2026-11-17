@@ -55,8 +55,10 @@ namespace SkyCoop
                 s_InteriorsReady = interiorsReady;
                 s_InteriorAt = api.GetMethod("GetInteriorIdAt", new[] { typeof(Vector3) });
                 s_InteriorIds = api.GetMethod("GetInteriorIds", Type.EmptyTypes);
+                s_InteriorScene = api.GetMethod("GetInteriorSceneName", new[] { typeof(string) });
                 MelonLogger.Msg("[SeamlessInteriors] Found; items in buildings are shared per building.");
                 InitWindowViews(asm);
+                InitDoors(asm);
             }
             catch (Exception e)
             {
@@ -151,6 +153,80 @@ namespace SkyCoop
             s_ViewInstanceId = id;
             s_ViewBorrowed = borrowed;
             s_ViewLayer = layer;
+        }
+
+        // The player gets into and out of a room only through the building's doors: SeamlessInteriors switches its
+        // inside/outside state (room shown, shell hidden, sound) in its door hook, a plain teleport leaves that state behind.
+        // The public API has no door lookup, so the building shell is read from the mod's list of buildings.
+        static MethodInfo s_InteriorScene = null;
+        static FieldInfo s_Buildings = null;
+        static FieldInfo s_BuildingShell = null;
+
+        static void InitDoors(Assembly asm)
+        {
+            Type mod = asm.GetType("SeamlessInteriors.SeamlessInteriorsMod");
+            Type instance = asm.GetType("SeamlessInteriors.SeamlessInteriorInstance");
+            s_Buildings = mod?.GetField("ActiveInteriors", BindingFlags.Public | BindingFlags.Static);
+            s_BuildingShell = instance?.GetField("ExteriorShell", BindingFlags.Public | BindingFlags.Instance);
+            if (s_Buildings == null || s_BuildingShell == null || s_InteriorScene == null)
+            {
+                s_Buildings = null;
+                MelonLogger.Warning("[SeamlessInteriors] Building doors not found; respawn in a building's room is not possible.");
+            }
+        }
+
+        // No building is being set up, so rooms and doors can be used.
+        public static bool AllReady()
+        {
+            return s_InteriorsReady != null && s_InteriorsReady.GetValue(null) is bool all && all;
+        }
+
+        // Door on the building's outside that leads into its room.
+        public static LoadScene EntryDoor(string interior)
+        {
+            if (s_Buildings == null || string.IsNullOrEmpty(interior))
+            {
+                return null;
+            }
+            try
+            {
+                string scene = Call(s_InteriorScene, interior) as string;
+                if (s_Buildings.GetValue(null) is System.Collections.IDictionary buildings && buildings.Contains(interior)
+                    && s_BuildingShell.GetValue(buildings[interior]) is GameObject shell && shell != null)
+                {
+                    foreach (LoadScene door in shell.GetComponentsInChildren<LoadScene>(true))
+                    {
+                        if (door.m_SceneToLoad == scene)
+                        {
+                            return door;
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                s_Buildings = null;
+                MelonLogger.Warning("[SeamlessInteriors] Building doors failed: " + e.Message);
+            }
+            return null;
+        }
+
+        // Door in the room that leads out to the region.
+        public static LoadScene ExitDoor(string interior)
+        {
+            GameObject room = InteriorRoot(interior);
+            if (room == null)
+            {
+                return null;
+            }
+            foreach (LoadScene door in room.GetComponentsInChildren<LoadScene>(true))
+            {
+                if (!string.IsNullOrEmpty(door.m_SceneToLoad) && GameManager.IsOutDoorsScene(door.m_SceneToLoad))
+                {
+                    return door;
+                }
+            }
+            return null;
         }
 
         // Layer the building's windows draw its room from while the room is looked at from outside, -1 otherwise.

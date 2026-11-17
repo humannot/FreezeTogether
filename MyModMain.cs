@@ -94,6 +94,7 @@ namespace SkyCoop
         public static bool MyIsAiming = false;
         public static int CycleSkip = 0;
         public static int MyCycleSkip = 0;
+        public static int RestHoursLeft = 0;
         public static bool IsSleeping = false;
         public static bool PreviousSleeping = false;
         public static bool IsCycleSkiping = false;
@@ -4332,7 +4333,7 @@ namespace SkyCoop
         {
             if (m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
             {
-                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "You are down", "\nWait for a teammate to revive you with an emergency stim.\nPress Esc to open this window again.", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Give up"), Loc.T("Wait"), Panel_Confirmation.Background.Transperent, null, null);
+                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "You are down", "\nWait for a teammate to revive you with an emergency stim.\nIf you give up, your items fall to the floor and you respawn where you last slept indoors with a temporary Cheat Death penalty.\nPress Esc to open this window again.", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Give up"), Loc.T("Wait"), Panel_Confirmation.Background.Transperent, null, null);
             }
         }
 
@@ -4349,23 +4350,51 @@ namespace SkyCoop
             GameManager.HandlePlayerDeath(null);
         }
 
-        public static void ShowRespawnPopup()
+        // Respawning costs the game's own short-term Cheat Death penalty (lower max condition) and its Diminished
+        // State, for the game's own durations. Kept temporary online: CheatDeathAffliction_Update cures it instead of
+        // letting it turn permanent.
+        static void ApplyRespawnPenalty()
         {
-            if (m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+            // Game values (Life After Death tunables) when it has them loaded; these are what a vanilla save shows.
+            float cheatHours = 480f;
+            float diminishedHours = 60f;
+            Il2CppTLD.Gameplay.LifeAfterDeathManager lad = GameManager.GetLifeAfterDeathManager();
+            if (lad != null)
             {
-                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "You died", "\nYour items fell to the floor where you gave up.\nYou will respawn where you last slept indoors.", "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Respawn"), Loc.T("Stats"), Panel_Confirmation.Background.Transperent, null, null);
+                if (lad.TemporaryCheatDeathDurationHours > 0f)
+                {
+                    cheatHours = lad.TemporaryCheatDeathDurationHours;
+                }
+                var perDeath = lad.GetTunables().DiminishedStateHoursActivePerDeath;
+                if (perDeath != null && perDeath.Length > 0 && perDeath[0] > 0f)
+                {
+                    diminishedHours = perDeath[0];
+                }
             }
+            CheatDeathAffliction penalty = GameManager.GetCheatDeathAffliction();
+            if (penalty != null)
+            {
+                // Deaths count from 1: death 0 has no modifiers and Apply leaves the affliction empty.
+                penalty.Apply(cheatHours, 1, AfflictionOptions.DisplayIcon);
+                penalty.m_State.m_IsPermanent = false;
+                if (!penalty.HasAffliction)
+                {
+                    MelonLogger.Msg(System.ConsoleColor.Red, "[Respawn] Cheat Death penalty was not applied");
+                }
+            }
+            DiminishedState diminished = GameManager.GetDiminishedState();
+            if (diminished != null)
+            {
+                diminished.Apply(diminishedHours, AfflictionOptions.DisplayIcon);
+            }
+            // The full health set before the penalty is above the lowered maximum.
+            GameManager.GetConditionComponent().m_CurrentHP = GameManager.GetConditionComponent().GetAdjustedMaxHP();
+            MelonLogger.Msg("[Respawn] Cheat Death penalty for " + cheatHours + " hours, Diminished State for " + diminishedHours + " hours");
         }
 
-        // Esc brings the give up window back after "Wait" closed it, on the death screen Esc or Enter respawns.
+        // Esc brings the give up window back after "Wait" closed it.
         public static void UpdateDowned()
         {
-            if (GaveUp && IsDead && InterfaceManager.IsPanelEnabled<Panel_Log>() && !InterfaceManager.IsPanelEnabled<Panel_Confirmation>()
-                && (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.Escape) || InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.Return)))
-            {
-                BeginRespawn();
-                return;
-            }
             if (!IsDowned)
             {
                 return;
@@ -4386,27 +4415,99 @@ namespace SkyCoop
         public static Vector3 LastSleepPosition;
         public static Quaternion LastSleepRotation;
         public static bool RespawnTeleportPending = false;
+        // A SeamlessInteriors building is part of the region scene; its room is parked away from the building and
+        // rebuilt on every region load, so the sleep place is kept relative to the room.
+        public static string LastSleepInterior = null;
+        public static bool RespawnOutsidePending = false;
+        static int RespawnDoorSeconds = 0;
 
         public static void RememberSleepPlace()
         {
-            if (GameManager.IsOutDoorsScene(GameManager.m_ActiveScene))
+            Transform player = GameManager.GetPlayerTransform();
+            string interior = SeamlessCompat.PlayerInterior();
+            GameObject room = SeamlessCompat.InteriorRoot(interior);
+            if (room == null && GameManager.IsOutDoorsScene(GameManager.m_ActiveScene))
             {
                 return;
             }
             LastSleepScene = GameManager.m_ActiveScene;
             LastSleepSceneGuid = level_guid;
-            LastSleepPosition = GameManager.GetPlayerTransform().position;
-            LastSleepRotation = GameManager.GetPlayerTransform().rotation;
-            MelonLogger.Msg("[Respawn] Sleep place saved " + LastSleepScene + " " + LastSleepPosition);
+            LastSleepInterior = room != null ? interior : null;
+            LastSleepPosition = room != null ? room.transform.InverseTransformPoint(player.position) : player.position;
+            LastSleepRotation = room != null ? Quaternion.Inverse(room.transform.rotation) * player.rotation : player.rotation;
+            MelonLogger.Msg("[Respawn] Sleep place saved " + LastSleepScene + (room != null ? " room " + interior : "") + " " + LastSleepPosition);
         }
 
         public static void TeleportToSleepPlaceAndSave()
         {
             RespawnTeleportPending = false;
-            GameManager.GetPlayerManagerComponent().TeleportPlayer(LastSleepPosition, LastSleepRotation);
+            Vector3 pos = LastSleepPosition;
+            Quaternion rot = LastSleepRotation;
+            GameObject room = SeamlessCompat.InteriorRoot(LastSleepInterior);
+            if (room != null)
+            {
+                pos = room.transform.TransformPoint(pos);
+                rot = room.transform.rotation * rot;
+            }
+            GameManager.GetPlayerManagerComponent().TeleportPlayer(pos, rot);
             SaveGameSystem.SetAsyncEnabled(false);
             PendingRespawn = true;
             GameManager.ForceSaveGame();
+        }
+
+        public static void TeleportToSpawnPointAndSave()
+        {
+            GameObject sp = PlayerManager.PickRandomSpawnPoint();
+            if (sp)
+            {
+                GameManager.GetPlayerManagerComponent().TeleportPlayer(sp.transform.position, sp.transform.rotation);
+            }
+            SaveGameSystem.SetAsyncEnabled(false);
+            PendingRespawn = true;
+            GameManager.ForceSaveGame();
+        }
+
+        // Walks the respawning player out of the SeamlessInteriors room they are in and into the room they slept in,
+        // one door per call, then puts them on the sleep place (or a spawn point). Called every second.
+        public static void RespawnThroughSeamlessDoors()
+        {
+            bool toRoom = RespawnTeleportPending && LastSleepInterior != null;
+            if ((!toRoom && !RespawnOutsidePending) || !SeamlessCompat.AllReady())
+            {
+                return;
+            }
+            string want = toRoom ? LastSleepInterior : null;
+            string now = SeamlessCompat.PlayerInterior();
+            RespawnDoorSeconds++;
+            if (now == want && (want == null || SeamlessCompat.IsReady(want)))
+            {
+                RespawnDoorSeconds = 0;
+                RespawnOutsidePending = false;
+                if (want == null)
+                {
+                    TeleportToSpawnPointAndSave();
+                } else
+                {
+                    TeleportToSleepPlaceAndSave();
+                }
+                return;
+            }
+            LoadScene door = now == want ? null : now != null ? SeamlessCompat.ExitDoor(now) : SeamlessCompat.EntryDoor(want);
+            if (RespawnDoorSeconds > 15 || (door == null && now != want))
+            {
+                MelonLogger.Msg("[Respawn] Could not get " + (want == null ? "out of " + now : "into " + want) + " through its door, using a spawn point.");
+                RespawnDoorSeconds = 0;
+                RespawnTeleportPending = false;
+                RespawnOutsidePending = false;
+                TeleportToSpawnPointAndSave();
+                return;
+            }
+            // The door may fade through black first; give it time before using another one.
+            if (door != null && RespawnDoorSeconds % 3 == 1)
+            {
+                MelonLogger.Msg("[Respawn] Using door " + door.gameObject.name + " to " + door.m_SceneToLoad);
+                door.PerformInteraction();
+            }
         }
 
         // HandlePlayerDeath turns off the camera and player audio, bring them back.
@@ -5184,6 +5285,7 @@ namespace SkyCoop
             {
                 PlayersUpdateManager();
                 SceneItemsSync.EverySecond();
+                RespawnThroughSeamlessDoors();
             }
 
            
@@ -5449,7 +5551,7 @@ namespace SkyCoop
             {
                 if (IsCycleSkiping == true && GameManager.m_PlayerManager != null)
                 {
-                    if (GameManager.GetPlayerManagerComponent().PlayerIsSleeping() == false || IsDead == true)
+                    if (IsSleeping == false || IsDead == true)
                     {
                         IsCycleSkiping = false;
                     }
@@ -6202,6 +6304,7 @@ namespace SkyCoop
 
 
             ConsoleManager.CONSOLE_afflictions_cure();
+            ApplyRespawnPenalty();
             }
             catch (Exception e)
             {
@@ -6214,7 +6317,13 @@ namespace SkyCoop
             {
                 if (GameManager.m_ActiveScene == LastSleepScene && level_guid == LastSleepSceneGuid)
                 {
-                    TeleportToSleepPlaceAndSave();
+                    if (LastSleepInterior != null)
+                    {
+                        RespawnTeleportPending = true; // RespawnThroughSeamlessDoors
+                    } else
+                    {
+                        TeleportToSleepPlaceAndSave();
+                    }
                 } else {
                     // FinishedLoading teleports to the bed and saves.
                     // Load it like a door does: GameManager.LoadScene keeps the old scene id, so the game would show
@@ -6239,15 +6348,10 @@ namespace SkyCoop
 
                 Loader.m_SceneToLoad = OutDoorToLoad;
                 Loader.Activate();
+            } else if (SeamlessCompat.PlayerInterior() != null) {
+                RespawnOutsidePending = true; // RespawnThroughSeamlessDoors
             } else {
-                GameObject sp = PlayerManager.PickRandomSpawnPoint();
-                if (sp)
-                {
-                    GameManager.GetPlayerManagerComponent().TeleportPlayer(sp.transform.position, sp.transform.rotation);
-                }
-                SaveGameSystem.SetAsyncEnabled(false);
-                PendingRespawn = true;
-                GameManager.ForceSaveGame();
+                TeleportToSpawnPointAndSave();
             }
         }
 
@@ -6349,6 +6453,8 @@ namespace SkyCoop
                         UnityEngine.UI.Text Comp = newText.GetComponent<UnityEngine.UI.Text>();
                         Comp.text = i + ".";
                         StatusTexes.Add(newText);
+                        StatusKickButtons.Add(MakeKickButton(LoadedAssets, newText, StatusTexes.Count - 1));
+                        StatusRowIds.Add(-1);
                     }
                 }
                 for (int i = 0; i < StatusTexes.Count; i++)
@@ -6367,10 +6473,49 @@ namespace SkyCoop
                             Comp.text = Comp.text + Loc.T("(Loading)");
                         }
 
+                        StatusRowIds[i] = MPs[i].m_ID;
+                        StatusKickButtons[i].SetActive(iAmHost && MPs[i].m_ID > 0);
                         StatusTexes[i].SetActive(true);
                     }
                 }
             }
+        }
+
+        // Host only: a "Kick" label at the right end of a player's row in the Esc players list.
+        public static List<GameObject> StatusKickButtons = new List<GameObject>();
+        public static List<int> StatusRowIds = new List<int>();
+        public static int PendingKickId = -1;
+
+        static GameObject MakeKickButton(GameObject textPrefab, GameObject row, int rowIndex)
+        {
+            GameObject kick = GameObject.Instantiate(textPrefab, row.transform);
+            RectTransform rt = kick.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(1f, 0f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(1f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(120f, 0f);
+            UnityEngine.UI.Text label = kick.GetComponent<UnityEngine.UI.Text>();
+            label.text = "[" + Loc.T("Kick") + "]";
+            label.alignment = TextAnchor.MiddleRight;
+            label.color = new Color(1f, 0.45f, 0.45f);
+            label.raycastTarget = true;
+            UnityEngine.UI.Button btn = kick.AddComponent<UnityEngine.UI.Button>();
+            btn.targetGraphic = label;
+            btn.onClick.AddListener(new Action(() => AskKick(rowIndex)));
+            kick.SetActive(false);
+            return kick;
+        }
+
+        static void AskKick(int rowIndex)
+        {
+            int id = StatusRowIds[rowIndex];
+            if (!iAmHost || id <= 0 || playersData[id] == null)
+            {
+                return;
+            }
+            PendingKickId = id;
+            InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, "Kick player", "\n" + id + ". " + playersData[id].m_Name, "", Panel_Confirmation.ButtonLayout.Button_2, Loc.T("Kick"), Loc.T("Cancel"), Panel_Confirmation.Background.Transperent, null, null);
         }
         public static GameObject new_button = null;
         public static GameObject new_button2 = null;
@@ -6909,7 +7054,7 @@ namespace SkyCoop
         public static void FinishedLoading()
         {
             SceneDiag.Dump("FinishedLoading");
-            if (RespawnTeleportPending)
+            if (RespawnTeleportPending && LastSleepInterior == null)
             {
                 TeleportToSleepPlaceAndSave();
             }
@@ -8817,11 +8962,27 @@ namespace SkyCoop
                 new_button.transform.GetChild(0).gameObject.GetComponent<UIButton>().onClick = null;
             }
         }
+        public static bool CanWaitForEveryone(bool domessage)
+        {
+            Panel_Rest rest = InterfaceManager.GetPanel<Panel_Rest>();
+            return rest != null && (rest.m_ShowPassTime || CanSleep(domessage));
+        }
+
         public static void UpdateSleepScreen()
         {
-            if (WaitForSleepLable != null && WaitForSleepLable.activeSelf == true && CanSleep(false) == false)
+            Panel_Rest rest = InterfaceManager.GetPanel<Panel_Rest>();
+            if (new_button != null)
             {
-                CanSleep(true);
+                // One button serves both tabs: it follows whichever action button is shown.
+                Transform parent = rest.m_ShowPassTime ? rest.m_PassTimeButtonObject.transform.parent : rest.m_SleepButton.transform.parent;
+                if (new_button.transform.parent != parent)
+                {
+                    new_button.transform.SetParent(parent, true);
+                }
+            }
+            if (WaitForSleepLable != null && WaitForSleepLable.activeSelf == true && CanWaitForEveryone(false) == false)
+            {
+                CanWaitForEveryone(true);
                 WaitForSleepLable.SetActive(false);
                 if (SleepingButtons != null)
                 {
@@ -10239,12 +10400,12 @@ namespace SkyCoop
             {
                 IsSleeping = true;
             } else {
-                IsSleeping = GameManager.GetPlayerManagerComponent().PlayerIsSleeping();
+                IsSleeping = GameManager.GetPlayerManagerComponent().PlayerIsSleeping() || (GameManager.GetPassTime() != null && GameManager.GetPassTime().IsPassingTime());
             }
             if (PreviousSleeping != IsSleeping)
             {
                 PreviousSleeping = IsSleeping;
-                if (GameManager.GetRestComponent().IsSleeping() == true || (WaitForSleepLable != null && WaitForSleepLable.activeSelf == true))
+                if (IsSleeping)
                 {
                     MelonLogger.Msg("Going to sleep");
                     MelonLogger.Msg("Skiping Cycle time " + MyCycleSkip);
@@ -12648,7 +12809,7 @@ namespace SkyCoop
                 int PortToHost = Convert.ToInt32(PortsObject.GetComponent<UnityEngine.UI.InputField>().text);
 
                 GameObject FireSyncObj = UIHostMenu.transform.GetChild(9).gameObject;
-                int FireSyncMode = FireSyncObj.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
+                int FireSyncMode = FireSyncObj.GetComponent<UnityEngine.UI.Dropdown>().m_Value == 0 ? 0 : 2; // list is Disabled / Share
 
                 GameObject CheatsListObj = UIHostMenu.transform.GetChild(10).gameObject;
                 int CheatsMode = CheatsListObj.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
@@ -12789,6 +12950,10 @@ namespace SkyCoop
                 dupesCheckbox.GetComponent<UnityEngine.UI.Toggle>().Set(ServerConfig.m_DuppedSpawns);
                 dupesBoxesCheckbox.GetComponent<UnityEngine.UI.Toggle>().Set(ServerConfig.m_DuppedContainers);
                 GameObject SpawnStyleList = UIHostMenu.transform.GetChild(2).gameObject;
+                if (ServerConfig.m_PlayersSpawnType > 3) // "Near host" (4) is not in the spawn style list
+                {
+                    ServerConfig.m_PlayersSpawnType = 0;
+                }
                 SpawnStyleList.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_PlayersSpawnType);
 
                 // Extra option made from a copy of the "Items duplication" row, placed in the free space under the last row.
@@ -12807,7 +12972,6 @@ namespace SkyCoop
                 GameObject FireSyncObj = UIHostMenu.transform.GetChild(9).gameObject;
                 GameObject CheatModeListObj = UIHostMenu.transform.GetChild(10).gameObject;
                 GameObject SteamLobbyType = UIHostMenu.transform.GetChild(11).gameObject;
-                FireSyncObj.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_FireSync);
                 CheatModeListObj.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_CheatsMode);
                 // Remember the last host choice: max players (dropdown starts from 2 players) and the port.
                 UnityEngine.UI.Dropdown PlayersList = UIHostMenu.transform.GetChild(3).GetComponent<UnityEngine.UI.Dropdown>();
@@ -12855,6 +13019,8 @@ namespace SkyCoop
                 }
                 catch (Exception) { }
                 HostMenuSkin.Apply(UIHostMenu, gameFont);
+                // Set after Apply took "Visual" out of the list; a saved "Visual" becomes "Share".
+                FireSyncObj.GetComponent<UnityEngine.UI.Dropdown>().Set(ServerConfig.m_FireSync == 0 ? 0 : 1);
             }
         }
 

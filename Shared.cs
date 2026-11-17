@@ -832,14 +832,27 @@ namespace SkyCoop
                 }
                 if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Rest>() != null)
                 {
-                    InterfaceManager.GetPanel<Panel_Rest>().OnRest();
+                    Panel_Rest rest = InterfaceManager.GetPanel<Panel_Rest>();
+                    // Everyone rests only as long as the shortest timer; the rest of a longer timer is kept for the next rest.
+                    if (FinalHours > 0 && rest.m_SleepHours > FinalHours)
+                    {
+                        MyMod.RestHoursLeft = rest.m_SleepHours - FinalHours;
+                        rest.m_SleepHours = FinalHours;
+                    }
+                    if (rest.m_ShowPassTime)
+                    {
+                        rest.OnPassTime();
+                    } else
+                    {
+                        rest.OnRest();
+                    }
                 }
             }
             if (MyMod.iAmHost == true)
             {
                 if (EveryOneIsSleeping == true)
                 {
-                    if ((GameManager.GetPlayerManagerComponent().PlayerIsSleeping() == true || MyMod.IsDead == true) && MyMod.IsCycleSkiping == false)
+                    if ((MyMod.IsSleeping == true || MyMod.IsDead == true) && MyMod.IsCycleSkiping == false)
                     {
                         Log("Everyone sleep going to skip " + FinalHours);
                         MyMod.IsCycleSkiping = true;
@@ -1110,20 +1123,25 @@ namespace SkyCoop
                     }
                 }
 
+                // Shared rest lasts as long as the shortest timer; zero means dead or not resting.
+                int Skip = 0;
+                foreach (int h in SleepingHours)
+                {
+                    if (h > 0 && (Skip == 0 || h < Skip))
+                    {
+                        Skip = h;
+                    }
+                }
+
                 _packet.Write(ReadCount);
                 for (int i = 0; i < L.Count; i++)
                 {
                     _packet.Write(L[i]);
                 }
+                _packet.Write(Skip);
 
                 ServerSend.SendUDPDataToAll(_packet);
                 MyMod.PlayersOnServer = ReadCount;
-                SleepingHours.Sort();
-                int Skip = 0;
-                if (SleepingHours.Count > 0)
-                {
-                    Skip = SleepingHours[SleepingHours.Count - 1];
-                }
                 ProcessSleep(Sleepers, ReadCount, Deads, Skip);
             }
             return L;

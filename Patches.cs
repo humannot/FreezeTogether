@@ -443,6 +443,23 @@ namespace SkyCoop
                 MyMod.MyCycleSkip = __instance.m_SleepHours;
             }
         }
+        [HarmonyLib.HarmonyPatch]
+        private static class Panel_Rest_Enable
+        {
+            // Panel_Rest has Enable(bool) and Enable(bool, bool passTimeOnly); either can open the panel.
+            static IEnumerable<System.Reflection.MethodBase> TargetMethods() =>
+                typeof(Panel_Rest).GetMethods().Where(m => m.Name == "Enable" && m.DeclaringType == typeof(Panel_Rest));
+
+            // Hours left over from a shared rest cut short by another player's shorter timer.
+            internal static void Postfix(Panel_Rest __instance, bool enable)
+            {
+                if (enable && MyMod.RestHoursLeft > 0)
+                {
+                    __instance.m_SleepHours = MyMod.RestHoursLeft;
+                    MyMod.RestHoursLeft = 0;
+                }
+            }
+        }
         [HarmonyLib.HarmonyPatch(typeof(Panel_Rest), "OnCancel")] // Once
         private static class Panel_Rest_Close
         {
@@ -562,9 +579,10 @@ namespace SkyCoop
                 {
                     MyMod.GiveUp();
                 }
-                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "YOU DIED")
+                if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "KICK PLAYER" && MyMod.iAmHost && MyMod.PendingKickId > 0)
                 {
-                    MyMod.BeginRespawn();
+                    MelonLogger.Msg(Shared.ExecuteCommand("kick " + MyMod.PendingKickId));
+                    MyMod.PendingKickId = -1;
                 }
                 if (__instance.m_CurrentGroup != null && Loc.En(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text) == "INPUT SERVER ADDRESS")
                 {
@@ -2493,9 +2511,9 @@ namespace SkyCoop
                 {
                     if (__instance.gameObject.transform.parent.name == "WaitForEveryoneButton")
                     {
-                        if (MyMod.CanSleep(false) == false)
+                        if (MyMod.CanWaitForEveryone(false) == false)
                         {
-                            MyMod.CanSleep(true);
+                            MyMod.CanWaitForEveryone(true);
                         }
                         else
                         {
@@ -7573,8 +7591,49 @@ namespace SkyCoop
                 }
                 if (MyMod.InOnline())
                 {
-                    // 2.55 enables the back button after a fade we skip, so give a working Respawn button.
-                    MyMod.ShowRespawnPopup();
+                    // Online there is no death screen: giving up respawns at once with a temporary penalty.
+                    MyMod.BeginRespawn();
+                }
+            }
+        }
+        [HarmonyLib.HarmonyPatch(typeof(CameraEffects), "RefreshActiveImageFilter")]
+        private static class CameraEffects_RefreshActiveImageFilter
+        {
+            static bool s_Again = false;
+
+            // Diminished State turns the screen black and white for its whole duration. The game picks the filter
+            // inside this method from the affliction's remaining hours, so online it is picked once more with the
+            // hours hidden: the player's own filter, while the affliction itself stays.
+            private static void Postfix(CameraEffects __instance)
+            {
+                DiminishedState diminished = GameManager.GetDiminishedState();
+                if (s_Again || !MyMod.InOnline() || diminished == null || diminished.m_State == null || diminished.m_State.m_HoursRemaining <= 0f)
+                {
+                    return;
+                }
+                float hours = diminished.m_State.m_HoursRemaining;
+                s_Again = true;
+                try
+                {
+                    diminished.m_State.m_HoursRemaining = 0f;
+                    __instance.RefreshActiveImageFilter();
+                }
+                finally
+                {
+                    diminished.m_State.m_HoursRemaining = hours;
+                    s_Again = false;
+                }
+            }
+        }
+        [HarmonyLib.HarmonyPatch(typeof(CheatDeathAffliction), "Update")]
+        private static class CheatDeathAffliction_Update
+        {
+            // The game makes the penalty permanent when its time runs out; online it only lasts its time.
+            private static void Postfix(CheatDeathAffliction __instance)
+            {
+                if (MyMod.InOnline() && __instance.IsPermanent)
+                {
+                    __instance.Cure(AfflictionOptions.DisplayIcon);
                 }
             }
         }

@@ -29,7 +29,6 @@ namespace SkyCoop
             { "Client's choice", "Выбор клиента" },
             { "Random", "Случайно" },
             { "Fixed place", "Фиксированное" },
-            { "Near host", "Рядом с хостом" },
             { "Players", "Игроки" },
             { "Steam P2P", "Steam P2P" },
             { "Public server", "Публичный сервер" },
@@ -37,7 +36,6 @@ namespace SkyCoop
             { "Default is 26950", "По умолчанию 26950" },
             { "Fire Sync", "Огонь" },
             { "Disabled", "Выключено" },
-            { "Visual", "Только вид" },
             { "Share", "Общий" },
             { "Cheats", "Читы" },
             { "Host only", "Только хост" },
@@ -58,7 +56,7 @@ namespace SkyCoop
             { "SteamWarn", "Не просите помощи с эмуляцией LAN и пробросом портов! Мы не ваш интернет-провайдер, мы только делаем мод." },
             { "SteamMaster", "Отправляет ваш Steam ID на мастер-сервер, чтобы к вам могли зайти случайные игроки.\n\nЕсли хотите играть ТОЛЬКО С ДРУЗЬЯМИ — отключите эту опцию. Если включить, сервер увидят все владельцы игры в Steam в списке серверов." },
             { "Port", "Порт для вашего сервера.\n\nЕсли оставить 26950, игрокам не придётся вводить порт при подключении по IP.\n\nЕсли указать другой порт, клиентам нужно вводить его так: ip:порт (например 127.0.0.1:7777).\n\n(Если не знаете, что это, — не трогайте!)" },
-            { "Fire", "Синхронизация огня.\n\nВыключено — у каждого свой огонь.\n\nТолько вид — вы видите костры и печи других игроков, но не получаете от них тепло, пока не добавите свое топливо.\n\nОбщий — как «Только вид», но если кто-то добавил топливо, у вас тоже добавится столько же. (Общее топливо у всех может отличаться, потому что вы тратите его на пропуск времени и сон.) Когда у вас кончится топливо, огонь станет только визуальным." },
+            { "Fire", "Синхронизация огня.\n\nВыключено — у каждого свой огонь.\n\nОбщий — вы видите костры и печи других игроков, и если кто-то добавил топливо, у вас тоже добавится столько же. (Общее топливо у всех может отличаться, потому что вы тратите его на пропуск времени и сон.) Когда у вас кончится топливо, огонь станет только визуальным." },
             { "Cheats", "Читы (консольные команды).\n\nВыключено — никто не может использовать читы.\nТолько хост — читы доступны только владельцу сервера.\nДля всех — читы доступны любому игроку." },
             { "LobbyType", "Доступ к серверу.\n\nПо приглашению — только вы можете приглашать игроков.\nТолько друзья — любой ваш друг из Steam может зайти без приглашения.\nПубличный — любой игрок может зайти из списка серверов." },
         };
@@ -191,13 +189,18 @@ namespace SkyCoop
                     else if (parentName == "HintPanel")
                     {
                         t.color = TextHint;
+                        string key = n == "Label" ? ControlName(t.transform) : "SteamWarn";
                         if (ru)
                         {
-                            string key = n == "Label" ? ControlName(t.transform) : "SteamWarn";
                             if (RuHints.TryGetValue(key, out string hint))
                             {
                                 t.text = hint;
                             }
+                        }
+                        else if (key == "Fire")
+                        {
+                            // The prefab's text still describes the removed "Visual" mode.
+                            t.text = "Fire sync.\n\nDisabled - everyone has their own fire.\n\nShare - you see other players' fires and stoves, and fuel someone adds is added to yours too. (Shared fuel can differ between players, as you spend it on passing time and sleep.) When your fuel runs out, the fire is only visual.";
                         }
                         t.resizeTextForBestFit = true;
                         t.resizeTextMinSize = 9;
@@ -220,10 +223,10 @@ namespace SkyCoop
                 // Option lists: the shown caption and the opened list are built from these.
                 foreach (Dropdown d in menu.GetComponentsInChildren<Dropdown>(true))
                 {
-                    // Spawn style list: extra "Near host" option (index 4).
-                    if (d.options.Count == 4 && d.options[3].text.Trim() == "Fixed place")
+                    // Fire sync list: no "Visual" mode, the list is Disabled / Share (MyMod.HostMenu maps it to m_FireSync 0 / 2).
+                    if (d.options.Count == 3 && d.options[1].text.Trim() == "Visual")
                     {
-                        d.options.Add(new Dropdown.OptionData("Near host"));
+                        d.options.RemoveAt(1);
                     }
                     if (ru)
                     {

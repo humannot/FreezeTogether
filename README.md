@@ -130,6 +130,10 @@ Reinstalling or updating MelonLoader can wipe `UserLibs`; check that `Steamworks
 - Player appearance (clothing, wear, accessories, held item, animation state, tilt) is sent by each player and applied on everyone else's model.
 - Quitting the game during a network session closes the whole game (by design).
 - Version 0.13.6 changes the floor-record messages: it does not work together with 0.13.5 or older.
+- **Sleep and waiting:** "Wait for everyone" is available for sleeping and for "Pass time". Everyone rests for the shortest remaining timer among the players; the rest of a longer timer is kept for the next rest. Players in different scenes are counted together.
+- **Dying:** after "Give up" the player respawns at once (no stats screen) where they last slept indoors, including rooms of SeamlessInteriors buildings, which are entered through the building's doors. The respawn costs the game's own temporary penalties: Cheat Death (480 hours) and Diminished State (60 hours), without the black-and-white image filter. The penalty is never made permanent online, and the "You are down" window says so.
+- **Host tools:** the host can kick a player from the player list in the Esc menu, and can close a Steam P2P lobby from the lobby menu. The server settings no longer offer the "Near host" spawn style or the "Visual" fire sync (a saved "Visual" becomes "Share").
+- Fires and the host's weather set are reapplied when a SeamlessInteriors building is entered.
 
 ---
 
@@ -181,7 +185,7 @@ The project references the game's generated `MelonLoader\Il2CppAssemblies`. The 
 ---
 
 ## Known limitations
-- **Testing:** the build loads and its patches apply. Multiplayer with two or more players, and the features new in 0.13.6, have **not** been tested in game yet: per-building floor records, right-click moving of other players' items, the revive stim effects, the satchel and the new held-item placements.
+- **Testing:** the build loads and its patches apply. Multiplayer with two or more players, and the features new in 0.13.6, have **not** been tested in game yet: per-building floor records, right-click moving of other players' items, the revive stim effects, the satchel, the new held-item placements, "Wait for everyone" for passing time, the respawn through SeamlessInteriors doors and its penalties, kicking from the Esc list and closing a Steam lobby.
 - Cooking is not synchronized (only the player who placed the pot sees it).
 - The wood stove door (open/closed) may differ between players.
 - Fire timers are not kept equal. If a player skipped time (waited or slept), their fire timer goes down. When another player adds fuel, the timer of the player who skipped time goes up to the level of that player. This is an exploit of the time skip, not an intended mechanic.

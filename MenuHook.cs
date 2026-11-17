@@ -959,6 +959,12 @@ namespace SkyCoop
                 }else{
                     OverrideMenuButton(Grid, 2, "INVITE FRIEND");
                     OverrideMenuButton(Grid, 3, "COPY INVITE LINK");
+                    if (Lobby.IsHost)
+                    {
+                        // Slot 4 has no menu model of its own, put it under slot 3 like the menu grid would.
+                        Grid.GetChild(4).localPosition = Grid.GetChild(3).localPosition + (Grid.GetChild(3).localPosition - Grid.GetChild(2).localPosition);
+                        OverrideMenuButton(Grid, 4, "CLOSE LOBBY");
+                    }
                 }
                 MyMod.LobbyUI.SetActive(true);
                 MyMod.LobbyRegion.SetActive(VoteInProcess() && CanVoteForRegion());
@@ -1282,6 +1288,15 @@ namespace SkyCoop
                                     else if (SteamConnect.CanUseSteam)
                                     {
                                         SteamConnect.Main.MakeFriendListUI();
+                                    }
+                                }
+                                else if (CustomId == 4)
+                                {
+                                    if (!IpLobby.Active && SteamConnect.CanUseSteam && Lobby.IsHost)
+                                    {
+                                        SteamConnect.Main.CloseMyLobby();
+                                        CloseLobbyUI();
+                                        ChangeMenuItems("Multiplayer");
                                     }
                                 }
                                 else if (CustomId == 3)

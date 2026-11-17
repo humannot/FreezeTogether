@@ -266,6 +266,13 @@ namespace SkyCoop
             {
                 if (!bIOFailure)
                 {
+                    if (pCallback.m_eResult == EResult.k_EResultOK && !IsMyLobby)
+                    {
+                        // Closed by the host while Steam was still creating it.
+                        SteamMatchmaking.LeaveLobby(new CSteamID(pCallback.m_ulSteamIDLobby));
+                        MelonLogger.Msg("[SteamWorks.NET] Lobby " + pCallback.m_ulSteamIDLobby + " was closed before it was created, left it");
+                        return;
+                    }
                     if(pCallback.m_eResult == EResult.k_EResultOK)
                     {
                         MelonLogger.Msg("[SteamWorks.NET] Lobby created " + pCallback.m_ulSteamIDLobby);
@@ -769,6 +776,18 @@ namespace SkyCoop
                         }
 
                         string LobbyState = SteamMatchmaking.GetLobbyData(lobbyID, "State");
+                        if (LobbyState == "Closed")
+                        {
+                            MelonLogger.Msg("[SteamWorks.NET] The host closed the lobby");
+                            LeaveJoinedLobby();
+                            if (MyMod.level_name == "MainMenu")
+                            {
+                                MenuChange.CloseLobbyUI();
+                                MenuChange.ChangeMenuItems("Multiplayer");
+                                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "The host closed the lobby.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                            }
+                            return;
+                        }
                         string Previous = MyMod.LobbyState;
                         if (LobbyState != null && LobbyState != "")
                         {
@@ -1120,6 +1139,30 @@ namespace SkyCoop
                 MyMod.MyLobby = "";
                 MyMod.SteamServerWorks = "";
                 MyMod.ConnectedSteamWorks = false;
+                SteamFriends.ClearRichPresence();
+            }
+
+            // Host: the lobby is marked closed for its members, who leave it on their next lobby update, and left.
+            // Leaving alone would hand the lobby to another member instead of closing it.
+            public static void CloseMyLobby()
+            {
+                MyMod.TryMakeLobbyAgain = -1;
+                MyMod.StartSteamHostAfterLobby = false;
+                if (IsMyLobby && ulong.TryParse(MyMod.MyLobby, out ulong lobby))
+                {
+                    CSteamID id = new CSteamID(lobby);
+                    SteamMatchmaking.SetLobbyData(id, "State", "Closed");
+                    SteamMatchmaking.SetLobbyJoinable(id, false);
+                    SteamMatchmaking.LeaveLobby(id);
+                    MelonLogger.Msg("[SteamWorks.NET] Closed lobby " + MyMod.MyLobby);
+                }
+                foreach (ulong member in new List<ulong>(MyMod.LobbyElements.Keys))
+                {
+                    MyMod.RemovePersonFromLobby(member);
+                }
+                IsMyLobby = false;
+                MyMod.MyLobby = "";
+                MyMod.LobbyState = "";
                 SteamFriends.ClearRichPresence();
             }
 
