@@ -1373,7 +1373,8 @@ namespace SkyCoop
                 WeatherSetData weatherSet1 = null;
 
 
-                if (Weather.m_WeatherSetsForScene.Count - 1 <= Indx)
+                // the sender's set by index; scenes of one region list the same sets
+                if (Indx >= 0 && Indx < Weather.m_WeatherSetsForScene.Count)
                 {
                     weatherSet1 = Weather.m_WeatherSetsForScene[Indx];
                 } else

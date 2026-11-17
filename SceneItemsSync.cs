@@ -159,6 +159,7 @@ namespace SkyCoop
             s_PendingFloor.Clear();
             s_FloorSent.Clear();
             s_OpenRooms.Clear();
+            s_FireAppliedIn = null;
             s_Ready = false;
             if (!MyMod.InOnline())
             {
@@ -353,6 +354,7 @@ namespace SkyCoop
                 {
                     s_PickedSent.TryGetValue(MyMod.level_guid, out picked);
                 }
+                ApplyFiresAgain();
                 if (picked == null)
                 {
                     continue;
@@ -377,6 +379,16 @@ namespace SkyCoop
                 if (!string.IsNullOrEmpty(interior))
                 {
                     CheckArea(interior);
+                    // a building already open (seen from outside) is not opened again on entry
+                    if (interior != s_FireAppliedIn && SeamlessCompat.IsReady(interior))
+                    {
+                        s_FireAppliedIn = interior;
+                        ApplyFiresAgain();
+                    }
+                }
+                else
+                {
+                    s_FireAppliedIn = null;
                 }
             }
             if (++s_Tick < TickSeconds)
@@ -983,6 +995,59 @@ namespace SkyCoop
             s_KnownFire[guid] = SigOf(f);
         }
 
+        // Client: the scene's last fire states, already on this player's clock. A stove in a closed SeamlessInteriors
+        // room does not exist, so its state is applied again when the room opens.
+        static string s_FireScene;
+        static string s_FireAppliedIn; // building this player is in whose fires were applied on entry
+        static readonly Dictionary<string, string> s_FireIn = new Dictionary<string, string>();
+
+        static void RememberFire(string scene, string guid, string state)
+        {
+            if (MyMod.iAmHost)
+            {
+                return; // the host's scene store has them
+            }
+            if (s_FireScene != scene)
+            {
+                s_FireScene = scene;
+                s_FireIn.Clear();
+            }
+            if (state == null)
+            {
+                s_FireIn.Remove(guid);
+            }
+            else
+            {
+                s_FireIn[guid] = state;
+            }
+        }
+
+        static void ApplyFiresAgain()
+        {
+            if (!FireSyncOn())
+            {
+                return;
+            }
+            string scene = MyMod.level_guid;
+            if (MyMod.iAmHost)
+            {
+                foreach (var item in Load(scene).ToList())
+                {
+                    if (item.Key.StartsWith(FirePrefix))
+                    {
+                        OnFireState(item.Key.Substring(FirePrefix.Length), item.Value);
+                    }
+                }
+            }
+            else if (s_FireScene == scene)
+            {
+                foreach (var item in s_FireIn.ToList())
+                {
+                    OnFireState(item.Key, item.Value);
+                }
+            }
+        }
+
         static void RemoveFire(string guid)
         {
             s_KnownFire.Remove(guid);
@@ -1098,9 +1163,12 @@ namespace SkyCoop
                     RemoveNear(key, pos);
                     break;
                 case KindFire:
-                    OnFireState(key, Rebase(state, pos.x));
+                    state = Rebase(state, pos.x);
+                    RememberFire(scene, key, state);
+                    OnFireState(key, state);
                     break;
                 case KindFireRemove:
+                    RememberFire(scene, key, null);
                     RemoveFire(key);
                     break;
                 case KindFloorPart:
